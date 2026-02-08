@@ -58,6 +58,8 @@ Visit `/support` — you're live.
 
 Escalated uses Inertia.js with Vue 3. The frontend components are provided by the [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated) npm package.
 
+### Page Resolver
+
 Add the Escalated pages to your Inertia page resolver:
 
 ```javascript
@@ -67,7 +69,6 @@ import { createInertiaApp } from '@inertiajs/vue3'
 
 createInertiaApp({
   resolve: name => {
-    // Check Escalated pages first
     if (name.startsWith('Escalated/')) {
       const escalatedPages = import.meta.glob(
         '../../../node_modules/@escalated-dev/escalated/src/pages/**/*.vue',
@@ -77,7 +78,6 @@ createInertiaApp({
       return escalatedPages[`../../../node_modules/@escalated-dev/escalated/src/pages/${pageName}.vue`]
     }
 
-    // Your app pages
     const pages = import.meta.glob('../pages/**/*.vue', { eager: true })
     return pages[`../pages/${name}.vue`]
   },
@@ -88,6 +88,34 @@ createInertiaApp({
   },
 })
 ```
+
+### Theming (Optional)
+
+Register the `EscalatedPlugin` to render Escalated pages inside your app's layout — no page duplication needed:
+
+```javascript
+import { EscalatedPlugin } from '@escalated-dev/escalated'
+import AppLayout from '@/layouts/AppLayout.vue'
+
+createInertiaApp({
+  setup({ el, App, props, plugin }) {
+    createApp({ render: () => h(App, props) })
+      .use(plugin)
+      .use(EscalatedPlugin, {
+        layout: AppLayout,
+        theme: {
+          primary: '#3b82f6',
+          radius: '0.75rem',
+        }
+      })
+      .mount(el)
+  },
+})
+```
+
+Your layout component must accept a `#header` slot and a default slot. Escalated will render its sub-navigation in the header and page content in the default slot. Without the plugin, Escalated uses its own standalone layout.
+
+See the [`@escalated-dev/escalated` README](https://github.com/escalated-dev/escalated) for full theming documentation and CSS custom properties.
 
 ## Hosting Modes
 

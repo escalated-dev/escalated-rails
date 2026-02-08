@@ -31,6 +31,17 @@ Escalated::Engine.routes.draw do
 
   # Admin routes
   namespace :admin do
+    resources :tickets, only: [:index, :show] do
+      member do
+        post :reply
+        post :note
+        post :assign
+        post :status
+        post :priority
+        post :tags
+        post :department
+      end
+    end
     resources :departments
     resources :sla_policies
     resources :escalation_rules

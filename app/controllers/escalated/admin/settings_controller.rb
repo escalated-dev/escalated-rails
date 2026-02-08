@@ -25,6 +25,12 @@ module Escalated
           Escalated::EscalatedSetting.set(key, [0, int_val].max.to_s) if int_val >= 0
         end
 
+        # String settings
+        prefix = params[:ticket_reference_prefix].to_s.strip
+        if prefix.present? && prefix.match?(/\A[a-zA-Z0-9]+\z/) && prefix.length <= 10
+          Escalated::EscalatedSetting.set("ticket_reference_prefix", prefix)
+        end
+
         redirect_to escalated.admin_settings_path, notice: "Settings updated successfully."
       end
 

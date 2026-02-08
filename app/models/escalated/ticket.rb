@@ -60,7 +60,7 @@ module Escalated
     scope :recent, -> { order(created_at: :desc) }
 
     def self.generate_reference
-      prefix = "ESC"
+      prefix = Escalated::EscalatedSetting.get("ticket_reference_prefix", "ESC")
       timestamp = Time.current.strftime("%y%m")
       sequence = SecureRandom.alphanumeric(6).upcase
       "#{prefix}-#{timestamp}-#{sequence}"

@@ -26,7 +26,8 @@ module Escalated
           route_prefix: Escalated.configuration.route_prefix,
           allow_customer_close: Escalated.configuration.allow_customer_close,
           max_attachments: Escalated.configuration.max_attachments,
-          max_attachment_size_kb: Escalated.configuration.max_attachment_size_kb
+          max_attachment_size_kb: Escalated.configuration.max_attachment_size_kb,
+          guest_tickets_enabled: Escalated::EscalatedSetting.guest_tickets_enabled?
         },
         flash: {
           success: flash[:success],

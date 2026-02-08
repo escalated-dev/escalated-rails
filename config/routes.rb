@@ -37,6 +37,16 @@ Escalated::Engine.routes.draw do
     resources :tags, only: [:index, :create, :update, :destroy]
     resources :canned_responses, only: [:index, :create, :update, :destroy]
     get :reports, to: "reports#index"
+    get :settings, to: "settings#index"
+    post :settings, to: "settings#update"
+  end
+
+  # Guest routes (no authentication required)
+  namespace :guest do
+    get "create", to: "tickets#create"
+    post "/", to: "tickets#store", as: :tickets
+    get ":token", to: "tickets#show", as: :ticket
+    post ":token/reply", to: "tickets#reply", as: :ticket_reply
   end
 
   # Root redirect to customer tickets

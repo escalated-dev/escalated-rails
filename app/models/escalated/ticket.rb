@@ -2,7 +2,7 @@ module Escalated
   class Ticket < ApplicationRecord
     self.table_name = Escalated.table_name("tickets")
 
-    belongs_to :requester, polymorphic: true
+    belongs_to :requester, polymorphic: true, optional: true
     belongs_to :assignee,
                class_name: Escalated.configuration.user_class,
                optional: true,
@@ -110,6 +110,28 @@ module Escalated
       return nil unless resolved_at
 
       resolved_at - created_at
+    end
+
+    # Guest ticket helpers
+
+    def guest?
+      requester_type.nil? && guest_token.present?
+    end
+
+    def requester_name
+      return guest_name || "Guest" if guest?
+
+      if requester
+        requester.respond_to?(:name) ? requester.name : requester.to_s
+      else
+        "Unknown"
+      end
+    end
+
+    def requester_email
+      return guest_email || "" if guest?
+
+      requester&.respond_to?(:email) ? requester.email : ""
     end
 
     private

@@ -16,7 +16,25 @@ module Escalated
                   :sla,
                   :notification_channels,
                   :webhook_url,
-                  :storage_service
+                  :storage_service,
+                  # Inbound email settings
+                  :inbound_email_enabled,
+                  :inbound_email_adapter,
+                  :inbound_email_address,
+                  # Mailgun
+                  :mailgun_signing_key,
+                  # Postmark
+                  :postmark_inbound_token,
+                  # AWS SES
+                  :ses_region,
+                  :ses_topic_arn,
+                  # IMAP
+                  :imap_host,
+                  :imap_port,
+                  :imap_encryption,
+                  :imap_username,
+                  :imap_password,
+                  :imap_mailbox
 
     def initialize
       @mode = :self_hosted
@@ -45,6 +63,21 @@ module Escalated
       @notification_channels = [:email]
       @webhook_url = nil
       @storage_service = :local
+
+      # Inbound email defaults
+      @inbound_email_enabled = false
+      @inbound_email_adapter = nil  # :mailgun, :postmark, :ses, :imap
+      @inbound_email_address = nil  # e.g., "support@yourdomain.com"
+      @mailgun_signing_key = nil
+      @postmark_inbound_token = nil
+      @ses_region = nil
+      @ses_topic_arn = nil
+      @imap_host = nil
+      @imap_port = 993
+      @imap_encryption = :ssl
+      @imap_username = nil
+      @imap_password = nil
+      @imap_mailbox = "INBOX"
     end
 
     def self_hosted?

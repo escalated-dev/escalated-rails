@@ -60,6 +60,9 @@ Escalated::Engine.routes.draw do
     post ":token/reply", to: "tickets#reply", as: :ticket_reply
   end
 
+  # Inbound email webhook (no authentication — verified by adapter)
+  post "inbound/:adapter", to: "inbound#webhook", as: :inbound_webhook
+
   # Root redirect to customer tickets
   root to: "customer/tickets#index"
 end

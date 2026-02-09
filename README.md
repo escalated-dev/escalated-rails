@@ -17,6 +17,8 @@ A full-featured, embeddable support ticket system for Rails. Drop it into any ap
 - **Email notifications** — Configurable per-event notifications with webhook support
 - **Department routing** — Organize agents into departments with auto-assignment (round-robin)
 - **Tagging system** — Categorize tickets with colored tags
+- **Guest tickets** — Anonymous ticket submission with magic-link access via guest token
+- **Inbound email** — Create and reply to tickets via email (Mailgun, Postmark, AWS SES, IMAP)
 - **Inertia.js + Vue 3 UI** — Shared frontend via [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated)
 
 ## Requirements
@@ -258,6 +260,68 @@ ActiveSupport::Notifications.subscribe("escalated.ticket_created") do |event|
   # Handle new ticket
 end
 ```
+
+## Inbound Email
+
+Create and reply to tickets from incoming emails. Supports **Mailgun**, **Postmark**, **AWS SES** webhooks, and **IMAP** polling.
+
+### Enable
+
+```ruby
+# config/initializers/escalated.rb
+Escalated.configure do |config|
+  config.inbound_email_enabled = true
+  config.inbound_email_adapter = :mailgun
+  config.inbound_email_address = "support@yourapp.com"
+
+  # Mailgun
+  config.mailgun_signing_key = ENV["ESCALATED_MAILGUN_SIGNING_KEY"]
+
+  # Postmark
+  config.postmark_inbound_token = ENV["ESCALATED_POSTMARK_INBOUND_TOKEN"]
+
+  # AWS SES
+  config.ses_region = "us-east-1"
+  config.ses_topic_arn = ENV["ESCALATED_SES_TOPIC_ARN"]
+
+  # IMAP
+  config.imap_host = ENV["ESCALATED_IMAP_HOST"]
+  config.imap_port = 993
+  config.imap_encryption = :ssl
+  config.imap_username = ENV["ESCALATED_IMAP_USERNAME"]
+  config.imap_password = ENV["ESCALATED_IMAP_PASSWORD"]
+  config.imap_mailbox = "INBOX"
+end
+```
+
+### Webhook URLs
+
+| Provider | URL |
+|----------|-----|
+| Mailgun | `POST /support/inbound/mailgun` |
+| Postmark | `POST /support/inbound/postmark` |
+| AWS SES | `POST /support/inbound/ses` |
+
+### IMAP Polling
+
+Schedule `Escalated::PollImapJob` with Solid Queue, Sidekiq, or whenever:
+
+```ruby
+# config/recurring.yml (Solid Queue)
+poll_imap:
+  class: Escalated::PollImapJob
+  schedule: every minute
+```
+
+### Features
+
+- Thread detection via subject reference and `In-Reply-To` / `References` headers
+- Guest tickets for unknown senders with auto-derived display names
+- Auto-reopen resolved/closed tickets on email reply
+- Duplicate detection via `Message-ID` headers
+- Attachment handling with configurable size and count limits
+- Audit logging of every inbound email
+- All settings configurable from admin panel with env fallback
 
 ## Also Available For
 

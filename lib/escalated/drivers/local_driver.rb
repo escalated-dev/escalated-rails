@@ -1,6 +1,8 @@
 module Escalated
   module Drivers
     class LocalDriver
+      ALLOWED_SORT_COLUMNS = %w[created_at updated_at status priority subject reference assigned_to department_id resolved_at closed_at].freeze
+
       def create_ticket(params)
         ticket = Escalated::Ticket.new(
           subject: params[:subject],
@@ -168,8 +170,9 @@ module Escalated
           scope = scope.breached_sla
         end
 
-        order_col = filters[:order_by] || :created_at
-        order_dir = filters[:order_dir] || :desc
+        order_col = filters[:order_by].to_s
+        order_col = 'created_at' unless ALLOWED_SORT_COLUMNS.include?(order_col)
+        order_dir = filters[:order_dir].to_s.downcase == 'asc' ? :asc : :desc
         scope = scope.order(order_col => order_dir)
 
         if filters[:page].present?

@@ -41,12 +41,14 @@ module Escalated
         # @param request [ActionDispatch::Request]
         # @return [Boolean]
         def verify_request(request)
-          token = Escalated.configuration.postmark_inbound_token
-          return true if token.blank? # Skip verification if no token configured
+          token = Escalated.configuration.postmark_inbound_token.presence || Escalated::EscalatedSetting.get('postmark_inbound_token')
+          if token.blank?
+            Rails.logger.warn('Escalated: Postmark inbound token not configured — rejecting request.')
+            return false
+          end
 
-          # Postmark doesn't sign webhooks, so we rely on the inbound address
-          # token matching. The webhook URL itself serves as authentication.
-          true
+          request_token = request.headers['X-Postmark-Token'].to_s
+          ActiveSupport::SecurityUtils.secure_compare(request_token, token)
         end
 
         private

@@ -1,6 +1,17 @@
 module Escalated
   module Services
     class InboundEmailService
+      ALLOWED_TAGS = %w[p br b strong i em u a ul ol li h1 h2 h3 h4 h5 h6 blockquote pre code table thead tbody tr th td img hr div span sub sup].freeze
+
+      BLOCKED_EXTENSIONS = %w[
+        exe bat cmd com msi scr pif vbs vbe
+        js jse wsf wsh ps1 psm1 psd1 reg
+        cpl hta inf lnk sct shb sys drv
+        php phtml php3 php4 php5 phar
+        sh bash csh ksh pl py rb
+        dll so dylib
+      ].freeze
+
       class << self
         # Process an inbound email message and create/reply to a ticket.
         #
@@ -54,7 +65,7 @@ module Escalated
             to_email: message.to_email,
             subject: message.subject,
             body_text: message.body_text,
-            body_html: message.body_html,
+            body_html: sanitize_html(message.body_html),
             raw_headers: message.raw_headers_string,
             adapter: adapter_name,
             status: :pending
@@ -114,7 +125,7 @@ module Escalated
         # @return [Escalated::Reply]
         def add_reply_to_ticket(ticket, message)
           author = find_user_by_email(message.from_email)
-          body = message.body
+          body = get_sanitized_body(message)
 
           if body.blank?
             body = "(empty reply from #{message.from_email})"
@@ -141,7 +152,7 @@ module Escalated
         def create_new_ticket(message)
           user = find_user_by_email(message.from_email)
           subject = message.clean_subject.presence || message.subject
-          description = message.body
+          description = get_sanitized_body(message)
 
           if description.blank?
             description = "(no content)"
@@ -181,6 +192,42 @@ module Escalated
           )
 
           ticket
+        end
+
+        def sanitize_html(html)
+          return html if html.blank?
+
+          # Use Rails' built-in sanitizer if available
+          if defined?(ActionView::Base)
+            ActionView::Base.safe_list_sanitizer.new.sanitize(
+              html,
+              tags: ALLOWED_TAGS,
+              attributes: %w[href src alt title class style id]
+            )
+          else
+            # Fallback: strip all tags except allowed
+            clean = html.dup
+            # Remove script tags and their content
+            clean.gsub!(/<script\b[^>]*>.*?<\/script>/mi, '')
+            # Remove event handlers
+            clean.gsub!(/\s+on\w+\s*=\s*["'][^"']*["']/i, '')
+            clean.gsub!(/\s+on\w+\s*=\s*\S+/i, '')
+            # Remove javascript: protocol
+            clean.gsub!(/\b(href|src|action)\s*=\s*["']?\s*javascript\s*:/i, '\1="')
+            # Remove dangerous data: URLs
+            clean.gsub!(/\b(href|src|action)\s*=\s*["']?\s*data\s*:(?!image\/)/i, '\1="')
+            clean
+          end
+        end
+
+        def get_sanitized_body(message)
+          if message.body_text.present?
+            message.body_text
+          elsif message.body_html.present?
+            sanitize_html(message.body_html) || ''
+          else
+            ''
+          end
         end
 
         # Look up a user in the host application by email.

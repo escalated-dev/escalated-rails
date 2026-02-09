@@ -3,9 +3,16 @@ module Escalated
     class SettingsController < Escalated::ApplicationController
       before_action :require_admin!
 
+      SENSITIVE_KEYS = %w[mailgun_signing_key postmark_inbound_token imap_password].freeze
+
       def index
+        settings = Escalated::EscalatedSetting.all_as_hash
+        SENSITIVE_KEYS.each do |key|
+          settings[key] = mask_secret(settings[key]) if settings.key?(key)
+        end
+
         render inertia: "Escalated/Admin/Settings", props: {
-          settings: Escalated::EscalatedSetting.all_as_hash
+          settings: settings
         }
       end
 
@@ -54,14 +61,18 @@ module Escalated
           Escalated::EscalatedSetting.set("inbound_email_address", "")
         end
 
-        # Adapter-specific string settings (only save if present)
+        # Adapter-specific string settings (only save if present, skip masked values)
         %w[
           mailgun_signing_key postmark_inbound_token
           ses_region ses_topic_arn
           imap_host imap_username imap_password imap_mailbox
         ].each do |key|
+          next unless params.key?(key)
+
           raw = params[key].to_s.strip
-          Escalated::EscalatedSetting.set(key, raw) if params.key?(key)
+          next if SENSITIVE_KEYS.include?(key) && masked_value?(raw)
+
+          Escalated::EscalatedSetting.set(key, raw)
         end
 
         # IMAP port (integer)
@@ -75,6 +86,21 @@ module Escalated
         if encryption.present? && %w[ssl tls starttls none].include?(encryption)
           Escalated::EscalatedSetting.set("imap_encryption", encryption)
         end
+      end
+
+      def mask_secret(value)
+        return '' if value.blank?
+
+        len = value.length
+        return '*' * len if len <= 6
+
+        value[0, 3] + '*' * [len - 3, 12].min
+      end
+
+      def masked_value?(value)
+        return false if value.blank?
+
+        value.match?(/\A.{0,3}\*{3,}\z/)
       end
 
       def admin_settings_path

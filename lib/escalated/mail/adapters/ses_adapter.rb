@@ -47,7 +47,10 @@ module Escalated
         # @return [Boolean]
         def verify_request(request)
           topic_arn = Escalated.configuration.ses_topic_arn
-          return true if topic_arn.blank? # Skip verification if no ARN configured
+          if topic_arn.blank?
+            Rails.logger.warn('Escalated: SES Topic ARN not configured — rejecting request.')
+            return false
+          end
 
           body = parse_sns_body(request)
           return false unless body
@@ -75,17 +78,30 @@ module Escalated
 
         def confirm_subscription(body)
           subscribe_url = body["SubscribeURL"]
-          if subscribe_url.present?
-            Rails.logger.info("[Escalated::SesAdapter] Confirming SNS subscription: #{subscribe_url}")
-            Thread.new do
-              begin
-                uri = URI.parse(subscribe_url)
-                Net::HTTP.get(uri)
-              rescue StandardError => e
-                Rails.logger.error("[Escalated::SesAdapter] Failed to confirm subscription: #{e.message}")
-              end
+
+          unless subscribe_url.present? && valid_sns_url?(subscribe_url)
+            Rails.logger.warn("Escalated: Rejected SNS SubscribeURL — not a valid Amazon SNS URL. url=#{subscribe_url}")
+            return
+          end
+
+          Rails.logger.info("[Escalated::SesAdapter] Confirming SNS subscription: #{subscribe_url}")
+          Thread.new do
+            begin
+              uri = URI.parse(subscribe_url)
+              Net::HTTP.get(uri)
+            rescue StandardError => e
+              Rails.logger.error("[Escalated::SesAdapter] Failed to confirm subscription: #{e.message}")
             end
           end
+        end
+
+        def valid_sns_url?(url)
+          return false if url.blank?
+
+          uri = URI.parse(url)
+          uri.scheme == 'https' && uri.host.match?(/\Asns\.[a-z0-9-]+\.amazonaws\.com\z/)
+        rescue URI::InvalidURIError
+          false
         end
 
         def parse_ses_message(message_string)

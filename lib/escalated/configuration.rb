@@ -34,7 +34,12 @@ module Escalated
                   :imap_encryption,
                   :imap_username,
                   :imap_password,
-                  :imap_mailbox
+                  :imap_mailbox,
+                  # REST API settings
+                  :api_enabled,
+                  :api_rate_limit,
+                  :api_token_expiry_days,
+                  :api_prefix
 
     def initialize
       @mode = :self_hosted
@@ -78,6 +83,12 @@ module Escalated
       @imap_username = nil
       @imap_password = nil
       @imap_mailbox = "INBOX"
+
+      # REST API defaults
+      @api_enabled = false
+      @api_rate_limit = 60
+      @api_token_expiry_days = nil
+      @api_prefix = "support/api/v1"
     end
 
     def self_hosted?

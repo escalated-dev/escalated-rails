@@ -82,6 +82,16 @@ Escalated.configure do |config|
   config.webhook_url = nil
 
   # ============================================================
+  # Plugin System
+  # ============================================================
+  # Enable the plugin system (default: false)
+  config.plugins_enabled = false
+
+  # Directory where plugins are installed
+  # Defaults to Rails.root.join("plugins/escalated") when nil
+  # config.plugins_path = Rails.root.join("plugins", "escalated").to_s
+
+  # ============================================================
   # Cloud Configuration (only for :synced and :cloud modes)
   # ============================================================
   # config.hosted_api_url = "https://cloud.escalated.dev/api/v1"

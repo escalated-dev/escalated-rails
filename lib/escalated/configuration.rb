@@ -17,6 +17,9 @@ module Escalated
                   :notification_channels,
                   :webhook_url,
                   :storage_service,
+                  # Plugin system
+                  :plugins_enabled,
+                  :plugins_path,
                   # Inbound email settings
                   :inbound_email_enabled,
                   :inbound_email_adapter,
@@ -64,6 +67,10 @@ module Escalated
       @webhook_url = nil
       @storage_service = :local
 
+      # Plugin system defaults
+      @plugins_enabled = false
+      @plugins_path = nil  # Set at boot time if nil (defaults to Rails.root.join("plugins/escalated"))
+
       # Inbound email defaults
       @inbound_email_enabled = false
       @inbound_email_adapter = nil  # :mailgun, :postmark, :ses, :imap
@@ -102,6 +109,10 @@ module Escalated
 
     def business_hours
       sla[:business_hours] || {}
+    end
+
+    def plugins_enabled?
+      plugins_enabled == true
     end
 
     def user_model

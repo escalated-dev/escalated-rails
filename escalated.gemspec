@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 3.1"
 
-  spec.files = Dir["lib/**/*", "app/**/*", "config/**/*", "db/**/*", "resources/**/*", "LICENSE", "README.md"]
+  spec.files = Dir["lib/**/*", "app/**/*", "config/**/*", "db/**/*", "resources/**/*", "stubs/**/*", "LICENSE", "README.md"]
 
   spec.add_dependency "rails", ">= 7.0"
   spec.add_dependency "inertia_rails", ">= 3.0"

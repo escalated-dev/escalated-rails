@@ -20,14 +20,15 @@ module Escalated
     end
 
     def set_inertia_shared_data
-      inertia_share(
+      shared = {
         current_user: current_user_data,
         escalated: {
           route_prefix: Escalated.configuration.route_prefix,
           allow_customer_close: Escalated.configuration.allow_customer_close,
           max_attachments: Escalated.configuration.max_attachments,
           max_attachment_size_kb: Escalated.configuration.max_attachment_size_kb,
-          guest_tickets_enabled: Escalated::EscalatedSetting.guest_tickets_enabled?
+          guest_tickets_enabled: Escalated::EscalatedSetting.guest_tickets_enabled?,
+          plugins_enabled: Escalated.configuration.plugins_enabled?,
         },
         flash: {
           success: flash[:success],
@@ -35,7 +36,14 @@ module Escalated
           notice: flash[:notice],
           alert: flash[:alert]
         }
-      )
+      }
+
+      # Share plugin UI data when plugin system is enabled
+      if Escalated.configuration.plugins_enabled?
+        shared[:plugin_ui] = Escalated.plugin_ui.to_shared_data
+      end
+
+      inertia_share(shared)
     end
 
     def current_user_data

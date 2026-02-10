@@ -4,7 +4,7 @@ module Escalated
       protect_from_forgery with: :exception
 
       before_action :ensure_guest_tickets_enabled
-      before_action :set_ticket_by_token, only: [:show, :reply]
+      before_action :set_ticket_by_token, only: [:show, :reply, :rate]
       before_action :set_inertia_shared_data
 
       def create
@@ -106,6 +106,34 @@ module Escalated
         redirect_to "#{escalated_mount_path}/guest/#{params[:token]}", alert: e.message
       end
 
+      def rate
+        unless %w[resolved closed].include?(@ticket.status)
+          redirect_to "#{escalated_mount_path}/guest/#{params[:token]}",
+                      alert: "You can only rate resolved or closed tickets."
+          return
+        end
+
+        if @ticket.satisfaction_rating.present?
+          redirect_to "#{escalated_mount_path}/guest/#{params[:token]}",
+                      alert: "This ticket has already been rated."
+          return
+        end
+
+        rating = Escalated::SatisfactionRating.new(
+          ticket: @ticket,
+          rating: params[:rating].to_i,
+          comment: params[:comment]
+        )
+
+        if rating.save
+          redirect_to "#{escalated_mount_path}/guest/#{params[:token]}",
+                      notice: "Thank you for your feedback!"
+        else
+          redirect_to "#{escalated_mount_path}/guest/#{params[:token]}",
+                      alert: rating.errors.full_messages.join(", ")
+        end
+      end
+
       private
 
       def ensure_guest_tickets_enabled
@@ -167,7 +195,13 @@ module Escalated
           requester_email: ticket.requester_email,
           department: ticket.department ? { id: ticket.department.id, name: ticket.department.name } : nil,
           created_at: ticket.created_at&.iso8601,
-          updated_at: ticket.updated_at&.iso8601
+          updated_at: ticket.updated_at&.iso8601,
+          satisfaction_rating: ticket.satisfaction_rating ? {
+            id: ticket.satisfaction_rating.id,
+            rating: ticket.satisfaction_rating.rating,
+            comment: ticket.satisfaction_rating.comment,
+            created_at: ticket.satisfaction_rating.created_at&.iso8601
+          } : nil
         }
       end
 

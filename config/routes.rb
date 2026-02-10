@@ -6,6 +6,7 @@ Escalated::Engine.routes.draw do
         post :reply
         post :close
         post :reopen
+        post :rate, to: "satisfaction_ratings#create"
       end
       collection do
         get :new, action: :create, as: :new
@@ -16,6 +17,7 @@ Escalated::Engine.routes.draw do
   # Agent routes
   namespace :agent do
     get "/", to: "dashboard#index", as: :dashboard
+    post "tickets/bulk", to: "bulk_actions#create", as: :tickets_bulk
     resources :tickets, only: [:index, :show, :update] do
       member do
         post :reply
@@ -25,12 +27,17 @@ Escalated::Engine.routes.draw do
         post :priority
         post :tags
         post :department
+        post :macro, action: :apply_macro
+        post :follow
+        post :presence
+        post "replies/:reply_id/pin", action: :pin, as: :reply_pin
       end
     end
   end
 
   # Admin routes
   namespace :admin do
+    post "tickets/bulk", to: "bulk_actions#create", as: :tickets_bulk
     resources :tickets, only: [:index, :show] do
       member do
         post :reply
@@ -40,6 +47,10 @@ Escalated::Engine.routes.draw do
         post :priority
         post :tags
         post :department
+        post :macro, action: :apply_macro
+        post :follow
+        post :presence
+        post "replies/:reply_id/pin", action: :pin, as: :reply_pin
       end
     end
     resources :departments
@@ -47,6 +58,7 @@ Escalated::Engine.routes.draw do
     resources :escalation_rules
     resources :tags, only: [:index, :create, :update, :destroy]
     resources :canned_responses, only: [:index, :create, :update, :destroy]
+    resources :macros, only: [:index, :create, :update, :destroy]
     get :reports, to: "reports#index"
     get :settings, to: "settings#index"
     post :settings, to: "settings#update"
@@ -58,9 +70,10 @@ Escalated::Engine.routes.draw do
     post "/", to: "tickets#store", as: :tickets
     get ":token", to: "tickets#show", as: :ticket
     post ":token/reply", to: "tickets#reply", as: :ticket_reply
+    post ":token/rate", to: "tickets#rate", as: :ticket_rate
   end
 
-  # Inbound email webhook (no authentication — verified by adapter)
+  # Inbound email webhook (no authentication -- verified by adapter)
   post "inbound/:adapter", to: "inbound#webhook", as: :inbound_webhook
 
   # Root redirect to customer tickets

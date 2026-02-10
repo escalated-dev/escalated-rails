@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name          = "escalated"
-  spec.version       = "0.1.7"
+  spec.version       = "0.4.0"
   spec.authors       = ["Escalated Dev"]
   spec.email         = ["hello@escalated.dev"]
   spec.summary       = "Embeddable support ticket system for Rails"

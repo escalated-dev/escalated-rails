@@ -18,7 +18,13 @@ module Escalated
             resolved_at: Time.current.beginning_of_day..Time.current.end_of_day
           ).count,
           avg_first_response: calculate_avg_first_response,
-          avg_resolution_time: calculate_avg_resolution_time
+          avg_resolution_time: calculate_avg_resolution_time,
+          avg_csat_rating: calculate_avg_csat_rating,
+          total_ratings: Escalated::SatisfactionRating.count,
+          resolved_with_rating_count: Escalated::SatisfactionRating
+            .joins(:ticket)
+            .where("#{Escalated.table_name('tickets')}.status" => [:resolved, :closed])
+            .count
         }
 
         recent_tickets = my_tickets.by_open.recent.limit(10)
@@ -58,6 +64,13 @@ module Escalated
         total_seconds = tickets.sum { |t| (t.resolved_at - t.created_at).to_f }
         avg_seconds = total_seconds / tickets.count
         (avg_seconds / 3600.0).round(1) # Return in hours
+      end
+
+      def calculate_avg_csat_rating
+        ratings = Escalated::SatisfactionRating.all
+        return 0.0 if ratings.empty?
+
+        (ratings.average(:rating).to_f).round(2)
       end
 
       def ticket_summary_json(ticket)

@@ -2,7 +2,7 @@ module Escalated
   module Admin
     class TicketsController < Escalated::ApplicationController
       before_action :require_admin!
-      before_action :set_ticket, only: [:show, :reply, :note, :assign, :status, :priority, :tags, :department]
+      before_action :set_ticket, only: [:show, :reply, :note, :assign, :status, :priority, :tags, :department, :apply_macro, :follow, :presence, :pin]
 
       def index
         scope = Escalated::Ticket.all.recent
@@ -14,6 +14,15 @@ module Escalated
         scope = scope.unassigned if params[:unassigned] == "true"
         scope = scope.breached_sla if params[:sla_breached] == "true"
         scope = scope.search(params[:search]) if params[:search].present?
+
+        # Following filter
+        if params[:following] == "true"
+          followed_ticket_ids = Escalated::Ticket
+            .joins("INNER JOIN #{Escalated.table_name('ticket_followers')} ON #{Escalated.table_name('ticket_followers')}.ticket_id = #{Escalated.table_name('tickets')}.id")
+            .where("#{Escalated.table_name('ticket_followers')}.user_id = ?", escalated_current_user.id)
+            .pluck(:id)
+          scope = scope.where(id: followed_ticket_ids)
+        end
 
         result = paginate(scope)
 
@@ -27,7 +36,8 @@ module Escalated
             department_id: params[:department_id],
             unassigned: params[:unassigned],
             sla_breached: params[:sla_breached],
-            search: params[:search]
+            search: params[:search],
+            following: params[:following]
           },
           departments: Escalated::Department.active.ordered.map { |d| { id: d.id, name: d.name } },
           agents: agent_list,
@@ -51,6 +61,11 @@ module Escalated
           canned_responses: Escalated::CannedResponse.for_user(escalated_current_user.id).ordered.map { |c|
             { id: c.id, title: c.title, body: c.body, shortcode: c.shortcode }
           },
+          macros: Escalated::Macro.for_agent(escalated_current_user.id).ordered.map { |m|
+            { id: m.id, name: m.name, description: m.description, actions: m.actions }
+          },
+          is_following: @ticket.followed_by?(escalated_current_user.id),
+          followers_count: @ticket.followers.count,
           statuses: Escalated::Ticket.statuses.keys,
           priorities: Escalated::Ticket.priorities.keys
         }
@@ -125,9 +140,67 @@ module Escalated
         redirect_to admin_ticket_path(@ticket), notice: "Department changed to #{dept.name}."
       end
 
+      def apply_macro
+        macro = Escalated::Macro.for_agent(escalated_current_user.id).find(params[:macro_id])
+        Services::MacroService.apply(macro, @ticket, actor: escalated_current_user)
+
+        redirect_to admin_ticket_path(@ticket), notice: "Macro \"#{macro.name}\" applied."
+      end
+
+      def follow
+        if @ticket.followed_by?(escalated_current_user.id)
+          @ticket.unfollow(escalated_current_user.id)
+          redirect_to admin_ticket_path(@ticket), notice: "Unfollowed ticket."
+        else
+          @ticket.follow(escalated_current_user.id)
+          redirect_to admin_ticket_path(@ticket), notice: "Following ticket."
+        end
+      end
+
+      def presence
+        user_id = escalated_current_user.id
+        user_name = escalated_current_user.respond_to?(:name) ? escalated_current_user.name : escalated_current_user.email
+        cache_key = "escalated.presence.#{@ticket.id}.#{user_id}"
+
+        Rails.cache.write(cache_key, { id: user_id, name: user_name }, expires_in: 30.seconds)
+
+        # Track active user IDs for this ticket
+        list_key = "escalated.presence_list.#{@ticket.id}"
+        active_ids = Rails.cache.read(list_key) || []
+        active_ids << user_id unless active_ids.include?(user_id)
+        Rails.cache.write(list_key, active_ids, expires_in: 2.minutes)
+
+        # Collect viewers (exclude current user)
+        viewers = []
+        active_ids.each do |uid|
+          next if uid == user_id
+
+          viewer = Rails.cache.read("escalated.presence.#{@ticket.id}.#{uid}")
+          viewers << viewer if viewer
+        end
+
+        render json: { viewers: viewers }
+      end
+
+      def pin
+        reply = @ticket.replies.find(params[:reply_id])
+
+        unless reply.is_internal
+          redirect_to admin_ticket_path(@ticket), alert: "Only internal notes can be pinned."
+          return
+        end
+
+        reply.update!(is_pinned: !reply.is_pinned)
+
+        redirect_to admin_ticket_path(@ticket),
+                    notice: reply.is_pinned ? "Note pinned." : "Note unpinned."
+      end
+
       private
 
       def set_ticket
+        @ticket = Escalated::Ticket.find_by!(reference: params[:id])
+      rescue ActiveRecord::RecordNotFound
         @ticket = Escalated::Ticket.find(params[:id])
       end
 
@@ -178,7 +251,14 @@ module Escalated
           resolved_at: ticket.resolved_at&.iso8601,
           closed_at: ticket.closed_at&.iso8601,
           reply_count: ticket.replies.count,
-          attachment_count: ticket.attachments.count
+          attachment_count: ticket.attachments.count,
+          satisfaction_rating: ticket.satisfaction_rating ? {
+            id: ticket.satisfaction_rating.id,
+            rating: ticket.satisfaction_rating.rating,
+            comment: ticket.satisfaction_rating.comment,
+            created_at: ticket.satisfaction_rating.created_at&.iso8601
+          } : nil,
+          pinned_notes: ticket.pinned_notes.includes(:author).map { |n| reply_json(n) }
         )
       end
 
@@ -187,7 +267,9 @@ module Escalated
           id: reply.id,
           body: reply.body,
           is_internal: reply.is_internal,
+          is_internal_note: reply.is_internal,
           is_system: reply.is_system,
+          is_pinned: reply.respond_to?(:is_pinned) ? reply.is_pinned : false,
           author: reply.author ? {
             id: reply.author.id,
             name: reply.author.respond_to?(:name) ? reply.author.name : reply.author.email,

@@ -38,7 +38,8 @@ module Escalated
             tickets_per_day: tickets_in_period.count.to_f / [(period_end - period_start) / 1.day, 1].max
           },
           trends: calculate_daily_trends(period_start, period_end),
-          top_agents: calculate_top_agents(period_start, period_end)
+          top_agents: calculate_top_agents(period_start, period_end),
+          csat: calculate_csat_stats(period_start, period_end)
         }
 
         render inertia: "Escalated/Admin/Reports/Index", props: {
@@ -116,6 +117,24 @@ module Escalated
             avg_resolution_hours: calculate_agent_avg_resolution(agent_id, from, to)
           }
         end.compact
+      end
+
+      def calculate_csat_stats(from, to)
+        ratings = Escalated::SatisfactionRating.where(created_at: from..to)
+
+        total = ratings.count
+        return { average: 0, total: 0, breakdown: {} } if total.zero?
+
+        average = (ratings.average(:rating).to_f).round(2)
+        breakdown = (1..5).each_with_object({}) do |star, hash|
+          hash[star] = ratings.where(rating: star).count
+        end
+
+        {
+          average: average,
+          total: total,
+          breakdown: breakdown
+        }
       end
 
       def calculate_agent_avg_resolution(agent_id, from, to)

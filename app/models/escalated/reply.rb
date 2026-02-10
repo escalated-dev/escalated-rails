@@ -11,6 +11,7 @@ module Escalated
     scope :public_replies, -> { where(is_internal: false) }
     scope :internal_notes, -> { where(is_internal: true) }
     scope :system_messages, -> { where(is_system: true) }
+    scope :pinned, -> { where(is_pinned: true) }
     scope :chronological, -> { order(created_at: :asc) }
     scope :reverse_chronological, -> { order(created_at: :desc) }
 
@@ -26,6 +27,10 @@ module Escalated
 
     def system?
       is_system
+    end
+
+    def pinned?
+      is_pinned
     end
 
     private

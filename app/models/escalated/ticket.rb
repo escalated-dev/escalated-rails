@@ -15,6 +15,14 @@ module Escalated
     has_and_belongs_to_many :tags,
                             join_table: Escalated.table_name("ticket_tags"),
                             class_name: "Escalated::Tag"
+    has_and_belongs_to_many :followers,
+                            join_table: Escalated.table_name("ticket_followers"),
+                            class_name: Escalated.configuration.user_class,
+                            foreign_key: :ticket_id,
+                            association_foreign_key: :user_id
+    has_one :satisfaction_rating, class_name: "Escalated::SatisfactionRating", dependent: :destroy
+    has_many :pinned_notes, -> { where(is_internal: true, is_pinned: true) },
+             class_name: "Escalated::Reply"
 
     enum :status, {
       open: 0,
@@ -132,6 +140,21 @@ module Escalated
       return guest_email || "" if guest?
 
       requester&.respond_to?(:email) ? requester.email : ""
+    end
+
+    # Follower helpers
+
+    def followed_by?(user_id)
+      followers.where(id: user_id).exists?
+    end
+
+    def follow(user_id)
+      user = Escalated.configuration.user_model.find(user_id)
+      followers << user unless followed_by?(user_id)
+    end
+
+    def unfollow(user_id)
+      followers.delete(Escalated.configuration.user_model.find(user_id))
     end
 
     private

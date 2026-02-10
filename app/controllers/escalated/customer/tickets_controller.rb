@@ -131,7 +131,13 @@ module Escalated
           created_at: ticket.created_at&.iso8601,
           updated_at: ticket.updated_at&.iso8601,
           resolved_at: ticket.resolved_at&.iso8601,
-          reply_count: ticket.replies.public_replies.count
+          reply_count: ticket.replies.public_replies.count,
+          satisfaction_rating: ticket.satisfaction_rating ? {
+            id: ticket.satisfaction_rating.id,
+            rating: ticket.satisfaction_rating.rating,
+            comment: ticket.satisfaction_rating.comment,
+            created_at: ticket.satisfaction_rating.created_at&.iso8601
+          } : nil
         }
       end
 

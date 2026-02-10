@@ -27,8 +27,23 @@ RSpec.configure do |config|
   # FactoryBot
   config.include FactoryBot::Syntax::Methods
 
-  # Database Cleaner
+  # Run migrations in memory before the suite
   config.before(:suite) do
+    # Run all migrations against the in-memory SQLite database
+    ActiveRecord::Migration.verbose = false
+
+    # Run the dummy app's user migration
+    dummy_migrations_path = File.expand_path("dummy/db/migrate", __dir__)
+    if File.directory?(dummy_migrations_path)
+      ActiveRecord::MigrationContext.new(dummy_migrations_path).migrate
+    end
+
+    # Run the engine's migrations
+    engine_migrations_path = File.expand_path("../db/migrate", __dir__)
+    if File.directory?(engine_migrations_path)
+      ActiveRecord::MigrationContext.new(engine_migrations_path).migrate
+    end
+
     DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.clean_with(:truncation)
   end
@@ -37,6 +52,11 @@ RSpec.configure do |config|
     DatabaseCleaner.cleaning do
       example.run
     end
+  end
+
+  # Reset Escalated driver between tests to avoid stale state
+  config.before(:each) do
+    Escalated::Manager.reset_driver!
   end
 end
 

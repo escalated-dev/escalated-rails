@@ -10,38 +10,12 @@ module Escalated
         # ================================================================
 
         # Get all installed plugins with their metadata, merged with
-        # database activation state.
+        # database activation state. Combines local (filesystem) plugins
+        # and gem-based plugins.
         #
         # @return [Array<Hash>]
         def all_plugins
-          plugins = []
-
-          Dir.glob(File.join(plugins_path, "*")).select { |f| File.directory?(f) }.each do |directory|
-            slug = File.basename(directory)
-            manifest_path = File.join(directory, "plugin.json")
-            next unless File.exist?(manifest_path)
-
-            manifest = parse_manifest(manifest_path)
-            next unless manifest
-
-            db_plugin = Escalated::Plugin.find_by(slug: slug)
-
-            plugins << {
-              slug: slug,
-              name: manifest["name"] || slug.titleize,
-              description: manifest["description"] || "",
-              version: manifest["version"] || "1.0.0",
-              author: manifest["author"] || "Unknown",
-              author_url: manifest["author_url"] || "",
-              requires: manifest["requires"] || "1.0.0",
-              main_file: manifest["main_file"] || "plugin.rb",
-              is_active: db_plugin&.is_active || false,
-              activated_at: db_plugin&.activated_at,
-              path: directory,
-            }
-          end
-
-          plugins
+          local_plugins + gem_plugins
         end
 
         # Return slugs of all currently activated plugins.
@@ -116,11 +90,18 @@ module Escalated
         # Delete a plugin entirely.
         #
         # Fires uninstall hooks, deactivates, removes the database record,
-        # and deletes the plugin directory from disk.
+        # and deletes the plugin directory from disk. Gem-sourced plugins
+        # cannot be deleted -- remove them via Bundler instead.
         #
         # @param slug [String]
         # @return [Boolean]
         def delete_plugin(slug)
+          all = all_plugins
+          plugin_data = all.find { |p| p[:slug] == slug }
+          if plugin_data && plugin_data[:source] == :composer
+            raise "Gem plugins cannot be deleted. Remove the gem via Bundler instead."
+          end
+
           plugin_dir = File.join(plugins_path, slug)
           return false unless File.directory?(plugin_dir)
 
@@ -207,10 +188,14 @@ module Escalated
 
         # Load a specific plugin by requiring its main file.
         #
+        # Resolves the plugin path from both local and gem sources.
+        #
         # @param slug [String]
         # @return [void]
         def load_plugin(slug)
-          plugin_dir = File.join(plugins_path, slug)
+          plugin_dir = resolve_plugin_path(slug)
+          return unless plugin_dir
+
           manifest_path = File.join(plugin_dir, "plugin.json")
           return unless File.exist?(manifest_path)
 
@@ -251,11 +236,91 @@ module Escalated
         end
 
         def validate_plugin_exists!(slug)
-          plugin_dir = File.join(plugins_path, slug)
-          manifest = File.join(plugin_dir, "plugin.json")
+          plugin_dir = resolve_plugin_path(slug)
+          raise "Plugin not found: #{slug}" unless plugin_dir
+          raise "Plugin manifest not found: #{slug}/plugin.json" unless File.exist?(File.join(plugin_dir, "plugin.json"))
+        end
 
-          raise "Plugin directory not found: #{slug}" unless File.directory?(plugin_dir)
-          raise "Plugin manifest not found: #{slug}/plugin.json" unless File.exist?(manifest)
+        def local_plugins
+          plugins = []
+
+          Dir.glob(File.join(plugins_path, "*")).select { |f| File.directory?(f) }.each do |directory|
+            slug = File.basename(directory)
+            manifest_path = File.join(directory, "plugin.json")
+            next unless File.exist?(manifest_path)
+
+            manifest = parse_manifest(manifest_path)
+            next unless manifest
+
+            db_plugin = Escalated::Plugin.find_by(slug: slug)
+
+            plugins << {
+              slug: slug,
+              name: manifest["name"] || slug.titleize,
+              description: manifest["description"] || "",
+              version: manifest["version"] || "1.0.0",
+              author: manifest["author"] || "Unknown",
+              author_url: manifest["author_url"] || "",
+              requires: manifest["requires"] || "1.0.0",
+              main_file: manifest["main_file"] || "plugin.rb",
+              is_active: db_plugin&.is_active || false,
+              activated_at: db_plugin&.activated_at,
+              path: directory,
+              source: :local,
+            }
+          end
+
+          plugins
+        end
+
+        def gem_plugins
+          plugins = []
+          Gem::Specification.each do |spec|
+            manifest_path = File.join(spec.gem_dir, "plugin.json")
+            next unless File.exist?(manifest_path)
+
+            manifest = parse_manifest(manifest_path)
+            next unless manifest
+
+            slug = spec.name
+            db_plugin = Escalated::Plugin.find_by(slug: slug)
+
+            plugins << {
+              slug: slug,
+              name: manifest["name"] || slug.titleize,
+              description: manifest["description"] || "",
+              version: manifest["version"] || "1.0.0",
+              author: manifest["author"] || "Unknown",
+              author_url: manifest["author_url"] || "",
+              requires: manifest["requires"] || "1.0.0",
+              main_file: manifest["main_file"] || "plugin.rb",
+              is_active: db_plugin&.is_active || false,
+              activated_at: db_plugin&.activated_at,
+              path: spec.gem_dir,
+              source: :composer,  # Use :composer for consistency with frontend
+            }
+          end
+          plugins
+        rescue => e
+          Rails.logger.debug("[Escalated::PluginService] Could not scan gems: #{e.message}")
+          []
+        end
+
+        def resolve_plugin_path(slug)
+          # Check local plugins first
+          local_path = File.join(plugins_path, slug)
+          return local_path if File.exist?(File.join(local_path, "plugin.json"))
+
+          # Check gem plugins
+          begin
+            spec = Gem::Specification.find_by_name(slug)
+            gem_path = spec.gem_dir
+            return gem_path if File.exist?(File.join(gem_path, "plugin.json"))
+          rescue Gem::MissingSpecError
+            # Not a gem plugin
+          end
+
+          nil
         end
       end
     end

@@ -69,7 +69,7 @@ module Escalated
 
       # Plugin system defaults
       @plugins_enabled = false
-      @plugins_path = nil  # Set at boot time if nil (defaults to Rails.root.join("plugins/escalated"))
+      @plugins_path = nil  # Set at boot time if nil (defaults to Rails.root.join("lib/escalated/plugins"))
 
       # Inbound email defaults
       @inbound_email_enabled = false

@@ -37,12 +37,12 @@ module Escalated
       end
     end
 
-    # Set default plugins_path to Rails.root/plugins/escalated when not
+    # Set default plugins_path to Rails.root/lib/escalated/plugins when not
     # explicitly configured. Must run after the host app has booted so
     # Rails.root is available.
     initializer "escalated.plugins_path", after: :load_config_initializers do |app|
       if Escalated.configuration.plugins_path.nil?
-        Escalated.configuration.plugins_path = app.root.join("plugins", "escalated").to_s
+        Escalated.configuration.plugins_path = app.root.join("lib", "escalated", "plugins").to_s
       end
     end
 

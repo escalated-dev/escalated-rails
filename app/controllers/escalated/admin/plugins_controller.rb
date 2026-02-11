@@ -58,6 +58,16 @@ module Escalated
 
       def destroy
         begin
+          # Check if plugin is gem-sourced before attempting delete
+          all_plugins = Escalated::Services::PluginService.all_plugins
+          plugin_data = all_plugins.find { |p| p[:slug] == params[:id] }
+
+          if plugin_data && plugin_data[:source] == :composer
+            redirect_back fallback_location: admin_plugins_path,
+                          alert: "Gem plugins cannot be deleted. Remove the gem via Bundler instead."
+            return
+          end
+
           Escalated::Services::PluginService.delete_plugin(params[:id])
 
           redirect_back fallback_location: admin_plugins_path,
@@ -86,6 +96,7 @@ module Escalated
           requires: plugin[:requires],
           is_active: plugin[:is_active],
           activated_at: plugin[:activated_at]&.iso8601,
+          source: (plugin[:source] || :local).to_s,
         }
       end
     end

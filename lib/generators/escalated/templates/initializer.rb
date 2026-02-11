@@ -88,8 +88,8 @@ Escalated.configure do |config|
   config.plugins_enabled = false
 
   # Directory where plugins are installed
-  # Defaults to Rails.root.join("plugins/escalated") when nil
-  # config.plugins_path = Rails.root.join("plugins", "escalated").to_s
+  # Defaults to Rails.root.join("lib/escalated/plugins") when nil
+  # config.plugins_path = Rails.root.join("lib", "escalated", "plugins").to_s
 
   # ============================================================
   # Cloud Configuration (only for :synced and :cloud modes)

@@ -37,6 +37,27 @@ module Escalated
       end
     end
 
+    # Set default plugins_path to Rails.root/lib/escalated/plugins when not
+    # explicitly configured. Must run after the host app has booted so
+    # Rails.root is available.
+    initializer "escalated.plugins_path", after: :load_config_initializers do |app|
+      if Escalated.configuration.plugins_path.nil?
+        Escalated.configuration.plugins_path = app.root.join("lib", "escalated", "plugins").to_s
+      end
+    end
+
+    # Load active plugins after the host app has finished booting so all
+    # models, routes, and services are available to plugin code.
+    config.after_initialize do
+      if Escalated.configuration.plugins_enabled?
+        begin
+          Escalated::Services::PluginService.load_active_plugins
+        rescue StandardError => e
+          Rails.logger.error("[Escalated::Engine] Failed to load plugins: #{e.message}")
+        end
+      end
+    end
+
     config.generators do |g|
       g.test_framework :rspec
       g.fixture_replacement :factory_bot, dir: "spec/factories"

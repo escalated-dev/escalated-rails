@@ -49,7 +49,7 @@ module Escalated
           Services::AttachmentService.attach(ticket, guest_ticket_params[:attachments])
         end
 
-        redirect_to "#{escalated_mount_path}/guest/#{guest_token}", notice: "Ticket created successfully."
+        redirect_to "#{escalated_mount_path}/guest/#{guest_token}", notice: I18n.t('escalated.guest.created')
       rescue Services::AttachmentService::TooManyAttachmentsError,
              Services::AttachmentService::FileTooLargeError,
              Services::AttachmentService::InvalidFileTypeError => e
@@ -72,7 +72,7 @@ module Escalated
 
       def reply
         unless @ticket.open?
-          redirect_to "#{escalated_mount_path}/guest/#{params[:token]}", alert: "This ticket is closed."
+          redirect_to "#{escalated_mount_path}/guest/#{params[:token]}", alert: I18n.t('escalated.guest.ticket_closed')
           return
         end
 
@@ -99,7 +99,7 @@ module Escalated
           Services::AttachmentService.attach(reply, params[:attachments])
         end
 
-        redirect_to "#{escalated_mount_path}/guest/#{params[:token]}", notice: "Reply sent."
+        redirect_to "#{escalated_mount_path}/guest/#{params[:token]}", notice: I18n.t('escalated.ticket.reply_sent')
       rescue Services::AttachmentService::TooManyAttachmentsError,
              Services::AttachmentService::FileTooLargeError,
              Services::AttachmentService::InvalidFileTypeError => e
@@ -109,13 +109,13 @@ module Escalated
       def rate
         unless %w[resolved closed].include?(@ticket.status)
           redirect_to "#{escalated_mount_path}/guest/#{params[:token]}",
-                      alert: "You can only rate resolved or closed tickets."
+                      alert: I18n.t('escalated.rating.only_resolved_closed')
           return
         end
 
         if @ticket.satisfaction_rating.present?
           redirect_to "#{escalated_mount_path}/guest/#{params[:token]}",
-                      alert: "This ticket has already been rated."
+                      alert: I18n.t('escalated.rating.already_rated')
           return
         end
 
@@ -127,7 +127,7 @@ module Escalated
 
         if rating.save
           redirect_to "#{escalated_mount_path}/guest/#{params[:token]}",
-                      notice: "Thank you for your feedback!"
+                      notice: I18n.t('escalated.rating.thanks')
         else
           redirect_to "#{escalated_mount_path}/guest/#{params[:token]}",
                       alert: rating.errors.full_messages.join(", ")
@@ -138,14 +138,14 @@ module Escalated
 
       def ensure_guest_tickets_enabled
         unless Escalated::EscalatedSetting.guest_tickets_enabled?
-          render plain: "Guest tickets are not enabled.", status: :not_found
+          render plain: I18n.t('escalated.commands.guest_not_enabled'), status: :not_found
         end
       end
 
       def set_ticket_by_token
         @ticket = Escalated::Ticket.find_by!(guest_token: params[:token])
       rescue ActiveRecord::RecordNotFound
-        render plain: "Ticket not found.", status: :not_found
+        render plain: I18n.t('escalated.commands.ticket_not_found'), status: :not_found
       end
 
       def set_inertia_shared_data
@@ -169,10 +169,10 @@ module Escalated
 
       def validate_guest_params
         errors = {}
-        errors[:name] = "Name is required." if guest_ticket_params[:name].blank?
-        errors[:email] = "Email is required." if guest_ticket_params[:email].blank?
-        errors[:subject] = "Subject is required." if guest_ticket_params[:subject].blank?
-        errors[:description] = "Description is required." if guest_ticket_params[:description].blank?
+        errors[:name] = I18n.t('escalated.validation.name_required') if guest_ticket_params[:name].blank?
+        errors[:email] = I18n.t('escalated.validation.email_required') if guest_ticket_params[:email].blank?
+        errors[:subject] = I18n.t('escalated.validation.subject_required') if guest_ticket_params[:subject].blank?
+        errors[:description] = I18n.t('escalated.validation.description_required') if guest_ticket_params[:description].blank?
         errors
       end
 

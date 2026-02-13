@@ -8,7 +8,7 @@ module Escalated
       adapter = resolve_adapter(params[:adapter])
 
       unless adapter
-        render json: { error: "Unknown adapter: #{params[:adapter]}" }, status: :bad_request
+        render json: { error: I18n.t('escalated.inbound.unknown_adapter', adapter: params[:adapter]) }, status: :bad_request
         return
       end
 
@@ -17,7 +17,7 @@ module Escalated
         Rails.logger.warn(
           "[Escalated::InboundController] Webhook verification failed for adapter: #{params[:adapter]}"
         )
-        render json: { error: "Verification failed" }, status: :unauthorized
+        render json: { error: I18n.t('escalated.inbound.verification_failed') }, status: :unauthorized
         return
       end
 
@@ -54,14 +54,14 @@ module Escalated
       Rails.logger.error(
         "[Escalated::InboundController] Unexpected error: #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}"
       )
-      render json: { error: "Internal error" }, status: :internal_server_error
+      render json: { error: I18n.t('escalated.inbound.internal_error') }, status: :internal_server_error
     end
 
     private
 
     def ensure_inbound_enabled
       unless Escalated.configuration.inbound_email_enabled
-        render json: { error: "Inbound email is disabled" }, status: :not_found
+        render json: { error: I18n.t('escalated.inbound.disabled') }, status: :not_found
       end
     end
 

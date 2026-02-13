@@ -17,7 +17,7 @@ module Escalated
         macro.created_by = escalated_current_user.id
 
         if macro.save
-          redirect_to admin_macros_path, notice: "Macro created."
+          redirect_to admin_macros_path, notice: I18n.t('escalated.admin.macro.created')
         else
           redirect_back fallback_location: admin_macros_path,
                         alert: macro.errors.full_messages.join(", ")
@@ -26,7 +26,7 @@ module Escalated
 
       def update
         if @macro.update(macro_params)
-          redirect_to admin_macros_path, notice: "Macro updated."
+          redirect_to admin_macros_path, notice: I18n.t('escalated.admin.macro.updated')
         else
           redirect_back fallback_location: admin_macros_path,
                         alert: @macro.errors.full_messages.join(", ")
@@ -35,7 +35,7 @@ module Escalated
 
       def destroy
         @macro.destroy!
-        redirect_to admin_macros_path, notice: "Macro deleted."
+        redirect_to admin_macros_path, notice: I18n.t('escalated.admin.macro.deleted')
       end
 
       private

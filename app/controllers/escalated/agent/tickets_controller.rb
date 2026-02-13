@@ -77,7 +77,7 @@ module Escalated
         authorize @ticket, policy_class: Escalated::TicketPolicy
 
         Services::TicketService.update(@ticket, update_params, actor: escalated_current_user)
-        redirect_to agent_ticket_path(@ticket), notice: "Ticket updated."
+        redirect_to agent_ticket_path(@ticket), notice: I18n.t('escalated.ticket.updated')
       end
 
       def reply
@@ -93,7 +93,7 @@ module Escalated
           Services::AttachmentService.attach(reply, params[:attachments])
         end
 
-        redirect_to agent_ticket_path(@ticket), notice: "Reply sent."
+        redirect_to agent_ticket_path(@ticket), notice: I18n.t('escalated.ticket.reply_sent')
       end
 
       def note
@@ -105,7 +105,7 @@ module Escalated
           is_internal: true
         })
 
-        redirect_to agent_ticket_path(@ticket), notice: "Internal note added."
+        redirect_to agent_ticket_path(@ticket), notice: I18n.t('escalated.ticket.note_added')
       end
 
       def assign
@@ -114,10 +114,10 @@ module Escalated
         if params[:agent_id].present?
           agent = Escalated.configuration.user_model.find(params[:agent_id])
           Services::AssignmentService.assign(@ticket, agent, actor: escalated_current_user)
-          redirect_to agent_ticket_path(@ticket), notice: "Ticket assigned to #{agent.respond_to?(:name) ? agent.name : agent.email}."
+          redirect_to agent_ticket_path(@ticket), notice: I18n.t('escalated.ticket.assigned', name: agent.respond_to?(:name) ? agent.name : agent.email)
         else
           Services::AssignmentService.unassign(@ticket, actor: escalated_current_user)
-          redirect_to agent_ticket_path(@ticket), notice: "Ticket unassigned."
+          redirect_to agent_ticket_path(@ticket), notice: I18n.t('escalated.ticket.unassigned')
         end
       end
 
@@ -131,14 +131,14 @@ module Escalated
           note: params[:note]
         )
 
-        redirect_to agent_ticket_path(@ticket), notice: "Status updated to #{params[:status].humanize}."
+        redirect_to agent_ticket_path(@ticket), notice: I18n.t('escalated.ticket.status_updated', status: params[:status].humanize)
       end
 
       def priority
         authorize @ticket, policy_class: Escalated::TicketPolicy
 
         Services::TicketService.change_priority(@ticket, params[:priority], actor: escalated_current_user)
-        redirect_to agent_ticket_path(@ticket), notice: "Priority updated to #{params[:priority]}."
+        redirect_to agent_ticket_path(@ticket), notice: I18n.t('escalated.ticket.priority_updated', priority: params[:priority])
       end
 
       def tags
@@ -152,7 +152,7 @@ module Escalated
           Services::TicketService.remove_tags(@ticket, params[:remove_tag_ids], actor: escalated_current_user)
         end
 
-        redirect_to agent_ticket_path(@ticket), notice: "Tags updated."
+        redirect_to agent_ticket_path(@ticket), notice: I18n.t('escalated.ticket.tags_updated')
       end
 
       def department
@@ -160,7 +160,7 @@ module Escalated
 
         dept = Escalated::Department.find(params[:department_id])
         Services::TicketService.change_department(@ticket, dept, actor: escalated_current_user)
-        redirect_to agent_ticket_path(@ticket), notice: "Department changed to #{dept.name}."
+        redirect_to agent_ticket_path(@ticket), notice: I18n.t('escalated.ticket.department_updated', name: dept.name)
       end
 
       def apply_macro
@@ -169,7 +169,7 @@ module Escalated
         macro = Escalated::Macro.for_agent(escalated_current_user.id).find(params[:macro_id])
         Services::MacroService.apply(macro, @ticket, actor: escalated_current_user)
 
-        redirect_to agent_ticket_path(@ticket), notice: "Macro \"#{macro.name}\" applied."
+        redirect_to agent_ticket_path(@ticket), notice: I18n.t('escalated.ticket.macro_applied', name: macro.name)
       end
 
       def follow
@@ -177,10 +177,10 @@ module Escalated
 
         if @ticket.followed_by?(escalated_current_user.id)
           @ticket.unfollow(escalated_current_user.id)
-          redirect_to agent_ticket_path(@ticket), notice: "Unfollowed ticket."
+          redirect_to agent_ticket_path(@ticket), notice: I18n.t('escalated.ticket.unfollowed')
         else
           @ticket.follow(escalated_current_user.id)
-          redirect_to agent_ticket_path(@ticket), notice: "Following ticket."
+          redirect_to agent_ticket_path(@ticket), notice: I18n.t('escalated.ticket.following')
         end
       end
 
@@ -213,14 +213,14 @@ module Escalated
         reply = @ticket.replies.find(params[:reply_id])
 
         unless reply.is_internal
-          redirect_to agent_ticket_path(@ticket), alert: "Only internal notes can be pinned."
+          redirect_to agent_ticket_path(@ticket), alert: I18n.t('escalated.ticket.only_internal_notes_pinned')
           return
         end
 
         reply.update!(is_pinned: !reply.is_pinned)
 
         redirect_to agent_ticket_path(@ticket),
-                    notice: reply.is_pinned ? "Note pinned." : "Note unpinned."
+                    notice: reply.is_pinned ? I18n.t('escalated.ticket.note_pinned') : I18n.t('escalated.ticket.note_unpinned')
       end
 
       private

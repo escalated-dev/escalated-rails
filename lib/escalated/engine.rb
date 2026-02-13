@@ -6,6 +6,10 @@ module Escalated
       # Allow host app to configure Escalated before boot
     end
 
+    initializer 'escalated.i18n' do
+      config.i18n.load_path += Dir[root.join('config', 'locales', '*.yml')]
+    end
+
     initializer "escalated.assets" do |app|
       # Make engine assets available to host app
       app.config.assets.precompile += %w[escalated_manifest.js] if app.config.respond_to?(:assets)

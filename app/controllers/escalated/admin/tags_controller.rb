@@ -16,7 +16,7 @@ module Escalated
         tag = Escalated::Tag.new(tag_params)
 
         if tag.save
-          redirect_to admin_tags_path, notice: "Tag created."
+          redirect_to admin_tags_path, notice: I18n.t('escalated.admin.tag.created')
         else
           redirect_back fallback_location: admin_tags_path,
                         alert: tag.errors.full_messages.join(", ")
@@ -25,7 +25,7 @@ module Escalated
 
       def update
         if @tag.update(tag_params)
-          redirect_to admin_tags_path, notice: "Tag updated."
+          redirect_to admin_tags_path, notice: I18n.t('escalated.admin.tag.updated')
         else
           redirect_back fallback_location: admin_tags_path,
                         alert: @tag.errors.full_messages.join(", ")
@@ -34,7 +34,7 @@ module Escalated
 
       def destroy
         @tag.destroy!
-        redirect_to admin_tags_path, notice: "Tag deleted."
+        redirect_to admin_tags_path, notice: I18n.t('escalated.admin.tag.deleted')
       end
 
       private

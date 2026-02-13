@@ -8,7 +8,7 @@ module Escalated
 
       source_root File.expand_path("templates", __dir__)
 
-      desc "Installs the Escalated support ticket system"
+      desc I18n.t('escalated.commands.install.installing', default: "Installs the Escalated support ticket system")
 
       def self.next_migration_number(dirname)
         Time.now.strftime("%Y%m%d%H%M%S")
@@ -16,12 +16,12 @@ module Escalated
 
       def copy_initializer
         template "initializer.rb", "config/initializers/escalated.rb"
-        say_status :create, "config/initializers/escalated.rb", :green
+        say_status :create, I18n.t('escalated.commands.install.create_initializer'), :green
       end
 
       def copy_migrations
         rake "escalated:install:migrations"
-        say_status :info, "Copied migrations. Run `rails db:migrate` to apply.", :yellow
+        say_status :info, I18n.t('escalated.commands.install.copy_migrations'), :yellow
       end
 
       def add_user_concern
@@ -49,25 +49,25 @@ module Escalated
 
           RUBY
         end
-        say_status :inject, "app/models/user.rb (Escalated role methods)", :green
+        say_status :inject, I18n.t('escalated.commands.install.inject_user_model'), :green
       rescue StandardError => e
-        say_status :skip, "Could not inject into User model: #{e.message}", :yellow
-        say "  Add these methods to your User model manually:"
-        say "    escalated_agent? - returns true for support agents"
-        say "    escalated_admin? - returns true for support admins"
-        say "    self.escalated_agents - scope returning all agents"
+        say_status :skip, I18n.t('escalated.commands.install.inject_skip', error: e.message), :yellow
+        say "  #{I18n.t('escalated.commands.install.inject_manual')}"
+        say "    #{I18n.t('escalated.commands.install.inject_agent')}"
+        say "    #{I18n.t('escalated.commands.install.inject_admin')}"
+        say "    #{I18n.t('escalated.commands.install.inject_agents_scope')}"
       end
 
       def show_post_install
         say ""
-        say "Escalated installed successfully!", :green
+        say I18n.t('escalated.commands.install.success'), :green
         say ""
-        say "Next steps:"
-        say "  1. Run `rails db:migrate`"
-        say "  2. Configure config/initializers/escalated.rb"
-        say "  3. Add escalated_agent? and escalated_admin? methods to your User model"
-        say "  4. Install Vue components: copy from vendor/escalated/resources/js/"
-        say "  5. Set up your Inertia page resolver to include Escalated pages"
+        say I18n.t('escalated.commands.install.next_steps')
+        say "  #{I18n.t('escalated.commands.install.step1')}"
+        say "  #{I18n.t('escalated.commands.install.step2')}"
+        say "  #{I18n.t('escalated.commands.install.step3')}"
+        say "  #{I18n.t('escalated.commands.install.step4')}"
+        say "  #{I18n.t('escalated.commands.install.step5')}"
         say ""
       end
     end

@@ -1,0 +1,111 @@
+en:
+  escalated:
+    ticket:
+      reply_sent: "Reply sent."
+      note_added: "Internal note added."
+      assigned: "Ticket assigned to %{name}."
+      unassigned: "Ticket unassigned."
+      status_updated: "Status updated to %{status}."
+      priority_updated: "Priority updated to %{priority}."
+      tags_updated: "Tags updated."
+      department_updated: "Department changed to %{name}."
+      macro_applied: "Macro \"%{name}\" applied."
+      following: "Following ticket."
+      unfollowed: "Unfollowed ticket."
+      only_internal_notes_pinned: "Only internal notes can be pinned."
+      updated: "Ticket updated."
+      created: "Ticket created successfully."
+      closed: "Ticket closed."
+      reopened: "Ticket reopened."
+      customers_cannot_close: "Customers cannot close tickets."
+      note_pinned: "Note pinned."
+      note_unpinned: "Note unpinned."
+    guest:
+      created: "Ticket created successfully."
+      ticket_closed: "This ticket is closed."
+    bulk:
+      updated: "%{count} ticket(s) updated."
+    rating:
+      only_resolved_closed: "You can only rate resolved or closed tickets."
+      already_rated: "This ticket has already been rated."
+      thanks: "Thank you for your feedback!"
+    admin:
+      canned_response:
+        created: "Canned response created."
+        updated: "Canned response updated."
+        deleted: "Canned response deleted."
+      department:
+        created: "Department created."
+        updated: "Department updated."
+        deleted: "Department deleted."
+      tag:
+        created: "Tag created."
+        updated: "Tag updated."
+        deleted: "Tag deleted."
+      macro:
+        created: "Macro created."
+        updated: "Macro updated."
+        deleted: "Macro deleted."
+      escalation_rule:
+        created: "Escalation rule created."
+        updated: "Escalation rule updated."
+        deleted: "Escalation rule deleted."
+      sla_policy:
+        created: "SLA Policy created."
+        updated: "SLA Policy updated."
+        deleted: "SLA Policy deleted."
+      settings:
+        updated: "Settings updated successfully."
+      plugin:
+        uploaded: "Plugin uploaded successfully. You can now activate it."
+        upload_failed: "Failed to upload plugin: %{error}"
+        activated: "Plugin activated successfully."
+        activate_failed: "Failed to activate plugin: %{error}"
+        deactivated: "Plugin deactivated successfully."
+        deactivate_failed: "Failed to deactivate plugin: %{error}"
+        composer_delete: "Composer plugins cannot be deleted. Remove the package via Composer instead."
+        deleted: "Plugin deleted successfully."
+        delete_failed: "Failed to delete plugin: %{error}"
+    middleware:
+      not_admin: "Access denied."
+      not_agent: "Access denied."
+      not_authorized: "You are not authorized to perform this action."
+      not_found: "The requested resource was not found."
+    inbound:
+      unknown_adapter: "Unknown adapter: %{adapter}"
+      verification_failed: "Verification failed"
+      internal_error: "Internal error"
+      disabled: "Inbound email is disabled"
+    mailer:
+      new_ticket: "[%{reference}] Ticket Created: %{subject}"
+      reply: "Re: [%{reference}] %{subject}"
+      assigned: "[%{reference}] Ticket Assigned: %{subject}"
+      status_updated: "[%{reference}] Status Updated: %{status}"
+      sla_breach: "[SLA BREACH] [%{reference}] %{subject}"
+      escalated: "[ESCALATED] [%{reference}] %{subject}"
+      resolved: "[%{reference}] Ticket Resolved: %{subject}"
+    validation:
+      name_required: "Name is required."
+      email_required: "Email is required."
+      subject_required: "Subject is required."
+      description_required: "Description is required."
+    commands:
+      install:
+        installing: "Installs the Escalated support ticket system"
+        create_initializer: "config/initializers/escalated.rb"
+        copy_migrations: "Copied migrations. Run `rails db:migrate` to apply."
+        inject_user_model: "app/models/user.rb (Escalated role methods)"
+        inject_skip: "Could not inject into User model: %{error}"
+        inject_manual: "Add these methods to your User model manually:"
+        inject_agent: "escalated_agent? - returns true for support agents"
+        inject_admin: "escalated_admin? - returns true for support admins"
+        inject_agents_scope: "self.escalated_agents - scope returning all agents"
+        success: "Escalated installed successfully!"
+        next_steps: "Next steps:"
+        step1: "1. Run `rails db:migrate`"
+        step2: "2. Configure config/initializers/escalated.rb"
+        step3: "3. Add escalated_agent? and escalated_admin? methods to your User model"
+        step4: "4. Install Vue components: copy from vendor/escalated/resources/js/"
+        step5: "5. Set up your Inertia page resolver to include Escalated pages"
+      guest_not_enabled: "Guest tickets are not enabled."
+      ticket_not_found: "Ticket not found."

@@ -41,7 +41,7 @@ module Escalated
         # Inbound email settings
         update_inbound_email_settings
 
-        redirect_to escalated.admin_settings_path, notice: "Settings updated successfully."
+        redirect_to escalated.admin_settings_path, notice: I18n.t('escalated.admin.settings.updated')
       end
 
       private

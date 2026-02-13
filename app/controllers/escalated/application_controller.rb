@@ -58,27 +58,27 @@ module Escalated
 
     def require_agent!
       unless current_user_data&.dig(:is_agent) || current_user_data&.dig(:is_admin)
-        redirect_to main_app.root_path, alert: "Access denied."
+        redirect_to main_app.root_path, alert: I18n.t('escalated.middleware.not_agent')
       end
     end
 
     def require_admin!
       unless current_user_data&.dig(:is_admin)
-        redirect_to main_app.root_path, alert: "Access denied."
+        redirect_to main_app.root_path, alert: I18n.t('escalated.middleware.not_admin')
       end
     end
 
     def user_not_authorized
       render inertia: "Escalated/Error", props: {
         status: 403,
-        message: "You are not authorized to perform this action."
+        message: I18n.t('escalated.middleware.not_authorized')
       }, status: :forbidden
     end
 
     def not_found
       render inertia: "Escalated/Error", props: {
         status: 404,
-        message: "The requested resource was not found."
+        message: I18n.t('escalated.middleware.not_found')
       }, status: :not_found
     end
 

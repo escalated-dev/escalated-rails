@@ -6,7 +6,7 @@ module Escalated
 
       mail(
         to: @requester.email,
-        subject: "[#{ticket.reference}] Ticket Created: #{ticket.subject}"
+        subject: I18n.t('escalated.mailer.new_ticket', reference: ticket.reference, subject: ticket.subject)
       )
     end
 
@@ -25,7 +25,7 @@ module Escalated
 
       mail(
         to: recipient,
-        subject: "Re: [#{ticket.reference}] #{ticket.subject}"
+        subject: I18n.t('escalated.mailer.reply', reference: ticket.reference, subject: ticket.subject)
       )
     end
 
@@ -37,7 +37,7 @@ module Escalated
 
       mail(
         to: @assignee.email,
-        subject: "[#{ticket.reference}] Ticket Assigned: #{ticket.subject}"
+        subject: I18n.t('escalated.mailer.assigned', reference: ticket.reference, subject: ticket.subject)
       )
     end
 
@@ -46,7 +46,7 @@ module Escalated
 
       mail(
         to: ticket.requester.email,
-        subject: "[#{ticket.reference}] Status Updated: #{ticket.status.humanize}"
+        subject: I18n.t('escalated.mailer.status_updated', reference: ticket.reference, status: ticket.status.humanize)
       )
     end
 
@@ -61,7 +61,7 @@ module Escalated
 
       mail(
         to: recipients.compact.uniq,
-        subject: "[SLA BREACH] [#{ticket.reference}] #{ticket.subject}"
+        subject: I18n.t('escalated.mailer.sla_breach', reference: ticket.reference, subject: ticket.subject)
       )
     end
 
@@ -77,7 +77,7 @@ module Escalated
 
       mail(
         to: recipients.compact.uniq,
-        subject: "[ESCALATED] [#{ticket.reference}] #{ticket.subject}"
+        subject: I18n.t('escalated.mailer.escalated', reference: ticket.reference, subject: ticket.subject)
       )
     end
 
@@ -86,7 +86,7 @@ module Escalated
 
       mail(
         to: ticket.requester.email,
-        subject: "[#{ticket.reference}] Ticket Resolved: #{ticket.subject}"
+        subject: I18n.t('escalated.mailer.resolved', reference: ticket.reference, subject: ticket.subject)
       )
     end
   end

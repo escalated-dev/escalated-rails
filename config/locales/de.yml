@@ -1,0 +1,111 @@
+de:
+  escalated:
+    ticket:
+      reply_sent: "Antwort gesendet."
+      note_added: "Interne Notiz hinzugefügt."
+      assigned: "Ticket zugewiesen an %{name}."
+      unassigned: "Ticket nicht mehr zugewiesen."
+      status_updated: "Status aktualisiert auf %{status}."
+      priority_updated: "Priorität aktualisiert auf %{priority}."
+      tags_updated: "Tags aktualisiert."
+      department_updated: "Abteilung geändert zu %{name}."
+      macro_applied: "Makro \"%{name}\" angewendet."
+      following: "Ticket wird verfolgt."
+      unfollowed: "Ticket wird nicht mehr verfolgt."
+      only_internal_notes_pinned: "Nur interne Notizen können angeheftet werden."
+      updated: "Ticket aktualisiert."
+      created: "Ticket erfolgreich erstellt."
+      closed: "Ticket geschlossen."
+      reopened: "Ticket wiedereröffnet."
+      customers_cannot_close: "Kunden können Tickets nicht schließen."
+      note_pinned: "Notiz angeheftet."
+      note_unpinned: "Notiz losgelöst."
+    guest:
+      created: "Ticket erfolgreich erstellt."
+      ticket_closed: "Dieses Ticket ist geschlossen."
+    bulk:
+      updated: "%{count} Ticket(s) aktualisiert."
+    rating:
+      only_resolved_closed: "Sie können nur gelöste oder geschlossene Tickets bewerten."
+      already_rated: "Dieses Ticket wurde bereits bewertet."
+      thanks: "Vielen Dank für Ihr Feedback!"
+    admin:
+      canned_response:
+        created: "Vordefinierte Antwort erstellt."
+        updated: "Vordefinierte Antwort aktualisiert."
+        deleted: "Vordefinierte Antwort gelöscht."
+      department:
+        created: "Abteilung erstellt."
+        updated: "Abteilung aktualisiert."
+        deleted: "Abteilung gelöscht."
+      tag:
+        created: "Tag erstellt."
+        updated: "Tag aktualisiert."
+        deleted: "Tag gelöscht."
+      macro:
+        created: "Makro erstellt."
+        updated: "Makro aktualisiert."
+        deleted: "Makro gelöscht."
+      escalation_rule:
+        created: "Eskalationsregel erstellt."
+        updated: "Eskalationsregel aktualisiert."
+        deleted: "Eskalationsregel gelöscht."
+      sla_policy:
+        created: "SLA-Richtlinie erstellt."
+        updated: "SLA-Richtlinie aktualisiert."
+        deleted: "SLA-Richtlinie gelöscht."
+      settings:
+        updated: "Einstellungen erfolgreich aktualisiert."
+      plugin:
+        uploaded: "Plugin erfolgreich hochgeladen. Sie können es jetzt aktivieren."
+        upload_failed: "Plugin-Upload fehlgeschlagen: %{error}"
+        activated: "Plugin erfolgreich aktiviert."
+        activate_failed: "Plugin-Aktivierung fehlgeschlagen: %{error}"
+        deactivated: "Plugin erfolgreich deaktiviert."
+        deactivate_failed: "Plugin-Deaktivierung fehlgeschlagen: %{error}"
+        composer_delete: "Composer-Plugins können nicht gelöscht werden. Entfernen Sie das Paket über Composer."
+        deleted: "Plugin erfolgreich gelöscht."
+        delete_failed: "Plugin-Löschung fehlgeschlagen: %{error}"
+    middleware:
+      not_admin: "Zugriff verweigert."
+      not_agent: "Zugriff verweigert."
+      not_authorized: "Sie sind nicht berechtigt, diese Aktion durchzuführen."
+      not_found: "Die angeforderte Ressource wurde nicht gefunden."
+    inbound:
+      unknown_adapter: "Unbekannter Adapter: %{adapter}"
+      verification_failed: "Überprüfung fehlgeschlagen"
+      internal_error: "Interner Fehler"
+      disabled: "Eingehende E-Mails sind deaktiviert"
+    mailer:
+      new_ticket: "[%{reference}] Ticket erstellt: %{subject}"
+      reply: "Re: [%{reference}] %{subject}"
+      assigned: "[%{reference}] Ticket zugewiesen: %{subject}"
+      status_updated: "[%{reference}] Status aktualisiert: %{status}"
+      sla_breach: "[SLA-VERLETZUNG] [%{reference}] %{subject}"
+      escalated: "[ESKALIERT] [%{reference}] %{subject}"
+      resolved: "[%{reference}] Ticket gelöst: %{subject}"
+    validation:
+      name_required: "Name ist erforderlich."
+      email_required: "E-Mail-Adresse ist erforderlich."
+      subject_required: "Betreff ist erforderlich."
+      description_required: "Beschreibung ist erforderlich."
+    commands:
+      install:
+        installing: "Installiert das Escalated Support-Ticket-System"
+        create_initializer: "config/initializers/escalated.rb"
+        copy_migrations: "Migrationen kopiert. Führen Sie `rails db:migrate` aus, um sie anzuwenden."
+        inject_user_model: "app/models/user.rb (Escalated-Rollenmethoden)"
+        inject_skip: "Konnte nicht in das User-Modell injizieren: %{error}"
+        inject_manual: "Fügen Sie diese Methoden manuell zu Ihrem User-Modell hinzu:"
+        inject_agent: "escalated_agent? - gibt true für Support-Mitarbeiter zurück"
+        inject_admin: "escalated_admin? - gibt true für Support-Administratoren zurück"
+        inject_agents_scope: "self.escalated_agents - Scope, der alle Mitarbeiter zurückgibt"
+        success: "Escalated erfolgreich installiert!"
+        next_steps: "Nächste Schritte:"
+        step1: "1. Führen Sie `rails db:migrate` aus"
+        step2: "2. Konfigurieren Sie config/initializers/escalated.rb"
+        step3: "3. Fügen Sie die Methoden escalated_agent? und escalated_admin? zu Ihrem User-Modell hinzu"
+        step4: "4. Installieren Sie Vue-Komponenten: kopieren Sie aus vendor/escalated/resources/js/"
+        step5: "5. Richten Sie den Inertia-Seitenresolver ein, um Escalated-Seiten einzubeziehen"
+      guest_not_enabled: "Gast-Tickets sind nicht aktiviert."
+      ticket_not_found: "Ticket nicht gefunden."

@@ -26,7 +26,7 @@ module Escalated
         rule = Escalated::EscalationRule.new(rule_params)
 
         if rule.save
-          redirect_to admin_escalation_rule_path(rule), notice: "Escalation rule created."
+          redirect_to admin_escalation_rule_path(rule), notice: I18n.t('escalated.admin.escalation_rule.created')
         else
           redirect_back fallback_location: new_admin_escalation_rule_path,
                         alert: rule.errors.full_messages.join(", ")
@@ -51,7 +51,7 @@ module Escalated
 
       def update
         if @rule.update(rule_params)
-          redirect_to admin_escalation_rule_path(@rule), notice: "Escalation rule updated."
+          redirect_to admin_escalation_rule_path(@rule), notice: I18n.t('escalated.admin.escalation_rule.updated')
         else
           redirect_back fallback_location: edit_admin_escalation_rule_path(@rule),
                         alert: @rule.errors.full_messages.join(", ")
@@ -60,7 +60,7 @@ module Escalated
 
       def destroy
         @rule.destroy!
-        redirect_to admin_escalation_rules_path, notice: "Escalation rule deleted."
+        redirect_to admin_escalation_rules_path, notice: I18n.t('escalated.admin.escalation_rule.deleted')
       end
 
       private

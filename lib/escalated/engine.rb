@@ -35,6 +35,39 @@ module Escalated
       end
     end
 
+    initializer "escalated.api_routes" do |app|
+      # Conditionally load API routes when api_enabled is true.
+      # These are mounted directly on the host app (not inside the engine mount)
+      # so they can use ActionController::API without CSRF.
+      app.routes.append do
+        if Escalated.configuration.api_enabled
+          scope Escalated.configuration.api_prefix, module: "escalated/api/v1", as: "escalated_api_v1" do
+            post "auth/validate", to: "auth#validate"
+            get "dashboard", to: "dashboard#index"
+
+            resources :tickets, param: :reference, only: [:index, :show, :create, :destroy] do
+              member do
+                post :reply
+                patch :status
+                patch :priority
+                post :assign
+                post :follow
+                post :apply_macro
+                post :tags
+              end
+            end
+
+            get "agents", to: "resources#agents"
+            get "departments", to: "resources#departments"
+            get "tags", to: "resources#tags"
+            get "canned-responses", to: "resources#canned_responses"
+            get "macros", to: "resources#macros"
+            get "realtime/config", to: "resources#realtime_config"
+          end
+        end
+      end
+    end
+
     initializer "escalated.inertia" do
       ActiveSupport.on_load(:action_controller) do
         # Configure Inertia shared data at engine level

@@ -59,6 +59,7 @@ Escalated::Engine.routes.draw do
     resources :tags, only: [:index, :create, :update, :destroy]
     resources :canned_responses, only: [:index, :create, :update, :destroy]
     resources :macros, only: [:index, :create, :update, :destroy]
+    resources :api_tokens, only: [:index, :create, :update, :destroy]
     resources :plugins, only: [:index, :destroy] do
       member do
         post :activate

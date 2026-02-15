@@ -82,6 +82,19 @@ Escalated.configure do |config|
   config.webhook_url = nil
 
   # ============================================================
+  # REST API
+  # ============================================================
+  # Enable the REST API (Bearer token authentication, JSON endpoints)
+  # config.api_enabled = false
+
+  # Maximum requests per token per minute
+  # config.api_rate_limit = 60
+
+  # Default token expiry in days (nil = never expires)
+  # config.api_token_expiry_days = nil
+
+  # API URL prefix (mounted on the host app, outside the engine)
+  # config.api_prefix = "support/api/v1"
   # Plugin System
   # ============================================================
   # Enable the plugin system (default: false)

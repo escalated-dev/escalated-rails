@@ -17,7 +17,7 @@ module Escalated
         response.created_by = escalated_current_user.id
 
         if response.save
-          redirect_to admin_canned_responses_path, notice: "Canned response created."
+          redirect_to admin_canned_responses_path, notice: I18n.t('escalated.admin.canned_response.created')
         else
           redirect_back fallback_location: admin_canned_responses_path,
                         alert: response.errors.full_messages.join(", ")
@@ -26,7 +26,7 @@ module Escalated
 
       def update
         if @canned_response.update(canned_response_params)
-          redirect_to admin_canned_responses_path, notice: "Canned response updated."
+          redirect_to admin_canned_responses_path, notice: I18n.t('escalated.admin.canned_response.updated')
         else
           redirect_back fallback_location: admin_canned_responses_path,
                         alert: @canned_response.errors.full_messages.join(", ")
@@ -35,7 +35,7 @@ module Escalated
 
       def destroy
         @canned_response.destroy!
-        redirect_to admin_canned_responses_path, notice: "Canned response deleted."
+        redirect_to admin_canned_responses_path, notice: I18n.t('escalated.admin.canned_response.deleted')
       end
 
       private

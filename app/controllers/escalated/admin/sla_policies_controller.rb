@@ -23,7 +23,7 @@ module Escalated
         policy = Escalated::SlaPolicy.new(sla_policy_params)
 
         if policy.save
-          redirect_to admin_sla_policy_path(policy), notice: "SLA Policy created."
+          redirect_to admin_sla_policy_path(policy), notice: I18n.t('escalated.admin.sla_policy.created')
         else
           redirect_back fallback_location: new_admin_sla_policy_path,
                         alert: policy.errors.full_messages.join(", ")
@@ -48,7 +48,7 @@ module Escalated
 
       def update
         if @sla_policy.update(sla_policy_params)
-          redirect_to admin_sla_policy_path(@sla_policy), notice: "SLA Policy updated."
+          redirect_to admin_sla_policy_path(@sla_policy), notice: I18n.t('escalated.admin.sla_policy.updated')
         else
           redirect_back fallback_location: edit_admin_sla_policy_path(@sla_policy),
                         alert: @sla_policy.errors.full_messages.join(", ")
@@ -57,7 +57,7 @@ module Escalated
 
       def destroy
         @sla_policy.destroy!
-        redirect_to admin_sla_policies_path, notice: "SLA Policy deleted."
+        redirect_to admin_sla_policies_path, notice: I18n.t('escalated.admin.sla_policy.deleted')
       end
 
       private

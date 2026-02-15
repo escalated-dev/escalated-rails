@@ -95,6 +95,14 @@ Escalated.configure do |config|
 
   # API URL prefix (mounted on the host app, outside the engine)
   # config.api_prefix = "support/api/v1"
+  # Plugin System
+  # ============================================================
+  # Enable the plugin system (default: false)
+  config.plugins_enabled = false
+
+  # Directory where plugins are installed
+  # Defaults to Rails.root.join("lib/escalated/plugins") when nil
+  # config.plugins_path = Rails.root.join("lib", "escalated", "plugins").to_s
 
   # ============================================================
   # Cloud Configuration (only for :synced and :cloud modes)

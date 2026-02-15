@@ -6,13 +6,13 @@ module Escalated
       def create
         unless %w[resolved closed].include?(@ticket.status)
           redirect_back fallback_location: escalated.customer_ticket_path(@ticket),
-                        alert: "You can only rate resolved or closed tickets."
+                        alert: I18n.t('escalated.rating.only_resolved_closed')
           return
         end
 
         if @ticket.satisfaction_rating.present?
           redirect_back fallback_location: escalated.customer_ticket_path(@ticket),
-                        alert: "This ticket has already been rated."
+                        alert: I18n.t('escalated.rating.already_rated')
           return
         end
 
@@ -25,7 +25,7 @@ module Escalated
 
         if rating.save
           redirect_back fallback_location: escalated.customer_ticket_path(@ticket),
-                        notice: "Thank you for your feedback!"
+                        notice: I18n.t('escalated.rating.thanks')
         else
           redirect_back fallback_location: escalated.customer_ticket_path(@ticket),
                         alert: rating.errors.full_messages.join(", ")

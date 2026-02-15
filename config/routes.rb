@@ -60,6 +60,15 @@ Escalated::Engine.routes.draw do
     resources :canned_responses, only: [:index, :create, :update, :destroy]
     resources :macros, only: [:index, :create, :update, :destroy]
     resources :api_tokens, only: [:index, :create, :update, :destroy]
+    resources :plugins, only: [:index, :destroy] do
+      member do
+        post :activate
+        post :deactivate
+      end
+      collection do
+        post :upload
+      end
+    end
     get :reports, to: "reports#index"
     get :settings, to: "settings#index"
     post :settings, to: "settings#update"

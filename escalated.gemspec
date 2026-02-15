@@ -1,6 +1,6 @@
 Gem::Specification.new do |spec|
   spec.name          = "escalated"
-  spec.version       = "0.4.0"
+  spec.version       = "0.5.0"
   spec.authors       = ["Escalated Dev"]
   spec.email         = ["hello@escalated.dev"]
   spec.summary       = "Embeddable support ticket system for Rails"
@@ -9,7 +9,7 @@ Gem::Specification.new do |spec|
   spec.license       = "MIT"
   spec.required_ruby_version = ">= 3.1"
 
-  spec.files = Dir["lib/**/*", "app/**/*", "config/**/*", "db/**/*", "resources/**/*", "LICENSE", "README.md"]
+  spec.files = Dir["lib/**/*", "app/**/*", "config/**/*", "db/**/*", "resources/**/*", "stubs/**/*", "LICENSE", "README.md"]
 
   spec.add_dependency "rails", ">= 7.0"
   spec.add_dependency "inertia_rails", ">= 3.0"

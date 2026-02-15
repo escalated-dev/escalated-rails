@@ -47,7 +47,7 @@ module Escalated
           Services::AttachmentService.attach(ticket, ticket_params[:attachments])
         end
 
-        redirect_to customer_ticket_path(ticket), notice: "Ticket created successfully."
+        redirect_to customer_ticket_path(ticket), notice: I18n.t('escalated.ticket.created')
       rescue Services::AttachmentService::TooManyAttachmentsError,
              Services::AttachmentService::FileTooLargeError,
              Services::AttachmentService::InvalidFileTypeError => e
@@ -83,7 +83,7 @@ module Escalated
           Services::AttachmentService.attach(reply, params[:attachments])
         end
 
-        redirect_to customer_ticket_path(@ticket), notice: "Reply sent."
+        redirect_to customer_ticket_path(@ticket), notice: I18n.t('escalated.ticket.reply_sent')
       rescue Services::AttachmentService::TooManyAttachmentsError,
              Services::AttachmentService::FileTooLargeError,
              Services::AttachmentService::InvalidFileTypeError => e
@@ -94,19 +94,19 @@ module Escalated
         authorize @ticket, policy_class: Escalated::TicketPolicy
 
         unless Escalated.configuration.allow_customer_close
-          redirect_to customer_ticket_path(@ticket), alert: "Customers cannot close tickets."
+          redirect_to customer_ticket_path(@ticket), alert: I18n.t('escalated.ticket.customers_cannot_close')
           return
         end
 
         Services::TicketService.close(@ticket, actor: escalated_current_user)
-        redirect_to customer_ticket_path(@ticket), notice: "Ticket closed."
+        redirect_to customer_ticket_path(@ticket), notice: I18n.t('escalated.ticket.closed')
       end
 
       def reopen
         authorize @ticket, policy_class: Escalated::TicketPolicy
 
         Services::TicketService.reopen(@ticket, actor: escalated_current_user)
-        redirect_to customer_ticket_path(@ticket), notice: "Ticket reopened."
+        redirect_to customer_ticket_path(@ticket), notice: I18n.t('escalated.ticket.reopened')
       end
 
       private

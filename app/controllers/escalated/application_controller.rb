@@ -20,14 +20,15 @@ module Escalated
     end
 
     def set_inertia_shared_data
-      inertia_share(
+      shared = {
         current_user: current_user_data,
         escalated: {
           route_prefix: Escalated.configuration.route_prefix,
           allow_customer_close: Escalated.configuration.allow_customer_close,
           max_attachments: Escalated.configuration.max_attachments,
           max_attachment_size_kb: Escalated.configuration.max_attachment_size_kb,
-          guest_tickets_enabled: Escalated::EscalatedSetting.guest_tickets_enabled?
+          guest_tickets_enabled: Escalated::EscalatedSetting.guest_tickets_enabled?,
+          plugins_enabled: Escalated.configuration.plugins_enabled?,
         },
         flash: {
           success: flash[:success],
@@ -35,7 +36,14 @@ module Escalated
           notice: flash[:notice],
           alert: flash[:alert]
         }
-      )
+      }
+
+      # Share plugin UI data when plugin system is enabled
+      if Escalated.configuration.plugins_enabled?
+        shared[:plugin_ui] = Escalated.plugin_ui.to_shared_data
+      end
+
+      inertia_share(shared)
     end
 
     def current_user_data
@@ -58,27 +66,27 @@ module Escalated
 
     def require_agent!
       unless current_user_data&.dig(:is_agent) || current_user_data&.dig(:is_admin)
-        redirect_to main_app.root_path, alert: "Access denied."
+        redirect_to main_app.root_path, alert: I18n.t('escalated.middleware.not_agent')
       end
     end
 
     def require_admin!
       unless current_user_data&.dig(:is_admin)
-        redirect_to main_app.root_path, alert: "Access denied."
+        redirect_to main_app.root_path, alert: I18n.t('escalated.middleware.not_admin')
       end
     end
 
     def user_not_authorized
       render inertia: "Escalated/Error", props: {
         status: 403,
-        message: "You are not authorized to perform this action."
+        message: I18n.t('escalated.middleware.not_authorized')
       }, status: :forbidden
     end
 
     def not_found
       render inertia: "Escalated/Error", props: {
         status: 404,
-        message: "The requested resource was not found."
+        message: I18n.t('escalated.middleware.not_found')
       }, status: :not_found
     end
 

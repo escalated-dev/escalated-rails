@@ -35,7 +35,7 @@ module Escalated
         end
 
         redirect_back fallback_location: escalated.admin_tickets_path,
-                      notice: "#{success_count} ticket(s) updated."
+                      notice: I18n.t('escalated.bulk.updated', count: success_count)
       end
     end
   end

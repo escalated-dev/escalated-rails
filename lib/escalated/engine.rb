@@ -6,6 +6,10 @@ module Escalated
       # Allow host app to configure Escalated before boot
     end
 
+    initializer 'escalated.i18n' do
+      config.i18n.load_path += Dir[root.join('config', 'locales', '*.yml')]
+    end
+
     initializer "escalated.assets" do |app|
       # Make engine assets available to host app
       app.config.assets.precompile += %w[escalated_manifest.js] if app.config.respond_to?(:assets)
@@ -67,6 +71,27 @@ module Escalated
     initializer "escalated.inertia" do
       ActiveSupport.on_load(:action_controller) do
         # Configure Inertia shared data at engine level
+      end
+    end
+
+    # Set default plugins_path to Rails.root/lib/escalated/plugins when not
+    # explicitly configured. Must run after the host app has booted so
+    # Rails.root is available.
+    initializer "escalated.plugins_path", after: :load_config_initializers do |app|
+      if Escalated.configuration.plugins_path.nil?
+        Escalated.configuration.plugins_path = app.root.join("lib", "escalated", "plugins").to_s
+      end
+    end
+
+    # Load active plugins after the host app has finished booting so all
+    # models, routes, and services are available to plugin code.
+    config.after_initialize do
+      if Escalated.configuration.plugins_enabled?
+        begin
+          Escalated::Services::PluginService.load_active_plugins
+        rescue StandardError => e
+          Rails.logger.error("[Escalated::Engine] Failed to load plugins: #{e.message}")
+        end
       end
     end
 

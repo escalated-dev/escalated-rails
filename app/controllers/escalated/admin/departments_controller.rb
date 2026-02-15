@@ -25,7 +25,7 @@ module Escalated
 
         if department.save
           sync_agents(department, params[:agent_ids])
-          redirect_to admin_department_path(department), notice: "Department created."
+          redirect_to admin_department_path(department), notice: I18n.t('escalated.admin.department.created')
         else
           redirect_back fallback_location: new_admin_department_path,
                         alert: department.errors.full_messages.join(", ")
@@ -58,7 +58,7 @@ module Escalated
       def update
         if @department.update(department_params)
           sync_agents(@department, params[:agent_ids]) if params.key?(:agent_ids)
-          redirect_to admin_department_path(@department), notice: "Department updated."
+          redirect_to admin_department_path(@department), notice: I18n.t('escalated.admin.department.updated')
         else
           redirect_back fallback_location: edit_admin_department_path(@department),
                         alert: @department.errors.full_messages.join(", ")
@@ -67,7 +67,7 @@ module Escalated
 
       def destroy
         @department.destroy!
-        redirect_to admin_departments_path, notice: "Department deleted."
+        redirect_to admin_departments_path, notice: I18n.t('escalated.admin.department.deleted')
       end
 
       private

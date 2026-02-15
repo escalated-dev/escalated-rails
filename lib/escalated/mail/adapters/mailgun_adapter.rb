@@ -41,7 +41,10 @@ module Escalated
         # @return [Boolean]
         def verify_request(request)
           signing_key = Escalated.configuration.mailgun_signing_key
-          return true if signing_key.blank? # Skip verification if no key configured
+          if signing_key.blank?
+            Rails.logger.warn("[Escalated::MailgunAdapter] Mailgun signing key not configured — rejecting webhook.")
+            return false
+          end
 
           params = request.params
           timestamp = params["timestamp"].to_s

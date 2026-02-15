@@ -59,10 +59,27 @@ module Escalated
           message_topic_arn = body["TopicArn"]
           return false unless message_topic_arn == topic_arn
 
-          # SNS signature verification can be implemented here.
-          # For production, you should verify the SigningCertURL, download
-          # the certificate, and verify the Signature field.
-          # For now, we verify the TopicArn match.
+          # Validate SNS message type
+          message_type = body["Type"]
+          unless %w[SubscriptionConfirmation Notification UnsubscribeConfirmation].include?(message_type)
+            Rails.logger.warn("[Escalated::SesAdapter] Unexpected SNS message type: #{message_type}")
+            return false
+          end
+
+          # Validate SigningCertURL is from a legitimate AWS SNS endpoint
+          signing_cert_url = body["SigningCertURL"] || body["SigningCertUrl"]
+          if signing_cert_url.present?
+            begin
+              uri = URI.parse(signing_cert_url)
+              unless uri.scheme == "https" && uri.host.match?(/\Asns\.[a-z0-9-]+\.amazonaws\.com\z/)
+                Rails.logger.warn("[Escalated::SesAdapter] Invalid SigningCertURL: #{signing_cert_url}")
+                return false
+              end
+            rescue URI::InvalidURIError
+              return false
+            end
+          end
+
           true
         end
 

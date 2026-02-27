@@ -16,6 +16,90 @@ module Escalated
         }
       end
 
+      def two_factor
+        render inertia: "Escalated/Admin/Settings/TwoFactor", props: {
+          two_factor_required: Escalated::EscalatedSetting.get("two_factor_required") == "1",
+          two_factor_grace_period_hours: Escalated::EscalatedSetting.get("two_factor_grace_period_hours").to_i
+        }
+      end
+
+      def two_factor_setup
+        render inertia: "Escalated/Admin/Settings/TwoFactorSetup", props: {
+          otp_secret: ROTP::Base32.random,
+          user_email: escalated_current_user.email
+        }
+      end
+
+      def two_factor_confirm
+        totp = ROTP::TOTP.new(params[:otp_secret])
+
+        unless totp.verify(params[:otp_code].to_s, drift_behind: 30)
+          return redirect_back fallback_location: escalated.admin_settings_two_factor_path,
+                               alert: I18n.t('escalated.admin.two_factor.invalid_code')
+        end
+
+        Escalated::TwoFactor.create_or_update_for(
+          escalated_current_user,
+          otp_secret: params[:otp_secret]
+        )
+
+        redirect_to escalated.admin_settings_two_factor_path, notice: I18n.t('escalated.admin.two_factor.enabled')
+      end
+
+      def two_factor_disable
+        two_factor = Escalated::TwoFactor.find_by(user_id: escalated_current_user.id)
+        two_factor&.destroy!
+
+        redirect_to escalated.admin_settings_two_factor_path, notice: I18n.t('escalated.admin.two_factor.disabled')
+      end
+
+      def sso
+        render inertia: "Escalated/Admin/Settings/Sso", props: {
+          sso_enabled: Escalated::EscalatedSetting.get("sso_enabled") == "1",
+          sso_provider: Escalated::EscalatedSetting.get("sso_provider"),
+          sso_metadata_url: Escalated::EscalatedSetting.get("sso_metadata_url"),
+          sso_client_id: Escalated::EscalatedSetting.get("sso_client_id"),
+          sso_issuer: Escalated::EscalatedSetting.get("sso_issuer")
+        }
+      end
+
+      def update_sso
+        %w[sso_provider sso_metadata_url sso_client_id sso_issuer sso_client_secret].each do |key|
+          next unless params.key?(key)
+
+          Escalated::EscalatedSetting.set(key, params[key].to_s.strip)
+        end
+
+        sso_enabled = params[:sso_enabled].in?(%w[1 true on]) ? "1" : "0"
+        Escalated::EscalatedSetting.set("sso_enabled", sso_enabled)
+
+        redirect_to escalated.admin_settings_sso_path, notice: I18n.t('escalated.admin.settings.updated')
+      end
+
+      def csat
+        render inertia: "Escalated/Admin/Settings/Csat", props: {
+          csat_enabled: Escalated::EscalatedSetting.get("csat_enabled") == "1",
+          csat_send_after_hours: Escalated::EscalatedSetting.get("csat_send_after_hours").to_i,
+          csat_message: Escalated::EscalatedSetting.get("csat_message")
+        }
+      end
+
+      def update_csat
+        csat_enabled = params[:csat_enabled].in?(%w[1 true on]) ? "1" : "0"
+        Escalated::EscalatedSetting.set("csat_enabled", csat_enabled)
+
+        if params[:csat_send_after_hours].present?
+          hours = params[:csat_send_after_hours].to_i
+          Escalated::EscalatedSetting.set("csat_send_after_hours", [0, hours].max.to_s)
+        end
+
+        if params[:csat_message].present?
+          Escalated::EscalatedSetting.set("csat_message", params[:csat_message].to_s.strip)
+        end
+
+        redirect_to escalated.admin_settings_csat_path, notice: I18n.t('escalated.admin.settings.updated')
+      end
+
       def update
         # Boolean settings
         %w[guest_tickets_enabled allow_customer_close inbound_email_enabled].each do |key|

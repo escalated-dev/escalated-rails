@@ -12,7 +12,8 @@ class CreateEscalatedSatisfactionRatings < ActiveRecord::Migration[7.0]
       t.datetime :created_at
     end
 
-    add_index Escalated.table_name("satisfaction_ratings"), [:rated_by_type, :rated_by_id]
+    add_index Escalated.table_name("satisfaction_ratings"), [:rated_by_type, :rated_by_id],
+              name: "idx_escalated_sat_ratings_rated_by"
     add_index Escalated.table_name("satisfaction_ratings"),
               :ticket_id,
               unique: true,

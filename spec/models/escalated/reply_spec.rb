@@ -6,7 +6,7 @@ RSpec.describe Escalated::Reply, type: :model do
   # ------------------------------------------------------------------ #
   describe "associations" do
     it { is_expected.to belong_to(:ticket).class_name("Escalated::Ticket") }
-    it { is_expected.to belong_to(:author) }
+    it { is_expected.to belong_to(:author).optional }
     it { is_expected.to have_many(:attachments) }
   end
 

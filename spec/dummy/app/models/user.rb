@@ -4,6 +4,11 @@ class User < ApplicationRecord
            as: :requester,
            dependent: :nullify
 
+  has_many :escalated_assigned_tickets,
+           class_name: "Escalated::Ticket",
+           foreign_key: :assigned_to,
+           dependent: :nullify
+
   validates :name, presence: true
   validates :email, presence: true, uniqueness: true
 

@@ -70,8 +70,70 @@ Escalated::Engine.routes.draw do
       end
     end
     get :reports, to: "reports#index"
+    get "reports/dashboard", to: "reports#dashboard", as: :reports_dashboard
     get :settings, to: "settings#index"
     post :settings, to: "settings#update"
+
+    # Phase 1
+    resources :statuses, only: [:index, :create, :update, :destroy]
+    resources :business_hours, only: [:index, :create, :update, :destroy]
+    resources :roles, only: [:index, :create, :update, :destroy]
+    resources :audit_logs, only: [:index]
+
+    # Phase 2
+    resources :custom_fields, only: [:index, :create, :update, :destroy] do
+      collection do
+        post :reorder
+      end
+    end
+    resources :tickets, only: [] do
+      member do
+        get :links, to: "ticket_links#index"
+        post :store_link, to: "ticket_links#store"
+        delete "links/:link_id", to: "ticket_links#destroy", as: :destroy_link
+        get :merge_search, to: "ticket_merges#search"
+        post :merge, to: "ticket_merges#merge"
+        get :side_conversations, to: "side_conversations#index"
+        post :store_side_conversation, to: "side_conversations#store"
+        post "side_conversations/:conversation_id/reply", to: "side_conversations#reply", as: :side_conversation_reply
+        post "side_conversations/:conversation_id/close", to: "side_conversations#close", as: :side_conversation_close
+      end
+    end
+    resources :articles, only: [:index, :create, :update, :destroy]
+    resources :kb_categories, only: [:index, :create, :update, :destroy]
+
+    # Phase 3
+    resources :skills, only: [:index, :create, :update, :destroy]
+    resources :capacity, only: [:index, :update]
+
+    # Phase 4
+    resources :webhooks, only: [:index, :create, :update, :destroy] do
+      member do
+        get :deliveries
+      end
+      collection do
+        post "deliveries/:delivery_id/retry", action: :retry_delivery, as: :retry_delivery
+      end
+    end
+    resources :automations, only: [:index, :create, :update, :destroy]
+
+    # Phase 5
+    get "settings/two_factor", to: "settings#two_factor", as: :settings_two_factor
+    post "settings/two_factor/setup", to: "settings#two_factor_setup", as: :settings_two_factor_setup
+    post "settings/two_factor/confirm", to: "settings#two_factor_confirm", as: :settings_two_factor_confirm
+    post "settings/two_factor/disable", to: "settings#two_factor_disable", as: :settings_two_factor_disable
+    get "settings/sso", to: "settings#sso", as: :settings_sso
+    post "settings/sso", to: "settings#update_sso", as: :settings_update_sso
+    get "settings/csat", to: "settings#csat", as: :settings_csat
+    post "settings/csat", to: "settings#update_csat", as: :settings_update_csat
+    resources :custom_objects, only: [:index, :create, :update, :destroy] do
+      member do
+        get :records
+        post :store_record
+        put "records/:record_id", action: :update_record, as: :update_record
+        delete "records/:record_id", action: :destroy_record, as: :destroy_record
+      end
+    end
   end
 
   # Guest routes (no authentication required)

@@ -3,7 +3,7 @@ module Escalated
     self.table_name = Escalated.table_name("replies")
 
     belongs_to :ticket, class_name: "Escalated::Ticket"
-    belongs_to :author, polymorphic: true
+    belongs_to :author, polymorphic: true, optional: true
     has_many :attachments, as: :attachable, dependent: :destroy, class_name: "Escalated::Attachment"
 
     validates :body, presence: true

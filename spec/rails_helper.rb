@@ -12,14 +12,18 @@ require "factory_bot_rails"
 require "shoulda-matchers"
 require "database_cleaner/active_record"
 
+# Load services from lib/ (not auto-loaded by Rails engine)
+Dir[File.join(File.dirname(__dir__), "lib", "escalated", "services", "*.rb")].sort.each { |f| require f }
+
 # Load support files
 Dir[File.join(__dir__, "support", "**", "*.rb")].sort.each { |f| require f }
 
-# Load factories
-Dir[File.join(__dir__, "factories", "**", "*.rb")].sort.each { |f| require f }
+# Tell FactoryBot where to find factories
+FactoryBot.definition_file_paths = [File.join(__dir__, "factories")]
+FactoryBot.find_definitions
 
 RSpec.configure do |config|
-  config.fixture_path = "#{__dir__}/fixtures"
+  config.fixture_paths = ["#{__dir__}/fixtures"]
   config.use_transactional_fixtures = false
   config.infer_spec_type_from_file_location!
   config.filter_rails_from_backtrace!

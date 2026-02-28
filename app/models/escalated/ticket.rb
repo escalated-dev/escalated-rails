@@ -23,6 +23,16 @@ module Escalated
     has_one :satisfaction_rating, class_name: "Escalated::SatisfactionRating", dependent: :destroy
     has_many :pinned_notes, -> { where(is_internal: true, is_pinned: true) },
              class_name: "Escalated::Reply"
+    has_many :links_as_parent,
+             class_name: "Escalated::TicketLink",
+             foreign_key: :parent_ticket_id,
+             dependent: :destroy
+    has_many :links_as_child,
+             class_name: "Escalated::TicketLink",
+             foreign_key: :child_ticket_id,
+             dependent: :destroy
+    belongs_to :merged_into, class_name: "Escalated::Ticket", optional: true
+    has_many :side_conversations, class_name: "Escalated::SideConversation", dependent: :destroy
 
     enum :status, {
       open: 0,

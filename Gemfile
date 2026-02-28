@@ -2,6 +2,8 @@ source "https://rubygems.org"
 
 gemspec
 
+gem "tzinfo-data"
+
 group :development, :test do
   gem "sqlite3"
   gem "rspec-rails"

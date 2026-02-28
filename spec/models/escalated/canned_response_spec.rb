@@ -206,7 +206,7 @@ RSpec.describe Escalated::CannedResponse, type: :model do
 
     it "converts non-string values to strings" do
       response = build(:escalated_canned_response,
-                       body: "Ticket #{{ticket.id}}",
+                       body: 'Ticket #{{ticket.id}}',
                        creator: agent)
 
       result = response.render("ticket.id" => 42)

@@ -51,6 +51,30 @@ module Escalated
         }
       end
 
+      def dashboard
+        today = Time.current.beginning_of_day..Time.current.end_of_day
+        this_week = 1.week.ago.beginning_of_day..Time.current.end_of_day
+
+        render inertia: "Escalated/Admin/Reports/Dashboard", props: {
+          today: {
+            created: Escalated::Ticket.where(created_at: today).count,
+            resolved: Escalated::Ticket.where(resolved_at: today).count,
+            closed: Escalated::Ticket.where(closed_at: today).count,
+            first_replies: Escalated::Ticket.where(first_response_at: today).count
+          },
+          this_week: {
+            created: Escalated::Ticket.where(created_at: this_week).count,
+            resolved: Escalated::Ticket.where(resolved_at: this_week).count
+          },
+          open_by_priority: Escalated::Ticket.priorities.keys.each_with_object({}) { |priority, hash|
+            hash[priority] = Escalated::Ticket.by_open.where(priority: priority).count
+          },
+          sla_breaches_today: Escalated::Ticket.where(sla_breached: true).where(updated_at: today).count,
+          unassigned_open: Escalated::Ticket.by_open.unassigned.count,
+          csat_this_week: calculate_csat_stats(1.week.ago.beginning_of_day, Time.current.end_of_day)
+        }
+      end
+
       private
 
       def parse_date(value)

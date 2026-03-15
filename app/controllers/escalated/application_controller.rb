@@ -28,6 +28,7 @@ module Escalated
           max_attachments: Escalated.configuration.max_attachments,
           max_attachment_size_kb: Escalated.configuration.max_attachment_size_kb,
           guest_tickets_enabled: Escalated::EscalatedSetting.guest_tickets_enabled?,
+          show_powered_by: Escalated::EscalatedSetting.get_bool("show_powered_by", default: true),
           plugins_enabled: Escalated.configuration.plugins_enabled?,
         },
         flash: {

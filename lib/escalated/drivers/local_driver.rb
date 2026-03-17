@@ -260,6 +260,11 @@ module Escalated
       end
 
       def instrument(event, payload = {})
+        # Skip ActiveSupport::Notifications instrumentation during a bulk import
+        # so that subscribers (SLA recalculation, automation triggers, etc.) are
+        # not invoked for every imported record.
+        return if Escalated::Support::ImportContext.importing?
+
         ActiveSupport::Notifications.instrument(event, payload)
       end
 

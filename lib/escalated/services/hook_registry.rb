@@ -177,6 +177,29 @@ module Escalated
                 end
               RUBY
             },
+
+            # ==============================================================
+            # IMPORT LIFECYCLE
+            # ==============================================================
+            "import.completed" => {
+              description: "Fired when an ImportJob finishes successfully",
+              parameters: %w[import_job],
+              example: <<~RUBY
+                Escalated.hooks.add_action('import.completed') do |job|
+                  Rails.logger.info "Import completed: \#{job.id} (platform: \#{job.platform})"
+                  # e.g. trigger search reindex here
+                end
+              RUBY
+            },
+            "import.run_async" => {
+              description: "Override to run imports via your own job queue (Sidekiq, GoodJob, etc.)",
+              parameters: %w[import_job],
+              example: <<~RUBY
+                Escalated.hooks.add_action('import.run_async') do |job|
+                  EscalatedImportJob.perform_later(job.id)
+                end
+              RUBY
+            },
           }
         end
 
@@ -282,6 +305,19 @@ module Escalated
               example: <<~RUBY
                 Escalated.hooks.add_filter('notification_recipients') do |recipients, ticket, event|
                   recipients + [admin_email]
+                end
+              RUBY
+            },
+
+            # ==============================================================
+            # IMPORT FILTERS
+            # ==============================================================
+            "import.adapters" => {
+              description: "Register import adapters. Return value replaces the adapters array.",
+              parameters: %w[adapters],
+              example: <<~RUBY
+                Escalated.hooks.add_filter('import.adapters') do |adapters|
+                  adapters + [MyPlatformAdapter.new]
                 end
               RUBY
             },

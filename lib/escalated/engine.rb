@@ -99,5 +99,10 @@ module Escalated
       g.test_framework :rspec
       g.fixture_replacement :factory_bot, dir: "spec/factories"
     end
+
+    # Expose escalated:import:* rake tasks to the host app
+    rake_tasks do
+      load "tasks/escalated_import.rake"
+    end
   end
 end

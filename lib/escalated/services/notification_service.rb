@@ -7,6 +7,10 @@ module Escalated
     class NotificationService
       class << self
         def dispatch(event, payload = {})
+          # Suppress all notifications during a bulk import to avoid triggering
+          # SLA timers, automations, and outbound emails for imported records.
+          return if Escalated::Support::ImportContext.importing?
+
           send_webhook(event, payload) if webhook_configured?
           notify_followers(event, payload) if should_notify_followers?(event)
           instrument_event(event, payload)

@@ -2,9 +2,12 @@ require "escalated/engine"
 require "escalated/configuration"
 require "escalated/manager"
 require "escalated/support/hook_manager"
+require "escalated/support/import_context"
+require "escalated/import_adapter"
 require "escalated/services/hook_registry"
 require "escalated/services/plugin_service"
 require "escalated/services/plugin_ui_service"
+require "escalated/services/import_service"
 
 module Escalated
   class << self

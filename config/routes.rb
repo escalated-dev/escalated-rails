@@ -134,6 +134,16 @@ Escalated::Engine.routes.draw do
         delete "records/:record_id", action: :destroy_record, as: :destroy_record
       end
     end
+
+    # Import framework
+    resources :imports, only: [:index, :show, :create, :destroy] do
+      member do
+        post :start
+        post :pause
+        post :resume
+        get  :source_maps
+      end
+    end
   end
 
   # Guest routes (no authentication required)

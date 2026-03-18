@@ -93,6 +93,42 @@ module Escalated
           Rails.logger.error("[Escalated::Engine] Failed to load plugins: #{e.message}")
         end
       end
+
+      # Boot the SDK plugin bridge (Node.js runtime) if configured.
+      # This is intentionally after the Ruby plugin system so both can coexist.
+      if Escalated.configuration.respond_to?(:sdk_plugins_enabled) &&
+         Escalated.configuration.sdk_plugins_enabled
+        begin
+          Escalated.plugin_bridge.boot
+        rescue StandardError => e
+          Rails.logger.error("[Escalated::Engine] Failed to boot plugin bridge: #{e.message}")
+        end
+      end
+
+      # Register bridge hook callbacks so every host-side hook is also
+      # forwarded to the Node.js runtime (when the bridge is booted).
+      Escalated::Engine.register_bridge_hooks
+    end
+
+    # Register bridge forwarding callbacks for every action hook in the
+    # HookRegistry.  Each callback forwards the event to the Node.js runtime
+    # via PluginBridge#dispatch_action.  This method is idempotent — it only
+    # adds callbacks once and is safe to call multiple times.
+    def self.register_bridge_hooks
+      return if @bridge_hooks_registered
+
+      Escalated::Services::HookRegistry.actions.each_key do |hook|
+        Escalated.hooks.add_action(hook, priority: 100) do |*args|
+          bridge = Escalated.plugin_bridge
+          next unless bridge.booted?
+
+          # Serialize args to a plain hash/array for JSON transport.
+          event = { "args" => args.map { |a| a.respond_to?(:as_json) ? a.as_json : a } }
+          bridge.dispatch_action(hook, event)
+        end
+      end
+
+      @bridge_hooks_registered = true
     end
 
     config.generators do |g|

@@ -17,9 +17,13 @@ module Escalated
                   :notification_channels,
                   :webhook_url,
                   :storage_service,
-                  # Plugin system
+                  # Plugin system (Ruby-based)
                   :plugins_enabled,
                   :plugins_path,
+                  # SDK plugin bridge (Node.js runtime)
+                  :sdk_plugins_enabled,
+                  :plugin_runtime_command,
+                  :plugin_runtime_cwd,
                   # Inbound email settings
                   :inbound_email_enabled,
                   :inbound_email_adapter,
@@ -75,6 +79,11 @@ module Escalated
       # Plugin system defaults
       @plugins_enabled = false
       @plugins_path = nil  # Set at boot time if nil (defaults to Rails.root.join("lib/escalated/plugins"))
+
+      # SDK plugin bridge defaults
+      @sdk_plugins_enabled    = false
+      @plugin_runtime_command = nil  # defaults to "node node_modules/@escalated-dev/plugin-runtime/dist/index.js"
+      @plugin_runtime_cwd     = nil  # defaults to Rails.root
 
       # Inbound email defaults
       @inbound_email_enabled = false

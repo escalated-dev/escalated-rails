@@ -160,4 +160,10 @@ Escalated::Engine.routes.draw do
 
   # Root redirect to customer tickets
   root to: "customer/tickets#index"
+
+  # SDK plugin routes are registered dynamically at boot time by
+  # Escalated::Bridge::RouteRegistrar based on each plugin's manifest.
+  # They appear as:
+  #   GET/POST /support/plugins/:plugin/api/:path   → plugins/endpoints#handle
+  #   POST     /support/plugins/:plugin/webhooks/:path → plugins/webhooks#handle
 end

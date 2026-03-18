@@ -8,6 +8,10 @@ require "escalated/services/hook_registry"
 require "escalated/services/plugin_service"
 require "escalated/services/plugin_ui_service"
 require "escalated/services/import_service"
+require "escalated/bridge/json_rpc_client"
+require "escalated/bridge/context_handler"
+require "escalated/bridge/route_registrar"
+require "escalated/bridge/plugin_bridge"
 
 module Escalated
   class << self
@@ -54,12 +58,24 @@ module Escalated
       @plugin_ui ||= Services::PluginUIService.new
     end
 
-    # Reset hooks and plugin UI (useful for testing).
+    # Global PluginBridge instance.
+    #
+    # Provides access to the Node.js plugin runtime for SDK plugins.
+    # The bridge is booted lazily — calling this before boot returns the
+    # unbooted instance (safe: all public methods guard against this state).
+    #
+    # @return [Escalated::Bridge::PluginBridge]
+    def plugin_bridge
+      @plugin_bridge ||= Bridge::PluginBridge.new
+    end
+
+    # Reset hooks, plugin UI, and bridge (useful for testing).
     #
     # @return [void]
     def reset_plugins!
-      @hooks = Support::HookManager.new
-      @plugin_ui = Services::PluginUIService.new
+      @hooks         = Support::HookManager.new
+      @plugin_ui     = Services::PluginUIService.new
+      @plugin_bridge = Bridge::PluginBridge.new
     end
   end
 end

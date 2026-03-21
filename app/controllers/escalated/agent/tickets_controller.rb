@@ -9,6 +9,7 @@ module Escalated
 
         scope = scope.where(status: params[:status]) if params[:status].present?
         scope = scope.where(priority: params[:priority]) if params[:priority].present?
+        scope = scope.by_ticket_type(params[:ticket_type]) if params[:ticket_type].present?
         scope = scope.assigned_to(params[:assigned_to]) if params[:assigned_to].present?
         scope = scope.where(department_id: params[:department_id]) if params[:department_id].present?
         scope = scope.unassigned if params[:unassigned] == "true"
@@ -32,6 +33,7 @@ module Escalated
           filters: {
             status: params[:status],
             priority: params[:priority],
+            ticket_type: params[:ticket_type],
             assigned_to: params[:assigned_to],
             department_id: params[:department_id],
             unassigned: params[:unassigned],
@@ -43,7 +45,8 @@ module Escalated
           agents: agent_list,
           tags: Escalated::Tag.ordered.map { |t| { id: t.id, name: t.name, color: t.color } },
           statuses: Escalated::Ticket.statuses.keys,
-          priorities: Escalated::Ticket.priorities.keys
+          priorities: Escalated::Ticket.priorities.keys,
+          ticket_types: Escalated::Ticket::TICKET_TYPES
         }
       end
 
@@ -256,6 +259,7 @@ module Escalated
           subject: ticket.subject,
           status: ticket.status,
           priority: ticket.priority,
+          ticket_type: ticket.ticket_type,
           requester: {
             name: ticket.requester.respond_to?(:name) ? ticket.requester.name : ticket.requester&.email
           },

@@ -53,9 +53,12 @@ module Escalated
       critical: 4
     }
 
+    TICKET_TYPES = %w[question problem incident task].freeze
+
     validates :subject, presence: true, length: { maximum: 255 }
     validates :description, presence: true
     validates :reference, uniqueness: true, allow_nil: true
+    validates :ticket_type, inclusion: { in: TICKET_TYPES }, allow_nil: true
 
     before_create :set_reference
 
@@ -73,6 +76,7 @@ module Escalated
             term: "%#{sanitize_sql_like(term)}%")
     }
     scope :by_priority, ->(priority) { where(priority: priority) }
+    scope :by_ticket_type, ->(ticket_type) { where(ticket_type: ticket_type) }
     scope :by_department, ->(department_id) { where(department_id: department_id) }
     scope :created_between, ->(from, to) { where(created_at: from..to) }
     scope :recent, -> { order(created_at: :desc) }

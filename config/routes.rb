@@ -115,7 +115,7 @@ Escalated::Engine.routes.draw do
         post "deliveries/:delivery_id/retry", action: :retry_delivery, as: :retry_delivery
       end
     end
-    resources :automations, only: [:index, :create, :update, :destroy]
+    resources :automations, only: [:index, :new, :create, :edit, :update, :destroy]
 
     # Phase 5
     get "settings/two_factor", to: "settings#two_factor", as: :settings_two_factor

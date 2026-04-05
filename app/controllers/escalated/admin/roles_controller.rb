@@ -7,7 +7,7 @@ module Escalated
       def index
         roles = Escalated::Role.includes(:permissions).ordered
 
-        render inertia: "Escalated/Admin/Roles/Index", props: {
+        render_page "Escalated/Admin/Roles/Index", {
           roles: roles.map { |r| role_json(r) },
           permissions: Escalated::Permission.ordered.map { |p| permission_json(p) }
         }

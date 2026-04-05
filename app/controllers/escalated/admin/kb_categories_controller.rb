@@ -7,7 +7,7 @@ module Escalated
       def index
         categories = Escalated::ArticleCategory.ordered
 
-        render inertia: "Escalated/Admin/KbCategories/Index", props: {
+        render_page "Escalated/Admin/KbCategories/Index", {
           categories: categories.map { |c| category_json(c) }
         }
       end

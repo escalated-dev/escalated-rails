@@ -11,6 +11,8 @@ module Escalated
     end
 
     initializer "escalated.assets" do |app|
+      next unless Escalated.configuration.ui_enabled?
+
       # Make engine assets available to host app
       app.config.assets.precompile += %w[escalated_manifest.js] if app.config.respond_to?(:assets)
     end
@@ -69,6 +71,8 @@ module Escalated
     end
 
     initializer "escalated.inertia" do
+      next unless Escalated.configuration.ui_enabled?
+
       ActiveSupport.on_load(:action_controller) do
         # Configure Inertia shared data at engine level
       end

@@ -7,7 +7,7 @@ module Escalated
       def index
         tags = Escalated::Tag.ordered
 
-        render inertia: "Escalated/Admin/Tags/Index", props: {
+        render_page "Escalated/Admin/Tags/Index", {
           tags: tags.map { |t| tag_json(t) }
         }
       end

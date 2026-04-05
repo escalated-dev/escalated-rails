@@ -31,7 +31,7 @@ module Escalated
         unassigned_tickets = all_open.unassigned.recent.limit(10)
         breached_tickets = all_open.breached_sla.recent.limit(10)
 
-        render inertia: "Escalated/Agent/Dashboard", props: {
+        render_page "Escalated/Agent/Dashboard", {
           stats: stats,
           recent_tickets: recent_tickets.map { |t| ticket_summary_json(t) },
           unassigned_tickets: unassigned_tickets.map { |t| ticket_summary_json(t) },

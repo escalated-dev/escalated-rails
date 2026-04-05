@@ -13,7 +13,7 @@ module Escalated
 
         result = paginate(scope)
 
-        render inertia: "Escalated/Admin/Articles/Index", props: {
+        render_page "Escalated/Admin/Articles/Index", {
           articles: result[:data].map { |a| article_json(a) },
           meta: result[:meta],
           filters: {

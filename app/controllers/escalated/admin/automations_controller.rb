@@ -7,13 +7,13 @@ module Escalated
       def index
         automations = Escalated::Automation.ordered
 
-        render inertia: "Escalated/Admin/Automations/Index", props: {
+        render_page "Escalated/Admin/Automations/Index", {
           automations: automations.map { |a| automation_json(a) }
         }
       end
 
       def new
-        render inertia: "Escalated/Admin/Automations/New", props: {
+        render_page "Escalated/Admin/Automations/New", {
           condition_fields: condition_fields,
           action_types: action_types
         }
@@ -31,7 +31,7 @@ module Escalated
       end
 
       def edit
-        render inertia: "Escalated/Admin/Automations/Edit", props: {
+        render_page "Escalated/Admin/Automations/Edit", {
           automation: automation_json(@automation),
           condition_fields: condition_fields,
           action_types: action_types

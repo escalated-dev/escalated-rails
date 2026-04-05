@@ -1,11 +1,12 @@
 module Escalated
   class ApplicationController < ActionController::Base
     include Pundit::Authorization
+    include Escalated::Renderable
 
     protect_from_forgery with: :exception
 
     before_action :apply_middleware
-    before_action :set_inertia_shared_data
+    before_action :set_inertia_shared_data, if: -> { Escalated.configuration.ui_enabled? }
 
     rescue_from Pundit::NotAuthorizedError, with: :user_not_authorized
     rescue_from ActiveRecord::RecordNotFound, with: :not_found
@@ -78,14 +79,14 @@ module Escalated
     end
 
     def user_not_authorized
-      render inertia: "Escalated/Error", props: {
+      render_page "Escalated/Error", {
         status: 403,
         message: I18n.t('escalated.middleware.not_authorized')
       }, status: :forbidden
     end
 
     def not_found
-      render inertia: "Escalated/Error", props: {
+      render_page "Escalated/Error", {
         status: 404,
         message: I18n.t('escalated.middleware.not_found')
       }, status: :not_found

@@ -7,7 +7,7 @@ module Escalated
       def index
         schedules = Escalated::BusinessSchedule.includes(:holidays).ordered
 
-        render inertia: "Escalated/Admin/BusinessHours/Index", props: {
+        render_page "Escalated/Admin/BusinessHours/Index", {
           schedules: schedules.map { |s| schedule_json(s) }
         }
       end

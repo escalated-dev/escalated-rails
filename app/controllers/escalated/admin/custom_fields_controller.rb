@@ -7,7 +7,7 @@ module Escalated
       def index
         fields = Escalated::CustomField.ordered
 
-        render inertia: "Escalated/Admin/CustomFields/Index", props: {
+        render_page "Escalated/Admin/CustomFields/Index", {
           fields: fields.map { |f| field_json(f) }
         }
       end

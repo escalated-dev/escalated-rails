@@ -7,7 +7,7 @@ module Escalated
       def index
         capacities = Escalated::AgentCapacity.includes(:agent).ordered
 
-        render inertia: "Escalated/Admin/Capacity/Index", props: {
+        render_page "Escalated/Admin/Capacity/Index", {
           capacities: capacities.map { |c| capacity_json(c) }
         }
       end

@@ -11,20 +11,20 @@ module Escalated
           settings[key] = mask_secret(settings[key]) if settings.key?(key)
         end
 
-        render inertia: "Escalated/Admin/Settings", props: {
+        render_page "Escalated/Admin/Settings", {
           settings: settings
         }
       end
 
       def two_factor
-        render inertia: "Escalated/Admin/Settings/TwoFactor", props: {
+        render_page "Escalated/Admin/Settings/TwoFactor", {
           two_factor_required: Escalated::EscalatedSetting.get("two_factor_required") == "1",
           two_factor_grace_period_hours: Escalated::EscalatedSetting.get("two_factor_grace_period_hours").to_i
         }
       end
 
       def two_factor_setup
-        render inertia: "Escalated/Admin/Settings/TwoFactorSetup", props: {
+        render_page "Escalated/Admin/Settings/TwoFactorSetup", {
           otp_secret: ROTP::Base32.random,
           user_email: escalated_current_user.email
         }
@@ -54,7 +54,7 @@ module Escalated
       end
 
       def sso
-        render inertia: "Escalated/Admin/Settings/Sso", props: {
+        render_page "Escalated/Admin/Settings/Sso", {
           sso_enabled: Escalated::EscalatedSetting.get("sso_enabled") == "1",
           sso_provider: Escalated::EscalatedSetting.get("sso_provider"),
           sso_metadata_url: Escalated::EscalatedSetting.get("sso_metadata_url"),
@@ -77,7 +77,7 @@ module Escalated
       end
 
       def csat
-        render inertia: "Escalated/Admin/Settings/Csat", props: {
+        render_page "Escalated/Admin/Settings/Csat", {
           csat_enabled: Escalated::EscalatedSetting.get("csat_enabled") == "1",
           csat_send_after_hours: Escalated::EscalatedSetting.get("csat_send_after_hours").to_i,
           csat_message: Escalated::EscalatedSetting.get("csat_message")

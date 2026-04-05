@@ -6,7 +6,7 @@ module Escalated
       def index
         plugins = Escalated::Services::PluginService.all_plugins
 
-        render inertia: "Escalated/Admin/Plugins/Index", props: {
+        render_page "Escalated/Admin/Plugins/Index", {
           plugins: plugins.map { |p| plugin_json(p) }
         }
       end

@@ -1,14 +1,16 @@
 module Escalated
   module Guest
     class TicketsController < ActionController::Base
+      include Escalated::Renderable
+
       protect_from_forgery with: :exception
 
       before_action :ensure_guest_tickets_enabled
       before_action :set_ticket_by_token, only: [:show, :reply, :rate]
-      before_action :set_inertia_shared_data
+      before_action :set_inertia_shared_data, if: -> { Escalated.configuration.ui_enabled? }
 
       def create
-        render inertia: "Escalated/Guest/Create", props: {
+        render_page "Escalated/Guest/Create", {
           departments: Escalated::Department.active.ordered.map { |d|
             { id: d.id, name: d.name }
           },
@@ -20,7 +22,7 @@ module Escalated
       def store
         errors = validate_guest_params
         if errors.any?
-          render inertia: "Escalated/Guest/Create", props: {
+          render_page "Escalated/Guest/Create", {
             errors: errors,
             old: guest_ticket_params.to_h,
             departments: Escalated::Department.active.ordered.map { |d|
@@ -62,7 +64,7 @@ module Escalated
           .order(created_at: :asc)
           .includes(:author, :attachments)
 
-        render inertia: "Escalated/Guest/Show", props: {
+        render_page "Escalated/Guest/Show", {
           ticket: guest_ticket_json(@ticket),
           replies: replies.map { |r| guest_reply_json(r) },
           token: params[:token],

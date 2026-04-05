@@ -13,7 +13,7 @@ module Escalated
 
         result = paginate(scope)
 
-        render inertia: "Escalated/Customer/Index", props: {
+        render_page "Escalated/Customer/Index", {
           tickets: result[:data].map { |t| ticket_json(t) },
           meta: result[:meta],
           filters: {
@@ -24,7 +24,7 @@ module Escalated
       end
 
       def create
-        render inertia: "Escalated/Customer/Create", props: {
+        render_page "Escalated/Customer/Create", {
           departments: Escalated::Department.active.ordered.map { |d|
             { id: d.id, name: d.name }
           },
@@ -62,7 +62,7 @@ module Escalated
           .chronological
           .includes(:author, :attachments)
 
-        render inertia: "Escalated/Customer/Show", props: {
+        render_page "Escalated/Customer/Show", {
           ticket: ticket_json(@ticket),
           replies: replies.map { |r| reply_json(r) },
           can_close: Escalated.configuration.allow_customer_close && @ticket.open?,

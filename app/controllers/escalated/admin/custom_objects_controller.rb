@@ -7,7 +7,7 @@ module Escalated
       def index
         definitions = Escalated::CustomObject.ordered
 
-        render inertia: "Escalated/Admin/CustomObjects/Index", props: {
+        render_page "Escalated/Admin/CustomObjects/Index", {
           objects: definitions.map { |o| object_json(o) }
         }
       end

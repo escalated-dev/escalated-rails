@@ -7,7 +7,7 @@ module Escalated
       def index
         webhooks = Escalated::Webhook.ordered
 
-        render inertia: "Escalated/Admin/Webhooks/Index", props: {
+        render_page "Escalated/Admin/Webhooks/Index", {
           webhooks: webhooks.map { |w| webhook_json(w) }
         }
       end
@@ -40,7 +40,7 @@ module Escalated
       def deliveries
         result = paginate(@webhook.deliveries.recent)
 
-        render inertia: "Escalated/Admin/Webhooks/Deliveries", props: {
+        render_page "Escalated/Admin/Webhooks/Deliveries", {
           webhook: webhook_json(@webhook),
           deliveries: result[:data].map { |d| delivery_json(d) },
           meta: result[:meta]

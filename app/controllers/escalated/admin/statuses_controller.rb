@@ -7,7 +7,7 @@ module Escalated
       def index
         statuses = Escalated::TicketStatus.ordered
 
-        render inertia: "Escalated/Admin/Statuses/Index", props: {
+        render_page "Escalated/Admin/Statuses/Index", {
           statuses: statuses.map { |s| status_json(s) },
           categories: Escalated::TicketStatus.categories.keys
         }

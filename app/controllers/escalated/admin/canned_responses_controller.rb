@@ -7,7 +7,7 @@ module Escalated
       def index
         responses = Escalated::CannedResponse.ordered
 
-        render inertia: "Escalated/Admin/CannedResponses/Index", props: {
+        render_page "Escalated/Admin/CannedResponses/Index", {
           canned_responses: responses.map { |r| canned_response_json(r) }
         }
       end

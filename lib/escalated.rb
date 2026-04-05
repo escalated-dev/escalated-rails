@@ -8,6 +8,7 @@ require "escalated/services/hook_registry"
 require "escalated/services/plugin_service"
 require "escalated/services/plugin_ui_service"
 require "escalated/services/import_service"
+require "escalated/ui_renderer"
 require "escalated/bridge/json_rpc_client"
 require "escalated/bridge/context_handler"
 require "escalated/bridge/route_registrar"
@@ -28,6 +29,22 @@ module Escalated
     def driver
       Manager.driver
     end
+
+    # Global UI renderer instance.
+    #
+    # Defaults to InertiaRenderer when ui_enabled is true.
+    # Raises RuntimeError when UI is disabled and no custom renderer is set.
+    #
+    # @return [Escalated::UiRenderer::Base]
+    def ui_renderer
+      @ui_renderer ||= if configuration.ui_enabled?
+                          UiRenderer::InertiaRenderer.new
+                        else
+                          raise "Escalated UI is disabled. Set ui_enabled=true or assign a custom Escalated.ui_renderer."
+                        end
+    end
+
+    attr_writer :ui_renderer
 
     def table_name(name)
       "#{configuration.table_prefix}#{name}"
@@ -76,6 +93,7 @@ module Escalated
       @hooks         = Support::HookManager.new
       @plugin_ui     = Services::PluginUIService.new
       @plugin_bridge = Bridge::PluginBridge.new
+      @ui_renderer   = nil
     end
   end
 end

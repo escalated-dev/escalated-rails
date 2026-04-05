@@ -7,13 +7,13 @@ module Escalated
       def index
         rules = Escalated::EscalationRule.ordered
 
-        render inertia: "Escalated/Admin/EscalationRules/Index", props: {
+        render_page "Escalated/Admin/EscalationRules/Index", {
           escalation_rules: rules.map { |r| rule_json(r) }
         }
       end
 
       def new
-        render inertia: "Escalated/Admin/EscalationRules/Form", props: {
+        render_page "Escalated/Admin/EscalationRules/Form", {
           escalation_rule: nil,
           departments: Escalated::Department.active.ordered.map { |d| { id: d.id, name: d.name } },
           agents: agent_list,
@@ -34,13 +34,13 @@ module Escalated
       end
 
       def show
-        render inertia: "Escalated/Admin/EscalationRules/Show", props: {
+        render_page "Escalated/Admin/EscalationRules/Show", {
           escalation_rule: rule_json(@rule)
         }
       end
 
       def edit
-        render inertia: "Escalated/Admin/EscalationRules/Form", props: {
+        render_page "Escalated/Admin/EscalationRules/Form", {
           escalation_rule: rule_json(@rule),
           departments: Escalated::Department.active.ordered.map { |d| { id: d.id, name: d.name } },
           agents: agent_list,

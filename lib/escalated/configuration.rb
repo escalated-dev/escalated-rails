@@ -42,6 +42,8 @@ module Escalated
                   :imap_username,
                   :imap_password,
                   :imap_mailbox,
+                  # UI settings
+                  :ui_enabled,
                   # REST API settings
                   :api_enabled,
                   :api_rate_limit,
@@ -100,6 +102,9 @@ module Escalated
       @imap_password = nil
       @imap_mailbox = "INBOX"
 
+      # UI defaults
+      @ui_enabled = true
+
       # REST API defaults
       @api_enabled = false
       @api_rate_limit = 60
@@ -129,6 +134,10 @@ module Escalated
 
     def business_hours
       sla[:business_hours] || {}
+    end
+
+    def ui_enabled?
+      ui_enabled == true
     end
 
     def plugins_enabled?

@@ -22,7 +22,7 @@ module Escalated
 
         users = agent_list
 
-        render inertia: "Escalated/Admin/ApiTokens/Index", props: {
+        render_page "Escalated/Admin/ApiTokens/Index", {
           tokens: tokens,
           users: users,
           api_enabled: Escalated.configuration.api_enabled

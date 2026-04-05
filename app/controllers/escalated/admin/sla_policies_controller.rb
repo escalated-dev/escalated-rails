@@ -7,13 +7,13 @@ module Escalated
       def index
         policies = Escalated::SlaPolicy.ordered
 
-        render inertia: "Escalated/Admin/SlaPolicies/Index", props: {
+        render_page "Escalated/Admin/SlaPolicies/Index", {
           sla_policies: policies.map { |p| sla_policy_json(p) }
         }
       end
 
       def new
-        render inertia: "Escalated/Admin/SlaPolicies/Form", props: {
+        render_page "Escalated/Admin/SlaPolicies/Form", {
           sla_policy: nil,
           priorities: Escalated::Ticket.priorities.keys
         }
@@ -31,7 +31,7 @@ module Escalated
       end
 
       def show
-        render inertia: "Escalated/Admin/SlaPolicies/Show", props: {
+        render_page "Escalated/Admin/SlaPolicies/Show", {
           sla_policy: sla_policy_json(@sla_policy),
           targets: @sla_policy.priority_targets,
           department_count: @sla_policy.departments.count,
@@ -40,7 +40,7 @@ module Escalated
       end
 
       def edit
-        render inertia: "Escalated/Admin/SlaPolicies/Form", props: {
+        render_page "Escalated/Admin/SlaPolicies/Form", {
           sla_policy: sla_policy_json(@sla_policy),
           priorities: Escalated::Ticket.priorities.keys
         }

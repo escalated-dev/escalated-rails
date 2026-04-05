@@ -27,7 +27,7 @@ module Escalated
 
         result = paginate(scope)
 
-        render inertia: "Escalated/Agent/TicketIndex", props: {
+        render_page "Escalated/Agent/TicketIndex", {
           tickets: result[:data].includes(:requester, :department, :assignee, :tags).map { |t| ticket_list_json(t) },
           meta: result[:meta],
           filters: {
@@ -56,7 +56,7 @@ module Escalated
         replies = @ticket.replies.chronological.includes(:author, :attachments)
         activities = @ticket.activities.reverse_chronological.limit(50)
 
-        render inertia: "Escalated/Agent/TicketShow", props: {
+        render_page "Escalated/Agent/TicketShow", {
           ticket: ticket_detail_json(@ticket),
           replies: replies.map { |r| reply_json(r) },
           activities: activities.map { |a| activity_json(a) },

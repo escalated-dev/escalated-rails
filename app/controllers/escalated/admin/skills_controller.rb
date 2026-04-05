@@ -7,7 +7,7 @@ module Escalated
       def index
         skills = Escalated::Skill.ordered
 
-        render inertia: "Escalated/Admin/Skills/Index", props: {
+        render_page "Escalated/Admin/Skills/Index", {
           skills: skills.map { |s| skill_json(s) }
         }
       end

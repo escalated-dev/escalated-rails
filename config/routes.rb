@@ -1,4 +1,25 @@
 Escalated::Engine.routes.draw do
+  # ── Core routes (always registered) ──────────────────────────────────
+  # These work without the Inertia UI: inbound email webhooks and
+  # SDK plugin endpoints/webhooks (registered dynamically at boot by
+  # Escalated::Bridge::RouteRegistrar).
+
+  # Inbound email webhook (no authentication -- verified by adapter)
+  post "inbound/:adapter", to: "inbound#webhook", as: :inbound_webhook
+
+  # SDK plugin routes are registered dynamically at boot time by
+  # Escalated::Bridge::RouteRegistrar based on each plugin's manifest.
+  # They appear as:
+  #   GET/POST /support/plugins/:plugin/api/:path   → plugins/endpoints#handle
+  #   POST     /support/plugins/:plugin/webhooks/:path → plugins/webhooks#handle
+
+  # ── UI routes (only when ui_enabled is true) ─────────────────────────
+  # Agent, admin, customer, and guest routes depend on Inertia and the
+  # configured UI renderer.  Skipped when the host app sets
+  # Escalated.configuration.ui_enabled = false.
+
+  return unless Escalated.configuration.ui_enabled?
+
   # Customer-facing routes
   namespace :customer do
     resources :tickets, only: [:index, :create, :show] do
@@ -155,15 +176,6 @@ Escalated::Engine.routes.draw do
     post ":token/rate", to: "tickets#rate", as: :ticket_rate
   end
 
-  # Inbound email webhook (no authentication -- verified by adapter)
-  post "inbound/:adapter", to: "inbound#webhook", as: :inbound_webhook
-
   # Root redirect to customer tickets
   root to: "customer/tickets#index"
-
-  # SDK plugin routes are registered dynamically at boot time by
-  # Escalated::Bridge::RouteRegistrar based on each plugin's manifest.
-  # They appear as:
-  #   GET/POST /support/plugins/:plugin/api/:path   → plugins/endpoints#handle
-  #   POST     /support/plugins/:plugin/webhooks/:path → plugins/webhooks#handle
 end

@@ -42,7 +42,7 @@ module Escalated
           csat: calculate_csat_stats(period_start, period_end)
         }
 
-        render inertia: "Escalated/Admin/Reports/Index", props: {
+        render_page "Escalated/Admin/Reports/Index", {
           stats: stats,
           filters: {
             from: period_start.iso8601,
@@ -55,7 +55,7 @@ module Escalated
         today = Time.current.beginning_of_day..Time.current.end_of_day
         this_week = 1.week.ago.beginning_of_day..Time.current.end_of_day
 
-        render inertia: "Escalated/Admin/Reports/Dashboard", props: {
+        render_page "Escalated/Admin/Reports/Dashboard", {
           today: {
             created: Escalated::Ticket.where(created_at: today).count,
             resolved: Escalated::Ticket.where(resolved_at: today).count,

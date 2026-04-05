@@ -10,7 +10,7 @@ module Escalated
           .order(created_at: :desc)
           .limit(100)
 
-        render inertia: "Escalated/Admin/Imports/Index", props: {
+        render_page "Escalated/Admin/Imports/Index", {
           jobs:     jobs.map { |j| job_json(j) },
           adapters: import_service.available_adapters.map { |a| adapter_json(a) },
         }
@@ -18,7 +18,7 @@ module Escalated
 
       # GET /admin/imports/:id
       def show
-        render inertia: "Escalated/Admin/Imports/Show", props: {
+        render_page "Escalated/Admin/Imports/Show", {
           job:      job_json(@job),
           adapters: import_service.available_adapters.map { |a| adapter_json(a) },
         }

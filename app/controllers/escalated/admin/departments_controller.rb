@@ -7,13 +7,13 @@ module Escalated
       def index
         departments = Escalated::Department.ordered
 
-        render inertia: "Escalated/Admin/Departments/Index", props: {
+        render_page "Escalated/Admin/Departments/Index", {
           departments: departments.map { |d| department_json(d) }
         }
       end
 
       def new
-        render inertia: "Escalated/Admin/Departments/Form", props: {
+        render_page "Escalated/Admin/Departments/Form", {
           department: nil,
           sla_policies: Escalated::SlaPolicy.active.ordered.map { |p| { id: p.id, name: p.name } },
           agents: agent_list
@@ -33,7 +33,7 @@ module Escalated
       end
 
       def show
-        render inertia: "Escalated/Admin/Departments/Show", props: {
+        render_page "Escalated/Admin/Departments/Show", {
           department: department_json(@department),
           agents: @department.agents.map { |a|
             { id: a.id, name: a.respond_to?(:name) ? a.name : a.email, email: a.email }
@@ -47,7 +47,7 @@ module Escalated
       end
 
       def edit
-        render inertia: "Escalated/Admin/Departments/Form", props: {
+        render_page "Escalated/Admin/Departments/Form", {
           department: department_json(@department),
           sla_policies: Escalated::SlaPolicy.active.ordered.map { |p| { id: p.id, name: p.name } },
           agents: agent_list,

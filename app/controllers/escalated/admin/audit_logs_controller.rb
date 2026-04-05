@@ -14,7 +14,7 @@ module Escalated
 
         result = paginate(scope)
 
-        render inertia: "Escalated/Admin/AuditLogs/Index", props: {
+        render_page "Escalated/Admin/AuditLogs/Index", {
           logs: result[:data].map { |l| log_json(l) },
           meta: result[:meta],
           filters: {

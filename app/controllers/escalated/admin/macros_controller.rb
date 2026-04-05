@@ -7,7 +7,7 @@ module Escalated
       def index
         macros = Escalated::Macro.ordered
 
-        render inertia: "Escalated/Admin/Macros/Index", props: {
+        render_page "Escalated/Admin/Macros/Index", {
           macros: macros.map { |m| macro_json(m) }
         }
       end

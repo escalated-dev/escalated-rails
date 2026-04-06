@@ -1,0 +1,28 @@
+name: lint
+
+on:
+  push:
+    branches: ["main"]
+  pull_request:
+    branches: ["main"]
+
+jobs:
+  rubocop:
+    runs-on: ubuntu-latest
+    name: RuboCop
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: bundle install
+
+      - name: Run RuboCop
+        run: bundle exec rubocop --format github

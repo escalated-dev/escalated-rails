@@ -188,7 +188,6 @@ module Escalated
 
                 return current_time + remaining_hours.hours if remaining_hours <= available_hours
 
-
                 remaining_hours -= available_hours
 
               end

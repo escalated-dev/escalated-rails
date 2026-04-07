@@ -900,7 +900,6 @@ RSpec.describe Escalated::AgentProfile, type: :model do
 
       let(:user) { create(:user) }
 
-
       it { is_expected.to validate_uniqueness_of(:user_id) }
     end
   end
@@ -1304,7 +1303,6 @@ RSpec.describe Escalated::TwoFactor, type: :model do
       subject { described_class.create!(user: user, secret: 'test_secret') }
 
       let(:user) { create(:user) }
-
 
       it { is_expected.to validate_uniqueness_of(:user_id) }
     end

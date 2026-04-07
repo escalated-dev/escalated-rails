@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module Escalated
   class Macro < ApplicationRecord
-    self.table_name = Escalated.table_name("macros")
+    self.table_name = Escalated.table_name('macros')
 
     belongs_to :creator,
                class_name: Escalated.configuration.user_class,

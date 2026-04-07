@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Api
     module V1
@@ -5,16 +7,16 @@ module Escalated
         # GET /api/v1/agents
         def agents
           agent_data = if Escalated.configuration.user_model.respond_to?(:escalated_agents)
-            Escalated.configuration.user_model.escalated_agents.map { |a|
-              {
-                id: a.id,
-                name: a.respond_to?(:name) ? a.name : a.email,
-                email: a.email
-              }
-            }
-          else
-            []
-          end
+                         Escalated.configuration.user_model.escalated_agents.map do |a|
+                           {
+                             id: a.id,
+                             name: a.respond_to?(:name) ? a.name : a.email,
+                             email: a.email
+                           }
+                         end
+                       else
+                         []
+                       end
 
           render json: { data: agent_data }
         end
@@ -24,7 +26,7 @@ module Escalated
           departments = Escalated::Department.active.ordered
 
           render json: {
-            data: departments.map { |d|
+            data: departments.map do |d|
               {
                 id: d.id,
                 name: d.name,
@@ -35,7 +37,7 @@ module Escalated
                 open_ticket_count: d.open_ticket_count,
                 agent_count: d.agent_count
               }
-            }
+            end
           }
         end
 
@@ -44,7 +46,7 @@ module Escalated
           tags = Escalated::Tag.ordered
 
           render json: {
-            data: tags.map { |t|
+            data: tags.map do |t|
               {
                 id: t.id,
                 name: t.name,
@@ -53,7 +55,7 @@ module Escalated
                 description: t.description,
                 ticket_count: t.ticket_count
               }
-            }
+            end
           }
         end
 
@@ -62,7 +64,7 @@ module Escalated
           responses = Escalated::CannedResponse.for_user(current_user.id).ordered
 
           render json: {
-            data: responses.map { |r|
+            data: responses.map do |r|
               {
                 id: r.id,
                 title: r.title,
@@ -71,7 +73,7 @@ module Escalated
                 category: r.category,
                 is_shared: r.is_shared
               }
-            }
+            end
           }
         end
 
@@ -80,7 +82,7 @@ module Escalated
           macros = Escalated::Macro.for_agent(current_user.id).ordered
 
           render json: {
-            data: macros.map { |m|
+            data: macros.map do |m|
               {
                 id: m.id,
                 name: m.name,
@@ -88,18 +90,22 @@ module Escalated
                 actions: m.actions,
                 is_shared: m.is_shared
               }
-            }
+            end
           }
         end
 
         # GET /api/v1/realtime/config
         def realtime_config
           # Return ActionCable/AnyCable config if available
-          cable_config = Rails.application.config.action_cable rescue nil
+          cable_config = begin
+            Rails.application.config.action_cable
+          rescue StandardError
+            nil
+          end
 
-          if cable_config && cable_config.respond_to?(:url) && cable_config.url.present?
+          if cable_config.respond_to?(:url) && cable_config.url.present?
             render json: {
-              driver: "action_cable",
+              driver: 'action_cable',
               url: cable_config.url
             }
           else

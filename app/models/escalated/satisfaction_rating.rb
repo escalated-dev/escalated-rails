@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 module Escalated
   class SatisfactionRating < ApplicationRecord
-    self.table_name = Escalated.table_name("satisfaction_ratings")
+    self.table_name = Escalated.table_name('satisfaction_ratings')
 
-    belongs_to :ticket, class_name: "Escalated::Ticket"
+    belongs_to :ticket, class_name: 'Escalated::Ticket'
     belongs_to :rated_by, polymorphic: true, optional: true
 
     validates :rating, presence: true,

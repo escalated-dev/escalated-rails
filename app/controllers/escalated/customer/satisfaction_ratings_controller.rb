@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Customer
     class SatisfactionRatingsController < Escalated::ApplicationController
@@ -5,14 +7,13 @@ module Escalated
 
       def create
         unless %w[resolved closed].include?(@ticket.status)
-          redirect_back fallback_location: escalated.customer_ticket_path(@ticket),
-                        alert: I18n.t('escalated.rating.only_resolved_closed')
+          redirect_back_or_to(escalated.customer_ticket_path(@ticket),
+                              alert: I18n.t('escalated.rating.only_resolved_closed'))
           return
         end
 
         if @ticket.satisfaction_rating.present?
-          redirect_back fallback_location: escalated.customer_ticket_path(@ticket),
-                        alert: I18n.t('escalated.rating.already_rated')
+          redirect_back_or_to(escalated.customer_ticket_path(@ticket), alert: I18n.t('escalated.rating.already_rated'))
           return
         end
 
@@ -24,11 +25,9 @@ module Escalated
         )
 
         if rating.save
-          redirect_back fallback_location: escalated.customer_ticket_path(@ticket),
-                        notice: I18n.t('escalated.rating.thanks')
+          redirect_back_or_to(escalated.customer_ticket_path(@ticket), notice: I18n.t('escalated.rating.thanks'))
         else
-          redirect_back fallback_location: escalated.customer_ticket_path(@ticket),
-                        alert: rating.errors.full_messages.join(", ")
+          redirect_back_or_to(escalated.customer_ticket_path(@ticket), alert: rating.errors.full_messages.join(', '))
         end
       end
 

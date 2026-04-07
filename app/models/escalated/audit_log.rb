@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module Escalated
   class AuditLog < ApplicationRecord
-    self.table_name = Escalated.table_name("audit_logs")
+    self.table_name = Escalated.table_name('audit_logs')
 
     belongs_to :user, class_name: Escalated.configuration.user_class, optional: true
     belongs_to :auditable, polymorphic: true

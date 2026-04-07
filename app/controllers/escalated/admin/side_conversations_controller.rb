@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 module Escalated
   module Admin
     class SideConversationsController < Escalated::ApplicationController
       before_action :require_admin!
       before_action :set_ticket
-      before_action :set_conversation, only: [:reply, :close]
+      before_action :set_conversation, only: %i[reply close]
 
       def index
         conversations = @ticket.side_conversations.includes(:replies).ordered
@@ -15,14 +17,14 @@ module Escalated
         conversation = @ticket.side_conversations.new(
           subject: params[:subject],
           body: params[:body],
-          channel: params[:channel] || "email",
+          channel: params[:channel] || 'email',
           created_by: escalated_current_user.id
         )
 
         if conversation.save
           render json: conversation_json(conversation), status: :created
         else
-          render json: { error: conversation.errors.full_messages.join(", ") }, status: :unprocessable_entity
+          render json: { error: conversation.errors.full_messages.join(', ') }, status: :unprocessable_content
         end
       end
 
@@ -30,7 +32,7 @@ module Escalated
         reply = @conversation.replies.create!(
           body: params[:body],
           author_id: escalated_current_user.id,
-          direction: "outbound"
+          direction: 'outbound'
         )
 
         render json: {
@@ -42,7 +44,7 @@ module Escalated
       end
 
       def close
-        @conversation.update!(status: "closed", closed_at: Time.current)
+        @conversation.update!(status: 'closed', closed_at: Time.current)
 
         render json: conversation_json(@conversation)
       end

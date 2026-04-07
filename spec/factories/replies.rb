@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
-  factory :escalated_reply, class: "Escalated::Reply" do
+  factory :escalated_reply, class: 'Escalated::Reply' do
     body { Faker::Lorem.paragraph(sentence_count: 2) }
     is_internal { false }
     is_system { false }

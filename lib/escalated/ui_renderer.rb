@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   # Abstract base for rendering UI pages.
   #

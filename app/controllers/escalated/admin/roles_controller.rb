@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 module Escalated
   module Admin
     class RolesController < Escalated::ApplicationController
       before_action :require_admin!
-      before_action :set_role, only: [:update, :destroy]
+      before_action :set_role, only: %i[update destroy]
 
       def index
         roles = Escalated::Role.includes(:permissions).ordered
 
-        render_page "Escalated/Admin/Roles/Index", {
+        render_page 'Escalated/Admin/Roles/Index', {
           roles: roles.map { |r| role_json(r) },
           permissions: Escalated::Permission.ordered.map { |p| permission_json(p) }
         }
@@ -20,8 +22,7 @@ module Escalated
           sync_permissions(role, params[:permission_ids])
           redirect_to escalated.admin_roles_path, notice: I18n.t('escalated.admin.role.created')
         else
-          redirect_back fallback_location: escalated.admin_roles_path,
-                        alert: role.errors.full_messages.join(", ")
+          redirect_back_or_to(escalated.admin_roles_path, alert: role.errors.full_messages.join(', '))
         end
       end
 
@@ -30,15 +31,13 @@ module Escalated
           sync_permissions(@role, params[:permission_ids])
           redirect_to escalated.admin_roles_path, notice: I18n.t('escalated.admin.role.updated')
         else
-          redirect_back fallback_location: escalated.admin_roles_path,
-                        alert: @role.errors.full_messages.join(", ")
+          redirect_back_or_to(escalated.admin_roles_path, alert: @role.errors.full_messages.join(', '))
         end
       end
 
       def destroy
         if @role.is_system?
-          redirect_back fallback_location: escalated.admin_roles_path,
-                        alert: I18n.t('escalated.admin.role.cannot_delete_system')
+          redirect_back_or_to(escalated.admin_roles_path, alert: I18n.t('escalated.admin.role.cannot_delete_system'))
           return
         end
 
@@ -53,7 +52,7 @@ module Escalated
       end
 
       def role_params
-        params.require(:role).permit(:name, :description)
+        params.expect(role: %i[name description])
       end
 
       def sync_permissions(role, permission_ids)

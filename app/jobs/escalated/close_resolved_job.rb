@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 module Escalated
-  class CloseResolvedJob < ActiveJob::Base
+  class CloseResolvedJob < ApplicationJob
     queue_as :escalated
 
     def perform
@@ -9,8 +11,8 @@ module Escalated
       cutoff = days.days.ago
 
       tickets = Escalated::Ticket
-        .where(status: :resolved)
-        .where("resolved_at < ?", cutoff)
+                .where(status: :resolved)
+                .where(resolved_at: ...cutoff)
 
       count = 0
 
@@ -19,19 +21,19 @@ module Escalated
           ticket.update!(status: :closed, closed_at: Time.current)
 
           ticket.activities.create!(
-            action: "status_changed",
+            action: 'status_changed',
             causer: nil,
             details: {
-              from: "resolved",
-              to: "closed",
-              reason: "auto_closed",
+              from: 'resolved',
+              to: 'closed',
+              reason: 'auto_closed',
               note: "Automatically closed after #{days} days in resolved status"
             }
           )
 
           ticket.replies.create!(
             body: "This ticket was automatically closed after #{days} days in resolved status. " \
-                  "If you need further assistance, please reopen or create a new ticket.",
+                  'If you need further assistance, please reopen or create a new ticket.',
             author: nil,
             is_internal: false,
             is_system: true

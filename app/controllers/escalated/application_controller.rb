@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   class ApplicationController < ActionController::Base
     include Pundit::Authorization
@@ -29,8 +31,8 @@ module Escalated
           max_attachments: Escalated.configuration.max_attachments,
           max_attachment_size_kb: Escalated.configuration.max_attachment_size_kb,
           guest_tickets_enabled: Escalated::EscalatedSetting.guest_tickets_enabled?,
-          show_powered_by: Escalated::EscalatedSetting.get_bool("show_powered_by", default: true),
-          plugins_enabled: Escalated.configuration.plugins_enabled?,
+          show_powered_by: Escalated::EscalatedSetting.get_bool('show_powered_by', default: true),
+          plugins_enabled: Escalated.configuration.plugins_enabled?
         },
         flash: {
           success: flash[:success],
@@ -41,9 +43,7 @@ module Escalated
       }
 
       # Share plugin UI data when plugin system is enabled
-      if Escalated.configuration.plugins_enabled?
-        shared[:plugin_ui] = Escalated.plugin_ui.to_shared_data
-      end
+      shared[:plugin_ui] = Escalated.plugin_ui.to_shared_data if Escalated.configuration.plugins_enabled?
 
       inertia_share(shared)
     end
@@ -67,35 +67,34 @@ module Escalated
     end
 
     def require_agent!
-      unless current_user_data&.dig(:is_agent) || current_user_data&.dig(:is_admin)
-        redirect_to main_app.root_path, alert: I18n.t('escalated.middleware.not_agent')
-      end
+      return if current_user_data&.dig(:is_agent) || current_user_data&.dig(:is_admin)
+
+      redirect_to main_app.root_path, alert: I18n.t('escalated.middleware.not_agent')
     end
 
     def require_admin!
-      unless current_user_data&.dig(:is_admin)
-        redirect_to main_app.root_path, alert: I18n.t('escalated.middleware.not_admin')
-      end
+      return if current_user_data&.dig(:is_admin)
+
+      redirect_to main_app.root_path, alert: I18n.t('escalated.middleware.not_admin')
     end
 
     def user_not_authorized
-      render_page "Escalated/Error", {
+      render_page 'Escalated/Error', {
         status: 403,
         message: I18n.t('escalated.middleware.not_authorized')
       }, status: :forbidden
     end
 
     def not_found
-      render_page "Escalated/Error", {
+      render_page 'Escalated/Error', {
         status: 404,
         message: I18n.t('escalated.middleware.not_found')
       }, status: :not_found
     end
 
     def unprocessable_entity(exception)
-      redirect_back(
-        fallback_location: main_app.root_path,
-        alert: exception.record.errors.full_messages.join(", ")
+      redirect_back_or_to(
+        main_app.root_path, alert: exception.record.errors.full_messages.join(', ')
       )
     end
 

@@ -1,22 +1,24 @@
-require "escalated/engine"
-require "escalated/configuration"
-require "escalated/manager"
-require "escalated/support/hook_manager"
-require "escalated/support/import_context"
-require "escalated/import_adapter"
-require "escalated/services/hook_registry"
-require "escalated/services/plugin_service"
-require "escalated/services/plugin_ui_service"
-require "escalated/services/import_service"
-require "escalated/ui_renderer"
-require "escalated/bridge/json_rpc_client"
-require "escalated/bridge/context_handler"
-require "escalated/bridge/route_registrar"
-require "escalated/bridge/plugin_bridge"
+# frozen_string_literal: true
+
+require 'escalated/engine'
+require 'escalated/configuration'
+require 'escalated/manager'
+require 'escalated/support/hook_manager'
+require 'escalated/support/import_context'
+require 'escalated/import_adapter'
+require 'escalated/services/hook_registry'
+require 'escalated/services/plugin_service'
+require 'escalated/services/plugin_ui_service'
+require 'escalated/services/import_service'
+require 'escalated/ui_renderer'
+require 'escalated/bridge/json_rpc_client'
+require 'escalated/bridge/context_handler'
+require 'escalated/bridge/route_registrar'
+require 'escalated/bridge/plugin_bridge'
 
 module Escalated
   class << self
-    attr_writer :configuration
+    attr_writer :configuration, :ui_renderer
 
     def configuration
       @configuration ||= Configuration.new
@@ -26,9 +28,7 @@ module Escalated
       yield(configuration)
     end
 
-    def driver
-      Manager.driver
-    end
+    delegate :driver, to: :Manager
 
     # Global UI renderer instance.
     #
@@ -38,13 +38,11 @@ module Escalated
     # @return [Escalated::UiRenderer::Base]
     def ui_renderer
       @ui_renderer ||= if configuration.ui_enabled?
-                          UiRenderer::InertiaRenderer.new
-                        else
-                          raise "Escalated UI is disabled. Set ui_enabled=true or assign a custom Escalated.ui_renderer."
-                        end
+                         UiRenderer::InertiaRenderer.new
+                       else
+                         raise 'Escalated UI is disabled. Set ui_enabled=true or assign a custom Escalated.ui_renderer.'
+                       end
     end
-
-    attr_writer :ui_renderer
 
     def table_name(name)
       "#{configuration.table_prefix}#{name}"

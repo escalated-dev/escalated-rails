@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
-  factory :escalated_department, class: "Escalated::Department" do
+  factory :escalated_department, class: 'Escalated::Department' do
     name { Faker::Commerce.unique.department(max: 1) }
     slug { name&.parameterize }
     description { Faker::Lorem.sentence }

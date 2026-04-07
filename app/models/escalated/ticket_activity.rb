@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 module Escalated
   class TicketActivity < ApplicationRecord
-    self.table_name = Escalated.table_name("ticket_activities")
+    self.table_name = Escalated.table_name('ticket_activities')
 
-    belongs_to :ticket, class_name: "Escalated::Ticket"
+    belongs_to :ticket, class_name: 'Escalated::Ticket'
     belongs_to :causer, polymorphic: true, optional: true
 
     validates :action, presence: true
@@ -21,33 +23,33 @@ module Escalated
 
     def description
       case action
-      when "ticket_created"
-        "Ticket created"
-      when "ticket_updated"
-        changes = details&.keys&.reject { |k| k == "note" }&.join(", ")
+      when 'ticket_created'
+        'Ticket created'
+      when 'ticket_updated'
+        changes = details&.keys&.reject { |k| k == 'note' }&.join(', ')
         "Ticket updated: #{changes}"
-      when "status_changed"
+      when 'status_changed'
         "Status changed from #{details['from']} to #{details['to']}"
-      when "ticket_assigned"
-        "Ticket assigned"
-      when "ticket_unassigned"
-        "Ticket unassigned"
-      when "reply_added"
-        "Reply added"
-      when "internal_note_added"
-        "Internal note added"
-      when "tags_added"
+      when 'ticket_assigned'
+        'Ticket assigned'
+      when 'ticket_unassigned'
+        'Ticket unassigned'
+      when 'reply_added'
+        'Reply added'
+      when 'internal_note_added'
+        'Internal note added'
+      when 'tags_added'
         "Tags added: #{Array(details['tag_names']).join(', ')}"
-      when "tags_removed"
+      when 'tags_removed'
         "Tags removed: #{Array(details['tag_names']).join(', ')}"
-      when "department_changed"
-        "Department changed"
-      when "priority_changed"
+      when 'department_changed'
+        'Department changed'
+      when 'priority_changed'
         "Priority changed from #{details['from']} to #{details['to']}"
-      when "sla_breached"
+      when 'sla_breached'
         "SLA breached: #{details['breach_type']}"
-      when "ticket_escalated"
-        "Ticket escalated"
+      when 'ticket_escalated'
+        'Ticket escalated'
       else
         action.humanize
       end

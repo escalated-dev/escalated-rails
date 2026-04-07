@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module Escalated
   class Ticket < ApplicationRecord
-    self.table_name = Escalated.table_name("tickets")
+    self.table_name = Escalated.table_name('tickets')
 
     belongs_to :requester, polymorphic: true, optional: true
     belongs_to :assignee,
@@ -11,28 +13,27 @@ module Escalated
     belongs_to :sla_policy, optional: true
     has_many :replies, dependent: :destroy
     has_many :attachments, as: :attachable, dependent: :destroy
-    has_many :activities, class_name: "Escalated::TicketActivity", dependent: :destroy
+    has_many :activities, class_name: 'Escalated::TicketActivity', dependent: :destroy
     has_and_belongs_to_many :tags,
-                            join_table: Escalated.table_name("ticket_tags"),
-                            class_name: "Escalated::Tag"
+                            join_table: Escalated.table_name('ticket_tags'),
+                            class_name: 'Escalated::Tag'
     has_and_belongs_to_many :followers,
-                            join_table: Escalated.table_name("ticket_followers"),
+                            join_table: Escalated.table_name('ticket_followers'),
                             class_name: Escalated.configuration.user_class,
-                            foreign_key: :ticket_id,
                             association_foreign_key: :user_id
-    has_one :satisfaction_rating, class_name: "Escalated::SatisfactionRating", dependent: :destroy
+    has_one :satisfaction_rating, class_name: 'Escalated::SatisfactionRating', dependent: :destroy
     has_many :pinned_notes, -> { where(is_internal: true, is_pinned: true) },
-             class_name: "Escalated::Reply"
+             class_name: 'Escalated::Reply'
     has_many :links_as_parent,
-             class_name: "Escalated::TicketLink",
+             class_name: 'Escalated::TicketLink',
              foreign_key: :parent_ticket_id,
              dependent: :destroy
     has_many :links_as_child,
-             class_name: "Escalated::TicketLink",
+             class_name: 'Escalated::TicketLink',
              foreign_key: :child_ticket_id,
              dependent: :destroy
-    belongs_to :merged_into, class_name: "Escalated::Ticket", optional: true
-    has_many :side_conversations, class_name: "Escalated::SideConversation", dependent: :destroy
+    belongs_to :merged_into, class_name: 'Escalated::Ticket', optional: true
+    has_many :side_conversations, class_name: 'Escalated::SideConversation', dependent: :destroy
 
     enum :status, {
       open: 0,
@@ -63,17 +64,23 @@ module Escalated
     before_create :set_reference
 
     # Scopes
-    scope :by_open, -> { where(status: [:open, :in_progress, :waiting_on_customer, :waiting_on_agent, :escalated, :reopened]) }
+    scope :by_open, lambda {
+      where(status: %i[open in_progress waiting_on_customer waiting_on_agent escalated reopened])
+    }
     scope :unassigned, -> { where(assigned_to: nil) }
     scope :assigned_to, ->(agent_id) { where(assigned_to: agent_id) }
-    scope :breached_sla, -> {
+    scope :breached_sla, lambda {
       where(sla_breached: true)
-        .or(where("sla_first_response_due_at < ? AND first_response_at IS NULL", Time.current))
-        .or(where("sla_resolution_due_at < ? AND resolved_at IS NULL AND status NOT IN (?)", Time.current, [5, 6]))
+        .or(where('sla_first_response_due_at < ? AND first_response_at IS NULL', Time.current))
+        .or(where('sla_resolution_due_at < ? AND resolved_at IS NULL AND status NOT IN (?)', Time.current, [5, 6]))
     }
-    scope :search, ->(term) {
-      where("#{table_name}.subject LIKE :term OR #{table_name}.description LIKE :term OR #{table_name}.reference LIKE :term",
-            term: "%#{sanitize_sql_like(term)}%")
+    scope :search, lambda { |term|
+      where(
+        "#{table_name}.subject LIKE :term OR " \
+        "#{table_name}.description LIKE :term OR " \
+        "#{table_name}.reference LIKE :term",
+        term: "%#{sanitize_sql_like(term)}%"
+      )
     }
     scope :by_priority, ->(priority) { where(priority: priority) }
     scope :by_ticket_type, ->(ticket_type) { where(ticket_type: ticket_type) }
@@ -82,8 +89,8 @@ module Escalated
     scope :recent, -> { order(created_at: :desc) }
 
     def self.generate_reference
-      prefix = Escalated::EscalatedSetting.get("ticket_reference_prefix", "ESC")
-      timestamp = Time.current.strftime("%y%m")
+      prefix = Escalated::EscalatedSetting.get('ticket_reference_prefix', 'ESC')
+      timestamp = Time.current.strftime('%y%m')
       sequence = SecureRandom.alphanumeric(6).upcase
       "#{prefix}-#{timestamp}-#{sequence}"
     end
@@ -141,25 +148,25 @@ module Escalated
     end
 
     def requester_name
-      return guest_name || "Guest" if guest?
+      return guest_name || 'Guest' if guest?
 
       if requester
         requester.respond_to?(:name) ? requester.name : requester.to_s
       else
-        "Unknown"
+        'Unknown'
       end
     end
 
     def requester_email
-      return guest_email || "" if guest?
+      return guest_email || '' if guest?
 
-      requester&.respond_to?(:email) ? requester.email : ""
+      requester.respond_to?(:email) ? requester.email : ''
     end
 
     # Follower helpers
 
     def followed_by?(user_id)
-      followers.where(id: user_id).exists?
+      followers.exists?(id: user_id)
     end
 
     def follow(user_id)

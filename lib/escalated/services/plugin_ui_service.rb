@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Services
     # Service for plugins to register custom UI elements.
@@ -31,7 +33,7 @@ module Escalated
       # @return [void]
       def add_menu_item(item)
         defaults = {
-          label: "Custom Item",
+          label: 'Custom Item',
           route: nil,
           url: nil,
           icon: nil,
@@ -40,7 +42,7 @@ module Escalated
           parent: nil,
           badge: nil,
           active_routes: [],
-          submenu: [],
+          submenu: []
         }
 
         @menu_items << defaults.merge(item)
@@ -61,21 +63,21 @@ module Escalated
       # @return [void]
       def add_submenu_item(parent_label, submenu_item)
         defaults = {
-          label: "Submenu Item",
+          label: 'Submenu Item',
           route: nil,
           url: nil,
           icon: nil,
           permission: nil,
-          active_routes: [],
+          active_routes: []
         }
 
         merged = defaults.merge(submenu_item)
 
         parent = @menu_items.find { |m| m[:label] == parent_label }
-        if parent
-          parent[:submenu] ||= []
-          parent[:submenu] << merged
-        end
+        return unless parent
+
+        parent[:submenu] ||= []
+        parent[:submenu] << merged
       end
 
       # Get all registered menu items, sorted by position.
@@ -103,12 +105,12 @@ module Escalated
       def add_dashboard_widget(widget)
         defaults = {
           id: "widget_#{SecureRandom.hex(4)}",
-          title: "Custom Widget",
+          title: 'Custom Widget',
           component: nil,
           data: {},
           position: 100,
-          width: "full",
-          permission: nil,
+          width: 'full',
+          permission: nil
         }
 
         @dashboard_widgets << defaults.merge(widget)
@@ -142,7 +144,7 @@ module Escalated
           plugin: nil,
           data: {},
           position: 100,
-          permission: nil,
+          permission: nil
         }
 
         @page_components[page] ||= {}
@@ -179,7 +181,7 @@ module Escalated
         {
           menu_items: menu_items,
           dashboard_widgets: dashboard_widgets,
-          page_components: serialized_page_components,
+          page_components: serialized_page_components
         }
       end
 

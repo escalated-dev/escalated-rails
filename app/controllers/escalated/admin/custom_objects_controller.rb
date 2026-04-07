@@ -1,13 +1,16 @@
+# frozen_string_literal: true
+
 module Escalated
   module Admin
     class CustomObjectsController < Escalated::ApplicationController
       before_action :require_admin!
-      before_action :set_object_definition, only: [:update, :destroy, :records, :store_record, :update_record, :destroy_record]
+      before_action :set_object_definition,
+                    only: %i[update destroy records store_record update_record destroy_record]
 
       def index
         definitions = Escalated::CustomObject.ordered
 
-        render_page "Escalated/Admin/CustomObjects/Index", {
+        render_page 'Escalated/Admin/CustomObjects/Index', {
           objects: definitions.map { |o| object_json(o) }
         }
       end
@@ -18,8 +21,7 @@ module Escalated
         if definition.save
           redirect_to escalated.admin_custom_objects_path, notice: I18n.t('escalated.admin.custom_object.created')
         else
-          redirect_back fallback_location: escalated.admin_custom_objects_path,
-                        alert: definition.errors.full_messages.join(", ")
+          redirect_back_or_to(escalated.admin_custom_objects_path, alert: definition.errors.full_messages.join(', '))
         end
       end
 
@@ -27,8 +29,7 @@ module Escalated
         if @definition.update(object_params)
           redirect_to escalated.admin_custom_objects_path, notice: I18n.t('escalated.admin.custom_object.updated')
         else
-          redirect_back fallback_location: escalated.admin_custom_objects_path,
-                        alert: @definition.errors.full_messages.join(", ")
+          redirect_back_or_to(escalated.admin_custom_objects_path, alert: @definition.errors.full_messages.join(', '))
         end
       end
 
@@ -55,7 +56,7 @@ module Escalated
         if record.save
           render json: record_json(record), status: :created
         else
-          render json: { error: record.errors.full_messages.join(", ") }, status: :unprocessable_entity
+          render json: { error: record.errors.full_messages.join(', ') }, status: :unprocessable_content
         end
       end
 
@@ -65,7 +66,7 @@ module Escalated
         if record.update(data: params[:data] || {})
           render json: record_json(record)
         else
-          render json: { error: record.errors.full_messages.join(", ") }, status: :unprocessable_entity
+          render json: { error: record.errors.full_messages.join(', ') }, status: :unprocessable_content
         end
       end
 
@@ -83,7 +84,7 @@ module Escalated
       end
 
       def object_params
-        params.require(:custom_object).permit(:name, :key, :description, fields: [:name, :type, :required])
+        params.expect(custom_object: [:name, :key, :description, { fields: %i[name type required] }])
       end
 
       def object_json(definition)

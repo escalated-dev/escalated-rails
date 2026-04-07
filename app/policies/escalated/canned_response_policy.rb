@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   class CannedResponsePolicy
     attr_reader :user, :canned_response

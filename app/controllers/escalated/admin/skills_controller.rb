@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 module Escalated
   module Admin
     class SkillsController < Escalated::ApplicationController
       before_action :require_admin!
-      before_action :set_skill, only: [:update, :destroy]
+      before_action :set_skill, only: %i[update destroy]
 
       def index
         skills = Escalated::Skill.ordered
 
-        render_page "Escalated/Admin/Skills/Index", {
+        render_page 'Escalated/Admin/Skills/Index', {
           skills: skills.map { |s| skill_json(s) }
         }
       end
@@ -18,8 +20,7 @@ module Escalated
         if skill.save
           redirect_to escalated.admin_skills_path, notice: I18n.t('escalated.admin.skill.created')
         else
-          redirect_back fallback_location: escalated.admin_skills_path,
-                        alert: skill.errors.full_messages.join(", ")
+          redirect_back_or_to(escalated.admin_skills_path, alert: skill.errors.full_messages.join(', '))
         end
       end
 
@@ -27,8 +28,7 @@ module Escalated
         if @skill.update(skill_params)
           redirect_to escalated.admin_skills_path, notice: I18n.t('escalated.admin.skill.updated')
         else
-          redirect_back fallback_location: escalated.admin_skills_path,
-                        alert: @skill.errors.full_messages.join(", ")
+          redirect_back_or_to(escalated.admin_skills_path, alert: @skill.errors.full_messages.join(', '))
         end
       end
 
@@ -44,7 +44,7 @@ module Escalated
       end
 
       def skill_params
-        params.require(:skill).permit(:name, :description)
+        params.expect(skill: %i[name description])
       end
 
       def skill_json(skill)

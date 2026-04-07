@@ -1,22 +1,24 @@
+# frozen_string_literal: true
+
 module Escalated
   class ApiToken < ApplicationRecord
-    self.table_name = Escalated.table_name("api_tokens")
+    self.table_name = Escalated.table_name('api_tokens')
 
     belongs_to :tokenable, polymorphic: true
 
     validates :name, presence: true, length: { maximum: 255 }
     validates :token, presence: true, uniqueness: true, length: { maximum: 64 }
 
-    scope :active, -> {
-      where(expires_at: nil).or(where("expires_at > ?", Time.current))
+    scope :active, lambda {
+      where(expires_at: nil).or(where('expires_at > ?', Time.current))
     }
-    scope :expired, -> {
-      where.not(expires_at: nil).where("expires_at <= ?", Time.current)
+    scope :expired, lambda {
+      where.not(expires_at: nil).where(expires_at: ..Time.current)
     }
 
     # Create a new API token for a user.
     # Returns { token: <ApiToken>, plain_text_token: <String> }
-    def self.create_token(user, name, abilities = ["*"], expires_at = nil)
+    def self.create_token(user, name, abilities = ['*'], expires_at = nil)
       plain_text = SecureRandom.hex(32)
 
       token = create!(
@@ -42,7 +44,7 @@ module Escalated
     # A token with ["*"] has all abilities.
     def has_ability?(ability)
       abilities_list = abilities || []
-      abilities_list.include?("*") || abilities_list.include?(ability.to_s)
+      abilities_list.include?('*') || abilities_list.include?(ability.to_s)
     end
 
     # Whether this token has passed its expiration date.

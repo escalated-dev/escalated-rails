@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module Escalated
   class TicketStatus < ApplicationRecord
-    self.table_name = Escalated.table_name("ticket_statuses")
+    self.table_name = Escalated.table_name('ticket_statuses')
 
     CATEGORIES = %w[new open pending on_hold solved].freeze
 
@@ -19,7 +21,7 @@ module Escalated
     private
 
     def generate_slug
-      self.slug = label.to_s.parameterize(separator: "_")
+      self.slug = label.to_s.parameterize(separator: '_')
     end
   end
 end

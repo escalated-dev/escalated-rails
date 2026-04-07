@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 Escalated.configure do |config|
   # ============================================================
   # Hosting Mode
@@ -11,19 +13,19 @@ Escalated.configure do |config|
   # User Configuration
   # ============================================================
   # Your application's user model class name
-  config.user_class = "User"
+  config.user_class = 'User'
 
   # ============================================================
   # Database
   # ============================================================
   # Prefix for all Escalated database tables
-  config.table_prefix = "escalated_"
+  config.table_prefix = 'escalated_'
 
   # ============================================================
   # Routing
   # ============================================================
   # URL prefix for Escalated routes (e.g., /support/tickets)
-  config.route_prefix = "support"
+  config.route_prefix = 'support'
 
   # ============================================================
   # Authentication & Authorization
@@ -67,8 +69,8 @@ Escalated.configure do |config|
     business_hours: {
       start: 9,
       end: 17,
-      timezone: "UTC",
-      working_days: [1, 2, 3, 4, 5]  # Monday through Friday
+      timezone: 'UTC',
+      working_days: [1, 2, 3, 4, 5] # Monday through Friday
     }
   }
 

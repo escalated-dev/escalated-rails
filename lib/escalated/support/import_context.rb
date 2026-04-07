@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Support
     # Thread-safe flag that signals an active bulk import is in progress.
@@ -19,7 +21,7 @@ module Escalated
     module ImportContext
       # Thread-local key — each worker/thread gets its own flag so concurrent
       # imports and regular request threads never interfere with each other.
-      THREAD_KEY = :"escalated.import_context.importing"
+      THREAD_KEY = :'escalated.import_context.importing'
       private_constant :THREAD_KEY
 
       # Returns true while a suppress block is active on the current thread.

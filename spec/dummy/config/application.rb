@@ -1,20 +1,22 @@
-require_relative "boot"
+# frozen_string_literal: true
 
-require "rails"
-require "active_model/railtie"
-require "active_record/railtie"
-require "action_controller/railtie"
-require "action_mailer/railtie"
-require "action_view/railtie"
-require "rails/test_unit/railtie"
+require_relative 'boot'
+
+require 'rails'
+require 'active_model/railtie'
+require 'active_record/railtie'
+require 'action_controller/railtie'
+require 'action_mailer/railtie'
+require 'action_view/railtie'
+require 'rails/test_unit/railtie'
 
 Bundler.require(*Rails.groups)
 
-require "escalated"
+require 'escalated'
 
 module Dummy
   class Application < Rails::Application
-    config.root = File.expand_path("../..", __FILE__)
+    config.root = File.expand_path('..', __dir__)
     config.load_defaults Rails::VERSION::STRING.to_f
     config.eager_load = false
 
@@ -26,16 +28,16 @@ module Dummy
 
     # Action Mailer test config
     config.action_mailer.delivery_method = :test
-    config.action_mailer.default_url_options = { host: "localhost", port: 3000 }
+    config.action_mailer.default_url_options = { host: 'localhost', port: 3000 }
   end
 end
 
 # Configure Escalated for testing
 Escalated.configure do |config|
   config.mode = :self_hosted
-  config.user_class = "User"
-  config.table_prefix = "escalated_"
-  config.route_prefix = "support"
+  config.user_class = 'User'
+  config.table_prefix = 'escalated_'
+  config.route_prefix = 'support'
   config.notification_channels = [] # Disable email notifications in tests
   config.sla = {
     enabled: true,
@@ -43,7 +45,7 @@ Escalated.configure do |config|
     business_hours: {
       start: 9,
       end: 17,
-      timezone: "UTC",
+      timezone: 'UTC',
       working_days: [1, 2, 3, 4, 5]
     }
   }

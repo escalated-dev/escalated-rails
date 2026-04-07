@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Api
     module V1

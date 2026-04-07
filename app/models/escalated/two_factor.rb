@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module Escalated
   class TwoFactor < ApplicationRecord
-    self.table_name = Escalated.table_name("two_factors")
+    self.table_name = Escalated.table_name('two_factors')
 
     belongs_to :user, class_name: Escalated.configuration.user_class
 

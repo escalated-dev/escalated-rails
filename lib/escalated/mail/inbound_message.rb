@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Mail
     class InboundMessage
@@ -29,9 +31,9 @@ module Escalated
       def clean_subject
         return subject unless subject
 
-        subject.gsub(/\s*\[[A-Z0-9]+-\d{4}-[A-Z0-9]+\]\s*/, "")
-          .gsub(/\A\s*(Re|Fwd|Fw):\s*/i, "")
-          .strip
+        subject.gsub(/\s*\[[A-Z0-9]+-\d{4}-[A-Z0-9]+\]\s*/, '')
+               .gsub(/\A\s*(Re|Fwd|Fw):\s*/i, '')
+               .strip
       end
 
       # Determine the best body content to use as reply/description text
@@ -41,7 +43,7 @@ module Escalated
         elsif body_html.present?
           strip_html(body_html).strip
         else
-          ""
+          ''
         end
       end
 
@@ -54,7 +56,7 @@ module Escalated
       end
 
       def raw_headers_string
-        return "" if headers.blank?
+        return '' if headers.blank?
 
         headers.map { |k, v| "#{k}: #{v}" }.join("\n")
       end
@@ -63,12 +65,12 @@ module Escalated
 
       def strip_html(html)
         # Basic HTML tag stripping — production systems may want a proper sanitizer
-        text = html.gsub(/<br\s*\/?>|<\/p>|<\/div>|<\/li>/i, "\n")
-        text = text.gsub(/<[^>]+>/, "")
-        text = text.gsub(/&nbsp;/i, " ")
-        text = text.gsub(/&amp;/i, "&")
-        text = text.gsub(/&lt;/i, "<")
-        text = text.gsub(/&gt;/i, ">")
+        text = html.gsub(%r{<br\s*/?>|</p>|</div>|</li>}i, "\n")
+        text = text.gsub(/<[^>]+>/, '')
+        text = text.gsub(/&nbsp;/i, ' ')
+        text = text.gsub(/&amp;/i, '&')
+        text = text.gsub(/&lt;/i, '<')
+        text = text.gsub(/&gt;/i, '>')
         text = text.gsub(/&quot;/i, '"')
         text = text.gsub(/&#39;/i, "'")
         text.gsub(/\n{3,}/, "\n\n")

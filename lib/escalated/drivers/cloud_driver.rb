@@ -1,18 +1,20 @@
-require "escalated/drivers/hosted_api_client"
+# frozen_string_literal: true
+
+require 'escalated/drivers/hosted_api_client'
 
 module Escalated
   module Drivers
     class CloudDriver
       def create_ticket(params)
-        response = client.post("/tickets", {
-          subject: params[:subject],
-          description: params[:description],
-          priority: params[:priority] || Escalated.configuration.default_priority,
-          requester_email: params[:requester]&.email,
-          department_id: params[:department_id],
-          tag_ids: params[:tag_ids],
-          metadata: params[:metadata]
-        })
+        response = client.post('/tickets', {
+                                 subject: params[:subject],
+                                 description: params[:description],
+                                 priority: params[:priority] || Escalated.configuration.default_priority,
+                                 requester_email: params[:requester]&.email,
+                                 department_id: params[:department_id],
+                                 tag_ids: params[:tag_ids],
+                                 metadata: params[:metadata]
+                               })
 
         build_ticket_from_response(response)
       end
@@ -21,10 +23,10 @@ module Escalated
         reference = ticket.is_a?(String) ? ticket : ticket.reference
 
         response = client.patch("/tickets/#{reference}", {
-          subject: params[:subject],
-          description: params[:description],
-          metadata: params[:metadata]
-        })
+                                  subject: params[:subject],
+                                  description: params[:description],
+                                  metadata: params[:metadata]
+                                })
 
         build_ticket_from_response(response)
       end
@@ -33,9 +35,9 @@ module Escalated
         reference = ticket.is_a?(String) ? ticket : ticket.reference
 
         response = client.post("/tickets/#{reference}/status", {
-          status: new_status,
-          note: note
-        })
+                                 status: new_status,
+                                 note: note
+                               })
 
         build_ticket_from_response(response)
       end
@@ -44,8 +46,8 @@ module Escalated
         reference = ticket.is_a?(String) ? ticket : ticket.reference
 
         response = client.post("/tickets/#{reference}/assign", {
-          agent_email: agent.email
-        })
+                                 agent_email: agent.email
+                               })
 
         build_ticket_from_response(response)
       end
@@ -61,10 +63,10 @@ module Escalated
         reference = ticket.is_a?(String) ? ticket : ticket.reference
 
         response = client.post("/tickets/#{reference}/replies", {
-          body: params[:body],
-          author_email: params[:author]&.email,
-          is_internal: params[:is_internal] || false
-        })
+                                 body: params[:body],
+                                 author_email: params[:author]&.email,
+                                 is_internal: params[:is_internal] || false
+                               })
 
         OpenStruct.new(response)
       end
@@ -75,7 +77,7 @@ module Escalated
       end
 
       def list_tickets(filters = {})
-        response = client.get("/tickets", filters)
+        response = client.get('/tickets', filters)
         response.map { |data| build_ticket_from_response(data) }
       end
 
@@ -83,8 +85,8 @@ module Escalated
         reference = ticket.is_a?(String) ? ticket : ticket.reference
 
         response = client.post("/tickets/#{reference}/tags", {
-          tag_ids: tag_ids
-        })
+                                 tag_ids: tag_ids
+                               })
 
         build_ticket_from_response(response)
       end
@@ -93,8 +95,8 @@ module Escalated
         reference = ticket.is_a?(String) ? ticket : ticket.reference
 
         response = client.delete("/tickets/#{reference}/tags", {
-          tag_ids: tag_ids
-        })
+                                   tag_ids: tag_ids
+                                 })
 
         build_ticket_from_response(response)
       end
@@ -103,8 +105,8 @@ module Escalated
         reference = ticket.is_a?(String) ? ticket : ticket.reference
 
         response = client.post("/tickets/#{reference}/department", {
-          department_id: department.id
-        })
+                                 department_id: department.id
+                               })
 
         build_ticket_from_response(response)
       end
@@ -113,8 +115,8 @@ module Escalated
         reference = ticket.is_a?(String) ? ticket : ticket.reference
 
         response = client.post("/tickets/#{reference}/priority", {
-          priority: new_priority
-        })
+                                 priority: new_priority
+                               })
 
         build_ticket_from_response(response)
       end

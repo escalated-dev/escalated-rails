@@ -1,4 +1,6 @@
-require "rails_helper"
+# frozen_string_literal: true
+
+require 'rails_helper'
 
 RSpec.describe Escalated::Services::SlaService do
   let(:user) { create(:user) }
@@ -6,23 +8,21 @@ RSpec.describe Escalated::Services::SlaService do
 
   # Disable email notifications for service tests
   before do
-    allow(Escalated.configuration).to receive(:notification_channels).and_return([])
-    allow(Escalated.configuration).to receive(:webhook_url).and_return(nil)
+    allow(Escalated.configuration).to receive_messages(notification_channels: [], webhook_url: nil)
   end
 
   # ------------------------------------------------------------------ #
   # .attach_policy
   # ------------------------------------------------------------------ #
-  describe ".attach_policy" do
+  describe '.attach_policy' do
     let(:ticket) { create(:escalated_ticket, priority: :high) }
 
-    context "when SLA is enabled" do
+    context 'when SLA is enabled' do
       before do
-        allow(Escalated.configuration).to receive(:sla_enabled?).and_return(true)
-        allow(Escalated.configuration).to receive(:business_hours_only?).and_return(false)
+        allow(Escalated.configuration).to receive_messages(sla_enabled?: true, business_hours_only?: false)
       end
 
-      it "attaches the given policy to the ticket" do
+      it 'attaches the given policy to the ticket' do
         policy = create(:escalated_sla_policy)
         described_class.attach_policy(ticket, policy)
         ticket.reload
@@ -30,10 +30,10 @@ RSpec.describe Escalated::Services::SlaService do
         expect(ticket.sla_policy_id).to eq(policy.id)
       end
 
-      it "sets sla_first_response_due_at based on priority" do
+      it 'sets sla_first_response_due_at based on priority' do
         policy = create(:escalated_sla_policy,
-                        first_response_hours: { "high" => 4 },
-                        resolution_hours: { "high" => 24 })
+                        first_response_hours: { 'high' => 4 },
+                        resolution_hours: { 'high' => 24 })
 
         described_class.attach_policy(ticket, policy)
         ticket.reload
@@ -41,10 +41,10 @@ RSpec.describe Escalated::Services::SlaService do
         expect(ticket.sla_first_response_due_at).to be_within(1.minute).of(4.hours.from_now)
       end
 
-      it "sets sla_resolution_due_at based on priority" do
+      it 'sets sla_resolution_due_at based on priority' do
         policy = create(:escalated_sla_policy,
-                        first_response_hours: { "high" => 4 },
-                        resolution_hours: { "high" => 24 })
+                        first_response_hours: { 'high' => 4 },
+                        resolution_hours: { 'high' => 24 })
 
         described_class.attach_policy(ticket, policy)
         ticket.reload
@@ -52,7 +52,7 @@ RSpec.describe Escalated::Services::SlaService do
         expect(ticket.sla_resolution_due_at).to be_within(1.minute).of(24.hours.from_now)
       end
 
-      it "finds the default policy when no policy is given" do
+      it 'finds the default policy when no policy is given' do
         default_policy = create(:escalated_sla_policy, :default)
 
         described_class.attach_policy(ticket)
@@ -72,7 +72,7 @@ RSpec.describe Escalated::Services::SlaService do
         expect(ticket.sla_policy_id).to eq(dept_policy.id)
       end
 
-      it "does nothing when no policy is found" do
+      it 'does nothing when no policy is found' do
         described_class.attach_policy(ticket)
         ticket.reload
 
@@ -80,12 +80,12 @@ RSpec.describe Escalated::Services::SlaService do
       end
     end
 
-    context "when SLA is disabled" do
+    context 'when SLA is disabled' do
       before do
         allow(Escalated.configuration).to receive(:sla_enabled?).and_return(false)
       end
 
-      it "does not attach any policy" do
+      it 'does not attach any policy' do
         policy = create(:escalated_sla_policy)
         described_class.attach_policy(ticket, policy)
         ticket.reload
@@ -98,19 +98,18 @@ RSpec.describe Escalated::Services::SlaService do
   # ------------------------------------------------------------------ #
   # .check_breaches
   # ------------------------------------------------------------------ #
-  describe ".check_breaches" do
+  describe '.check_breaches' do
     before do
-      allow(Escalated.configuration).to receive(:sla_enabled?).and_return(true)
-      allow(Escalated.configuration).to receive(:business_hours_only?).and_return(false)
+      allow(Escalated.configuration).to receive_messages(sla_enabled?: true, business_hours_only?: false)
     end
 
-    it "returns empty array when SLA is disabled" do
+    it 'returns empty array when SLA is disabled' do
       allow(Escalated.configuration).to receive(:sla_enabled?).and_return(false)
       expect(described_class.check_breaches).to be_nil
     end
 
-    context "first response breaches" do
-      it "marks tickets as breached when first response SLA is overdue" do
+    context 'first response breaches' do
+      it 'marks tickets as breached when first response SLA is overdue' do
         ticket = create(:escalated_ticket,
                         status: :open,
                         sla_breached: false,
@@ -124,7 +123,7 @@ RSpec.describe Escalated::Services::SlaService do
         expect(ticket.sla_breached).to be(true)
       end
 
-      it "does not breach tickets with first response already made" do
+      it 'does not breach tickets with first response already made' do
         ticket = create(:escalated_ticket,
                         status: :open,
                         sla_breached: false,
@@ -136,7 +135,7 @@ RSpec.describe Escalated::Services::SlaService do
         expect(result).not_to include(ticket)
       end
 
-      it "does not breach tickets that are already breached" do
+      it 'does not breach tickets that are already breached' do
         ticket = create(:escalated_ticket,
                         status: :open,
                         sla_breached: true,
@@ -149,8 +148,8 @@ RSpec.describe Escalated::Services::SlaService do
       end
     end
 
-    context "resolution breaches" do
-      it "marks tickets as breached when resolution SLA is overdue" do
+    context 'resolution breaches' do
+      it 'marks tickets as breached when resolution SLA is overdue' do
         ticket = create(:escalated_ticket,
                         status: :open,
                         sla_breached: false,
@@ -164,7 +163,7 @@ RSpec.describe Escalated::Services::SlaService do
         expect(ticket.sla_breached).to be(true)
       end
 
-      it "does not breach tickets that are already resolved" do
+      it 'does not breach tickets that are already resolved' do
         ticket = create(:escalated_ticket,
                         status: :open,
                         sla_breached: false,
@@ -177,7 +176,7 @@ RSpec.describe Escalated::Services::SlaService do
       end
     end
 
-    it "creates an sla_breached activity" do
+    it 'creates an sla_breached activity' do
       ticket = create(:escalated_ticket,
                       status: :open,
                       sla_breached: false,
@@ -186,7 +185,7 @@ RSpec.describe Escalated::Services::SlaService do
 
       described_class.check_breaches
 
-      activity = ticket.activities.find_by(action: "sla_breached")
+      activity = ticket.activities.find_by(action: 'sla_breached')
       expect(activity).to be_present
     end
   end
@@ -194,18 +193,17 @@ RSpec.describe Escalated::Services::SlaService do
   # ------------------------------------------------------------------ #
   # .check_warnings
   # ------------------------------------------------------------------ #
-  describe ".check_warnings" do
+  describe '.check_warnings' do
     before do
-      allow(Escalated.configuration).to receive(:sla_enabled?).and_return(true)
-      allow(Escalated.configuration).to receive(:business_hours_only?).and_return(false)
+      allow(Escalated.configuration).to receive_messages(sla_enabled?: true, business_hours_only?: false)
     end
 
-    it "returns nil when SLA is disabled" do
+    it 'returns nil when SLA is disabled' do
       allow(Escalated.configuration).to receive(:sla_enabled?).and_return(false)
       expect(described_class.check_warnings).to be_nil
     end
 
-    it "returns tickets nearing first response breach" do
+    it 'returns tickets nearing first response breach' do
       ticket = create(:escalated_ticket,
                       status: :open,
                       sla_breached: false,
@@ -214,11 +212,11 @@ RSpec.describe Escalated::Services::SlaService do
 
       result = described_class.check_warnings
 
-      warning_tickets = result.map { |w| w[:ticket] }
+      warning_tickets = result.pluck(:ticket)
       expect(warning_tickets).to include(ticket)
     end
 
-    it "returns tickets nearing resolution breach" do
+    it 'returns tickets nearing resolution breach' do
       ticket = create(:escalated_ticket,
                       status: :open,
                       sla_breached: false,
@@ -227,11 +225,11 @@ RSpec.describe Escalated::Services::SlaService do
 
       result = described_class.check_warnings
 
-      warning_tickets = result.map { |w| w[:ticket] }
+      warning_tickets = result.pluck(:ticket)
       expect(warning_tickets).to include(ticket)
     end
 
-    it "includes the warning type" do
+    it 'includes the warning type' do
       create(:escalated_ticket,
              status: :open,
              sla_breached: false,
@@ -242,7 +240,7 @@ RSpec.describe Escalated::Services::SlaService do
       expect(result.first[:type]).to eq(:first_response_warning)
     end
 
-    it "does not return tickets with responses already made" do
+    it 'does not return tickets with responses already made' do
       create(:escalated_ticket,
              status: :open,
              sla_breached: false,
@@ -255,7 +253,7 @@ RSpec.describe Escalated::Services::SlaService do
       expect(first_response_warnings).to be_empty
     end
 
-    it "does not return tickets already breached" do
+    it 'does not return tickets already breached' do
       create(:escalated_ticket,
              status: :open,
              sla_breached: true,
@@ -271,32 +269,31 @@ RSpec.describe Escalated::Services::SlaService do
   # ------------------------------------------------------------------ #
   # .calculate_due_date
   # ------------------------------------------------------------------ #
-  describe ".calculate_due_date" do
+  describe '.calculate_due_date' do
     before do
       allow(Escalated.configuration).to receive(:business_hours_only?).and_return(false)
     end
 
-    it "returns nil for nil hours" do
+    it 'returns nil for nil hours' do
       expect(described_class.calculate_due_date(nil)).to be_nil
     end
 
-    it "calculates due date based on hours from now" do
+    it 'calculates due date based on hours from now' do
       result = described_class.calculate_due_date(4)
       expect(result).to be_within(1.minute).of(4.hours.from_now)
     end
 
-    context "with business hours" do
+    context 'with business hours' do
       before do
-        allow(Escalated.configuration).to receive(:business_hours_only?).and_return(true)
-        allow(Escalated.configuration).to receive(:business_hours).and_return({
-          start: 9,
-          end: 17,
-          timezone: "UTC",
-          working_days: [1, 2, 3, 4, 5]
-        })
+        allow(Escalated.configuration).to receive_messages(business_hours_only?: true, business_hours: {
+                                                             start: 9,
+                                                             end: 17,
+                                                             timezone: 'UTC',
+                                                             working_days: [1, 2, 3, 4, 5]
+                                                           })
       end
 
-      it "calculates due date within business hours" do
+      it 'calculates due date within business hours' do
         result = described_class.calculate_due_date(4)
         expect(result).to be_present
         expect(result).to be > Time.current
@@ -307,15 +304,15 @@ RSpec.describe Escalated::Services::SlaService do
   # ------------------------------------------------------------------ #
   # .recalculate_for_ticket
   # ------------------------------------------------------------------ #
-  describe ".recalculate_for_ticket" do
+  describe '.recalculate_for_ticket' do
     before do
       allow(Escalated.configuration).to receive(:business_hours_only?).and_return(false)
     end
 
-    it "recalculates SLA dates for the ticket based on its policy" do
+    it 'recalculates SLA dates for the ticket based on its policy' do
       policy = create(:escalated_sla_policy,
-                      first_response_hours: { "high" => 4 },
-                      resolution_hours: { "high" => 24 })
+                      first_response_hours: { 'high' => 4 },
+                      resolution_hours: { 'high' => 24 })
       ticket = create(:escalated_ticket,
                       priority: :high,
                       sla_policy: policy,
@@ -330,10 +327,10 @@ RSpec.describe Escalated::Services::SlaService do
       expect(ticket.sla_resolution_due_at).to be_within(1.minute).of(24.hours.from_now)
     end
 
-    it "does not recalculate first response when already responded" do
+    it 'does not recalculate first response when already responded' do
       policy = create(:escalated_sla_policy,
-                      first_response_hours: { "high" => 4 },
-                      resolution_hours: { "high" => 24 })
+                      first_response_hours: { 'high' => 4 },
+                      resolution_hours: { 'high' => 24 })
       original_due = 3.hours.ago
       ticket = create(:escalated_ticket,
                       priority: :high,
@@ -349,7 +346,7 @@ RSpec.describe Escalated::Services::SlaService do
       expect(ticket.sla_first_response_due_at).to be_within(1.second).of(original_due)
     end
 
-    it "does nothing when ticket has no SLA policy" do
+    it 'does nothing when ticket has no SLA policy' do
       ticket = create(:escalated_ticket, sla_policy: nil)
 
       expect { described_class.recalculate_for_ticket(ticket) }.not_to raise_error
@@ -359,17 +356,17 @@ RSpec.describe Escalated::Services::SlaService do
   # ------------------------------------------------------------------ #
   # .stats
   # ------------------------------------------------------------------ #
-  describe ".stats" do
+  describe '.stats' do
     before do
       allow(Escalated.configuration).to receive(:sla_enabled?).and_return(true)
     end
 
-    it "returns empty hash when SLA is disabled" do
+    it 'returns empty hash when SLA is disabled' do
       allow(Escalated.configuration).to receive(:sla_enabled?).and_return(false)
       expect(described_class.stats).to eq({})
     end
 
-    it "returns SLA statistics" do
+    it 'returns SLA statistics' do
       policy = create(:escalated_sla_policy)
       create(:escalated_ticket,
              sla_policy: policy,

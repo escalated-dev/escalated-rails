@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module Escalated
   class AgentCapacity < ApplicationRecord
-    self.table_name = Escalated.table_name("agent_capacity")
+    self.table_name = Escalated.table_name('agent_capacity')
 
     belongs_to :user, class_name: Escalated.configuration.user_class
 

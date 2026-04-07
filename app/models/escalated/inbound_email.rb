@@ -1,15 +1,17 @@
+# frozen_string_literal: true
+
 module Escalated
   class InboundEmail < ApplicationRecord
-    self.table_name = Escalated.table_name("inbound_emails")
+    self.table_name = Escalated.table_name('inbound_emails')
 
-    belongs_to :ticket, class_name: "Escalated::Ticket", optional: true
-    belongs_to :reply, class_name: "Escalated::Reply", optional: true
+    belongs_to :ticket, class_name: 'Escalated::Ticket', optional: true
+    belongs_to :reply, class_name: 'Escalated::Reply', optional: true
 
     enum :status, {
-      pending: "pending",
-      processed: "processed",
-      failed: "failed",
-      spam: "spam"
+      pending: 'pending',
+      processed: 'processed',
+      failed: 'failed',
+      spam: 'spam'
     }
 
     validates :from_email, presence: true
@@ -46,15 +48,15 @@ module Escalated
     end
 
     def processed?
-      status == "processed"
+      status == 'processed'
     end
 
     def duplicate?
       return false if message_id.blank?
 
       self.class.where(message_id: message_id)
-        .where.not(id: id)
-        .exists?
+          .where.not(id: id)
+          .exists?
     end
   end
 end

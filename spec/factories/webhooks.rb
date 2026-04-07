@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
-  factory :escalated_webhook, class: "Escalated::Webhook" do
-    url { Faker::Internet.url(scheme: "https") }
+  factory :escalated_webhook, class: 'Escalated::Webhook' do
+    url { Faker::Internet.url(scheme: 'https') }
     secret { SecureRandom.hex(20) }
     active { true }
     events { %w[ticket.created ticket.updated ticket.resolved] }
@@ -25,10 +27,10 @@ FactoryBot.define do
     end
   end
 
-  factory :escalated_webhook_delivery, class: "Escalated::WebhookDelivery" do
-    event { "ticket.created" }
+  factory :escalated_webhook_delivery, class: 'Escalated::WebhookDelivery' do
+    event { 'ticket.created' }
     response_code { 200 }
-    payload { { ticket_id: rand(1..100), event: "ticket.created" } }
+    payload { { ticket_id: rand(1..100), event: 'ticket.created' } }
     response_body { '{"ok":true}' }
     attempts { 1 }
     association :webhook, factory: :escalated_webhook

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Services
     class BusinessHoursCalculator
@@ -7,10 +9,10 @@ module Escalated
         return false if holiday?(dt_local, schedule)
 
         day_schedule = get_day_schedule(dt_local, schedule)
-        return false unless day_schedule&.dig("start") && day_schedule&.dig("end")
+        return false unless day_schedule&.dig('start') && day_schedule['end']
 
-        time_str = dt_local.strftime("%H:%M")
-        day_schedule["start"] <= time_str && time_str < day_schedule["end"]
+        time_str = dt_local.strftime('%H:%M')
+        day_schedule['start'] <= time_str && time_str < day_schedule['end']
       end
 
       def add_business_hours(start, hours, schedule)
@@ -19,7 +21,7 @@ module Escalated
         remaining_minutes = hours * 60
         max_iterations = 365
 
-        while remaining_minutes > 0 && max_iterations > 0
+        while remaining_minutes.positive? && max_iterations.positive?
           max_iterations -= 1
 
           if holiday?(current, schedule)
@@ -29,13 +31,13 @@ module Escalated
 
           day_schedule = get_day_schedule(current, schedule)
 
-          unless day_schedule&.dig("start") && day_schedule&.dig("end")
+          unless day_schedule&.dig('start') && day_schedule['end']
             current = (current + 1.day).beginning_of_day
             next
           end
 
-          start_parts = day_schedule["start"].split(":")
-          end_parts = day_schedule["end"].split(":")
+          start_parts = day_schedule['start'].split(':')
+          end_parts = day_schedule['end'].split(':')
           day_start = current.change(hour: start_parts[0].to_i, min: start_parts[1].to_i)
           day_end = current.change(hour: end_parts[0].to_i, min: end_parts[1].to_i)
 
@@ -63,7 +65,7 @@ module Escalated
       private
 
       def get_day_schedule(dt_local, schedule)
-        day_name = dt_local.strftime("%A").downcase
+        day_name = dt_local.strftime('%A').downcase
         (schedule.schedule || {})[day_name]
       end
 
@@ -71,8 +73,8 @@ module Escalated
         schedule.holidays.each do |holiday|
           if holiday.recurring
             return true if dt_local.month == holiday.date.month && dt_local.day == holiday.date.day
-          else
-            return true if dt_local.to_date == holiday.date
+          elsif dt_local.to_date == holiday.date
+            return true
           end
         end
 

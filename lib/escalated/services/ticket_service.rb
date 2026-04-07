@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Services
     class TicketService
@@ -25,8 +27,8 @@ module Escalated
             Escalated::TicketMailer.status_changed(result).deliver_later
           end
 
-          if new_status.to_s == "resolved"
-            Escalated::TicketMailer.ticket_resolved(result).deliver_later if Escalated.configuration.notification_channels.include?(:email)
+          if (new_status.to_s == 'resolved') && Escalated.configuration.notification_channels.include?(:email)
+            Escalated::TicketMailer.ticket_resolved(result).deliver_later
           end
 
           Services::NotificationService.dispatch(:status_changed, ticket: result, status: new_status)

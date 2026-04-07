@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   class Configuration
     attr_accessor :mode,
@@ -52,9 +54,9 @@ module Escalated
 
     def initialize
       @mode = :self_hosted
-      @user_class = "User"
-      @table_prefix = "escalated_"
-      @route_prefix = "support"
+      @user_class = 'User'
+      @table_prefix = 'escalated_'
+      @route_prefix = 'support'
       @middleware = [:authenticate_user!]
       @admin_middleware = nil
       @hosted_api_url = nil
@@ -70,7 +72,7 @@ module Escalated
         business_hours: {
           start: 9,
           end: 17,
-          timezone: "UTC",
+          timezone: 'UTC',
           working_days: [1, 2, 3, 4, 5]
         }
       }
@@ -80,7 +82,7 @@ module Escalated
 
       # Plugin system defaults
       @plugins_enabled = false
-      @plugins_path = nil  # Set at boot time if nil (defaults to Rails.root.join("lib/escalated/plugins"))
+      @plugins_path = nil # Set at boot time if nil (defaults to Rails.root.join("lib/escalated/plugins"))
 
       # SDK plugin bridge defaults
       @sdk_plugins_enabled    = false
@@ -100,7 +102,7 @@ module Escalated
       @imap_encryption = :ssl
       @imap_username = nil
       @imap_password = nil
-      @imap_mailbox = "INBOX"
+      @imap_mailbox = 'INBOX'
 
       # UI defaults
       @ui_enabled = true
@@ -109,7 +111,7 @@ module Escalated
       @api_enabled = false
       @api_rate_limit = 60
       @api_token_expiry_days = nil
-      @api_prefix = "support/api/v1"
+      @api_prefix = 'support/api/v1'
     end
 
     def self_hosted?

@@ -1,25 +1,27 @@
-require "spec_helper"
+# frozen_string_literal: true
 
-ENV["RAILS_ENV"] ||= "test"
+require 'spec_helper'
+
+ENV['RAILS_ENV'] ||= 'test'
 
 # Load the dummy Rails application for testing
-require File.expand_path("dummy/config/environment", __dir__)
+require File.expand_path('dummy/config/environment', __dir__)
 
-abort("The Rails environment is running in production mode!") if Rails.env.production?
+abort('The Rails environment is running in production mode!') if Rails.env.production?
 
-require "rspec/rails"
-require "factory_bot_rails"
-require "shoulda-matchers"
-require "database_cleaner/active_record"
+require 'rspec/rails'
+require 'factory_bot_rails'
+require 'shoulda-matchers'
+require 'database_cleaner/active_record'
 
 # Load services from lib/ (not auto-loaded by Rails engine)
-Dir[File.join(File.dirname(__dir__), "lib", "escalated", "services", "*.rb")].sort.each { |f| require f }
+Dir[File.join(File.dirname(__dir__), 'lib', 'escalated', 'services', '*.rb')].each { |f| require f }
 
 # Load support files
-Dir[File.join(__dir__, "support", "**", "*.rb")].sort.each { |f| require f }
+Dir[File.join(__dir__, 'support', '**', '*.rb')].each { |f| require f }
 
 # Tell FactoryBot where to find factories
-FactoryBot.definition_file_paths = [File.join(__dir__, "factories")]
+FactoryBot.definition_file_paths = [File.join(__dir__, 'factories')]
 FactoryBot.find_definitions
 
 RSpec.configure do |config|
@@ -37,29 +39,25 @@ RSpec.configure do |config|
     ActiveRecord::Migration.verbose = false
 
     # Run the dummy app's user migration
-    dummy_migrations_path = File.expand_path("dummy/db/migrate", __dir__)
-    if File.directory?(dummy_migrations_path)
-      ActiveRecord::MigrationContext.new(dummy_migrations_path).migrate
-    end
+    dummy_migrations_path = File.expand_path('dummy/db/migrate', __dir__)
+    ActiveRecord::MigrationContext.new(dummy_migrations_path).migrate if File.directory?(dummy_migrations_path)
 
     # Run the engine's migrations
-    engine_migrations_path = File.expand_path("../db/migrate", __dir__)
-    if File.directory?(engine_migrations_path)
-      ActiveRecord::MigrationContext.new(engine_migrations_path).migrate
-    end
+    engine_migrations_path = File.expand_path('../db/migrate', __dir__)
+    ActiveRecord::MigrationContext.new(engine_migrations_path).migrate if File.directory?(engine_migrations_path)
 
     DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.clean_with(:truncation)
   end
 
-  config.around(:each) do |example|
+  config.around do |example|
     DatabaseCleaner.cleaning do
       example.run
     end
   end
 
   # Reset Escalated driver between tests to avoid stale state
-  config.before(:each) do
+  config.before do
     Escalated::Manager.reset_driver!
   end
 end

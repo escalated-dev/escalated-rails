@@ -1,4 +1,6 @@
-require "open3"
+# frozen_string_literal: true
+
+require 'open3'
 
 module Escalated
   module Bridge
@@ -26,9 +28,9 @@ module Escalated
     # Beyond that new action hooks are dropped with a warning.  Filter hooks
     # return the unmodified value instead of being dropped.
     class PluginBridge
-      PROTOCOL_VERSION  = "1.0"
-      HOST_NAME         = "rails"
-      MAX_BACKOFF_SECS  = 300   # 5 minutes
+      PROTOCOL_VERSION  = '1.0'
+      HOST_NAME         = 'rails'
+      MAX_BACKOFF_SECS  = 300 # 5 minutes
       MAX_QUEUE_DEPTH   = 1_000
 
       TIMEOUT_ACTION    = 30
@@ -44,7 +46,7 @@ module Escalated
         @stderr = nil
         @pid    = nil
         @wait_thr = nil
-        @rpc    = nil
+        @rpc = nil
 
         @context_handler = ContextHandler.new
         @context_handler.bridge = self
@@ -75,7 +77,7 @@ module Escalated
         return if @booted
 
         unless runtime_available?
-          Rails.logger.info("[Escalated::Bridge] Node.js runtime not available — SDK plugins disabled")
+          Rails.logger.info('[Escalated::Bridge] Node.js runtime not available — SDK plugins disabled')
           return
         end
 
@@ -84,7 +86,7 @@ module Escalated
           fetch_manifests
           register_routes
           @booted = true
-        rescue => e
+        rescue StandardError => e
           Rails.logger.warn("[Escalated::Bridge] Boot failed — SDK plugins disabled: #{e.message}")
           teardown
         end
@@ -108,9 +110,9 @@ module Escalated
         @pending_action_count += 1
 
         begin
-          @context_handler.current_plugin = "__host__"
-          @rpc.call("action", { "hook" => hook, "event" => event }, TIMEOUT_ACTION, @context_handler)
-        rescue => e
+          @context_handler.current_plugin = '__host__'
+          @rpc.call('action', { 'hook' => hook, 'event' => event }, TIMEOUT_ACTION, @context_handler)
+        rescue StandardError => e
           Rails.logger.warn("[Escalated::Bridge] Action '#{hook}' failed: #{e.message}")
           handle_crash
         ensure
@@ -129,10 +131,10 @@ module Escalated
         return value unless ensure_alive
 
         begin
-          @context_handler.current_plugin = "__host__"
-          result = @rpc.call("filter", { "hook" => hook, "value" => value }, TIMEOUT_FILTER, @context_handler)
+          @context_handler.current_plugin = '__host__'
+          result = @rpc.call('filter', { 'hook' => hook, 'value' => value }, TIMEOUT_FILTER, @context_handler)
           result.nil? ? value : result
-        rescue => e
+        rescue StandardError => e
           Rails.logger.warn("[Escalated::Bridge] Filter '#{hook}' failed — returning unmodified value: #{e.message}")
           handle_crash
           value
@@ -147,18 +149,18 @@ module Escalated
       # @param request [Hash]    :body, :params
       # @return [Object]
       def call_endpoint(plugin, method, path, request = {})
-        raise "Plugin runtime is not available" unless ensure_alive
+        raise 'Plugin runtime is not available' unless ensure_alive
 
         @context_handler.current_plugin = plugin
 
         @rpc.call(
-          "endpoint",
+          'endpoint',
           {
-            "plugin" => plugin,
-            "method" => method,
-            "path"   => path,
-            "body"   => request[:body],
-            "params" => request[:params] || {}
+            'plugin' => plugin,
+            'method' => method,
+            'path' => path,
+            'body' => request[:body],
+            'params' => request[:params] || {}
           },
           TIMEOUT_ENDPOINT,
           @context_handler
@@ -174,18 +176,18 @@ module Escalated
       # @param headers [Hash]
       # @return [Object]
       def call_webhook(plugin, method, path, body, headers)
-        raise "Plugin runtime is not available" unless ensure_alive
+        raise 'Plugin runtime is not available' unless ensure_alive
 
         @context_handler.current_plugin = plugin
 
         @rpc.call(
-          "webhook",
+          'webhook',
           {
-            "plugin"  => plugin,
-            "method"  => method,
-            "path"    => path,
-            "body"    => body,
-            "headers" => headers
+            'plugin' => plugin,
+            'method' => method,
+            'path' => path,
+            'body' => body,
+            'headers' => headers
           },
           TIMEOUT_WEBHOOK,
           @context_handler
@@ -193,9 +195,7 @@ module Escalated
       end
 
       # @return [Hash{String => Hash}]  plugin manifests (empty if not booted)
-      def manifests
-        @manifests
-      end
+      attr_reader :manifests
 
       # @return [Boolean]
       def booted?
@@ -214,8 +214,12 @@ module Escalated
         return false if Escalated.configuration.respond_to?(:sdk_plugins_enabled) &&
                         Escalated.configuration.sdk_plugins_enabled == false
 
-        node_version = `node --version 2>/dev/null`.strip rescue nil
-        node_version&.start_with?("v") || false
+        node_version = begin
+          `node --version 2>/dev/null`.strip
+        rescue StandardError
+          nil
+        end
+        node_version&.start_with?('v') || false
       end
 
       # Spawn the Node.js plugin runtime subprocess.
@@ -224,7 +228,7 @@ module Escalated
                      Escalated.configuration.plugin_runtime_command
                     Escalated.configuration.plugin_runtime_command
                   else
-                    "node node_modules/@escalated-dev/plugin-runtime/dist/index.js"
+                    'node node_modules/@escalated-dev/plugin-runtime/dist/index.js'
                   end
 
         cwd = if Escalated.configuration.respond_to?(:plugin_runtime_cwd) &&
@@ -249,42 +253,42 @@ module Escalated
       # Perform the handshake with the runtime.
       def handshake
         result = @rpc.call(
-          "handshake",
+          'handshake',
           {
-            "protocol_version" => PROTOCOL_VERSION,
-            "host"             => HOST_NAME,
-            "host_version"     => host_version
+            'protocol_version' => PROTOCOL_VERSION,
+            'host' => HOST_NAME,
+            'host_version' => host_version
           },
           TIMEOUT_HANDSHAKE,
           @context_handler
         )
 
-        unless result.is_a?(Hash) && result["compatible"]
-          runtime_ver  = result.is_a?(Hash) ? result["runtime_version"]  || "unknown" : "unknown"
-          protocol_ver = result.is_a?(Hash) ? result["protocol_version"] || "unknown" : "unknown"
+        unless result.is_a?(Hash) && result['compatible']
+          runtime_ver  = result.is_a?(Hash) ? result['runtime_version']  || 'unknown' : 'unknown'
+          protocol_ver = result.is_a?(Hash) ? result['protocol_version'] || 'unknown' : 'unknown'
 
           raise "Plugin runtime protocol mismatch: runtime speaks v#{protocol_ver} " \
                 "(v#{runtime_ver}), host speaks v#{PROTOCOL_VERSION}"
         end
 
         Rails.logger.info(
-          "[Escalated::Bridge] Handshake OK " \
-          "(runtime #{result["runtime_version"]}, protocol #{result["protocol_version"]})"
+          '[Escalated::Bridge] Handshake OK ' \
+          "(runtime #{result['runtime_version']}, protocol #{result['protocol_version']})"
         )
       end
 
       # Fetch the plugin manifest from the runtime and store locally.
       def fetch_manifests
-        result = @rpc.call("manifest", {}, TIMEOUT_MANIFEST, @context_handler)
+        result = @rpc.call('manifest', {}, TIMEOUT_MANIFEST, @context_handler)
 
         if result.is_a?(Array)
           result.each do |manifest|
-            name = manifest["name"]
+            name = manifest['name']
             @manifests[name] = manifest if name
           end
         end
 
-        Rails.logger.info("[Escalated::Bridge] Received manifests for: #{@manifests.keys.join(", ")}")
+        Rails.logger.info("[Escalated::Bridge] Received manifests for: #{@manifests.keys.join(', ')}")
       end
 
       # Register routes from the loaded manifests.
@@ -301,14 +305,12 @@ module Escalated
         return true if process_alive?
 
         # Enforce exponential backoff on repeated restarts
-        if @restart_attempts > 0
-          backoff = [((2 ** (@restart_attempts - 1)) * 5).to_i, MAX_BACKOFF_SECS].min
+        if @restart_attempts.positive?
+          backoff = [((2**(@restart_attempts - 1)) * 5).to_i, MAX_BACKOFF_SECS].min
           elapsed = Time.now.to_i - @last_restart_at
 
           if elapsed < backoff
-            Rails.logger.debug(
-              "[Escalated::Bridge] Waiting for backoff before restart (#{backoff - elapsed}s remaining)"
-            )
+            Rails.logger.debug { "[Escalated::Bridge] Waiting for backoff before restart (#{backoff - elapsed}s remaining)" }
             return false
           end
         end
@@ -324,12 +326,12 @@ module Escalated
           @booted           = true
 
           true
-        rescue => e
+        rescue StandardError => e
           @restart_attempts += 1
           @last_restart_at  = Time.now.to_i
 
           Rails.logger.error(
-            "[Escalated::Bridge] Failed to start plugin runtime " \
+            '[Escalated::Bridge] Failed to start plugin runtime ' \
             "(attempt #{@restart_attempts}): #{e.message}"
           )
 
@@ -351,32 +353,47 @@ module Escalated
         return false unless @pid && @wait_thr
 
         @wait_thr.alive?
-      rescue
+      rescue StandardError
         false
       end
 
       # Handle a process crash: log it and clean up so the next call triggers
       # a restart via ensure_alive.
       def handle_crash
-        unless process_alive?
-          Rails.logger.warn("[Escalated::Bridge] Plugin runtime process has crashed — will restart on next dispatch")
-          teardown
-        end
+        return if process_alive?
+
+        Rails.logger.warn('[Escalated::Bridge] Plugin runtime process has crashed — will restart on next dispatch')
+        teardown
       end
 
       # Close the subprocess and clean up all handles.
       def teardown
         [@stdin, @stdout, @stderr].each do |io|
           next unless io
-          io.close rescue nil
+
+          begin
+            io.close
+          rescue StandardError
+            nil
+          end
         end
 
         if @wait_thr&.alive?
-          Process.kill("TERM", @pid) rescue nil
+          begin
+            Process.kill('TERM', @pid)
+          rescue StandardError
+            nil
+          end
           @wait_thr.join(5)
-          Process.kill("KILL", @pid) rescue nil if @wait_thr.alive?
+          if @wait_thr.alive?
+            begin
+              Process.kill('KILL', @pid)
+            rescue StandardError
+              nil
+            end
+          end
         end
-      rescue
+      rescue StandardError
         # best-effort teardown
       ensure
         @stdin    = nil
@@ -389,13 +406,13 @@ module Escalated
 
       # Return the current gem version string.
       def host_version
-        gemspec_path = File.expand_path("../../../../escalated.gemspec", __dir__)
+        gemspec_path = File.expand_path('../../../../escalated.gemspec', __dir__)
         if File.exist?(gemspec_path)
           content = File.read(gemspec_path)
           match   = content.match(/\.version\s*=\s*["']([^"']+)["']/)
-          match ? match[1] : "0.0.0"
+          match ? match[1] : '0.0.0'
         else
-          "0.0.0"
+          '0.0.0'
         end
       end
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   class SlaPolicyPolicy
     attr_reader :user, :sla_policy

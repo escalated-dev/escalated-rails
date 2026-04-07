@@ -1,8 +1,11 @@
+# frozen_string_literal: true
+
 module Escalated
   module Api
     module V1
       class TicketsController < BaseController
-        before_action :set_ticket, only: [:show, :reply, :status, :priority, :assign, :follow, :apply_macro, :tags, :destroy]
+        before_action :set_ticket,
+                      only: %i[show reply status priority assign follow apply_macro tags destroy]
 
         # GET /api/v1/tickets
         def index
@@ -12,20 +15,24 @@ module Escalated
           scope = scope.where(priority: params[:priority]) if params[:priority].present?
           scope = scope.assigned_to(params[:assigned_to]) if params[:assigned_to].present?
           scope = scope.where(department_id: params[:department_id]) if params[:department_id].present?
-          scope = scope.unassigned if params[:unassigned] == "true"
-          scope = scope.breached_sla if params[:sla_breached] == "true"
+          scope = scope.unassigned if params[:unassigned] == 'true'
+          scope = scope.breached_sla if params[:sla_breached] == 'true'
           scope = scope.search(params[:search]) if params[:search].present?
 
           if params[:tag_ids].present?
             tag_ids = Array(params[:tag_ids]).map(&:to_i)
-            scope = scope.joins(:tags).where(Escalated.table_name("tags") => { id: tag_ids }).distinct
+            scope = scope.joins(:tags).where(Escalated.table_name('tags') => { id: tag_ids }).distinct
           end
 
-          if params[:following] == "true"
+          if params[:following] == 'true'
+            followers_table = Escalated.table_name('ticket_followers')
+            tickets_table = Escalated.table_name('tickets')
+            join_sql = "INNER JOIN #{followers_table} " \
+                       "ON #{followers_table}.ticket_id = #{tickets_table}.id"
             followed_ticket_ids = Escalated::Ticket
-              .joins("INNER JOIN #{Escalated.table_name('ticket_followers')} ON #{Escalated.table_name('ticket_followers')}.ticket_id = #{Escalated.table_name('tickets')}.id")
-              .where("#{Escalated.table_name('ticket_followers')}.user_id = ?", current_user.id)
-              .pluck(:id)
+                                  .joins(join_sql)
+                                  .where("#{followers_table}.user_id = ?", current_user.id)
+                                  .pluck(:id)
             scope = scope.where(id: followed_ticket_ids)
           end
 
@@ -68,7 +75,7 @@ module Escalated
 
           render json: {
             data: ticket_detail_json(ticket),
-            message: "Ticket created."
+            message: 'Ticket created.'
           }, status: :created
         end
 
@@ -76,13 +83,13 @@ module Escalated
         def reply
           params.require(:body)
 
-          is_internal = params[:is_internal_note] == true || params[:is_internal_note] == "true"
+          is_internal = [true, 'true'].include?(params[:is_internal_note])
 
           reply = Services::TicketService.reply(@ticket, {
-            body: params[:body],
-            author: current_user,
-            is_internal: is_internal
-          })
+                                                  body: params[:body],
+                                                  author: current_user,
+                                                  is_internal: is_internal
+                                                })
 
           render json: {
             data: {
@@ -95,7 +102,7 @@ module Escalated
               },
               created_at: reply.created_at&.iso8601
             },
-            message: is_internal ? "Note added." : "Reply sent."
+            message: is_internal ? 'Note added.' : 'Reply sent.'
           }, status: :created
         end
 
@@ -110,7 +117,7 @@ module Escalated
             note: params[:note]
           )
 
-          render json: { message: "Status updated.", status: params[:status] }
+          render json: { message: 'Status updated.', status: params[:status] }
         end
 
         # PATCH /api/v1/tickets/:reference/priority
@@ -119,7 +126,7 @@ module Escalated
 
           Services::TicketService.change_priority(@ticket, params[:priority], actor: current_user)
 
-          render json: { message: "Priority updated.", priority: params[:priority] }
+          render json: { message: 'Priority updated.', priority: params[:priority] }
         end
 
         # POST /api/v1/tickets/:reference/assign
@@ -129,7 +136,7 @@ module Escalated
           agent = Escalated.configuration.user_model.find(params[:agent_id])
           Services::AssignmentService.assign(@ticket, agent, actor: current_user)
 
-          render json: { message: "Ticket assigned." }
+          render json: { message: 'Ticket assigned.' }
         end
 
         # POST /api/v1/tickets/:reference/follow
@@ -138,10 +145,10 @@ module Escalated
 
           if @ticket.followed_by?(user_id)
             @ticket.unfollow(user_id)
-            render json: { message: "Unfollowed ticket.", following: false }
+            render json: { message: 'Unfollowed ticket.', following: false }
           else
             @ticket.follow(user_id)
-            render json: { message: "Following ticket.", following: true }
+            render json: { message: 'Following ticket.', following: true }
           end
         end
 
@@ -168,14 +175,14 @@ module Escalated
           Services::TicketService.add_tags(@ticket, to_add, actor: current_user) if to_add.any?
           Services::TicketService.remove_tags(@ticket, to_remove, actor: current_user) if to_remove.any?
 
-          render json: { message: "Tags updated." }
+          render json: { message: 'Tags updated.' }
         end
 
         # DELETE /api/v1/tickets/:reference
         def destroy
           @ticket.destroy!
 
-          render json: { message: "Ticket deleted." }
+          render json: { message: 'Ticket deleted.' }
         end
 
         private
@@ -196,14 +203,18 @@ module Escalated
             requester: {
               name: ticket.requester_name
             },
-            assignee: ticket.assignee ? {
-              id: ticket.assignee.id,
-              name: ticket.assignee.respond_to?(:name) ? ticket.assignee.name : ticket.assignee.email
-            } : nil,
-            department: ticket.department ? {
-              id: ticket.department.id,
-              name: ticket.department.name
-            } : nil,
+            assignee: if ticket.assignee
+                        {
+                          id: ticket.assignee.id,
+                          name: ticket.assignee.respond_to?(:name) ? ticket.assignee.name : ticket.assignee.email
+                        }
+                      end,
+            department: if ticket.department
+                          {
+                            id: ticket.department.id,
+                            name: ticket.department.name
+                          }
+                        end,
             tags: ticket.tags.map { |t| { id: t.id, name: t.name, color: t.color } },
             sla_breached: ticket.sla_breached,
             created_at: ticket.created_at&.iso8601,
@@ -220,10 +231,12 @@ module Escalated
           ticket_list_json(ticket).merge(
             description: ticket.description,
             metadata: ticket.metadata,
-            sla_policy: ticket.sla_policy ? {
-              id: ticket.sla_policy.id,
-              name: ticket.sla_policy.name
-            } : nil,
+            sla_policy: if ticket.sla_policy
+                          {
+                            id: ticket.sla_policy.id,
+                            name: ticket.sla_policy.name
+                          }
+                        end,
             sla_first_response_due_at: ticket.sla_first_response_due_at&.iso8601,
             sla_resolution_due_at: ticket.sla_resolution_due_at&.iso8601,
             first_response_at: ticket.first_response_at&.iso8601,
@@ -231,12 +244,14 @@ module Escalated
             closed_at: ticket.closed_at&.iso8601,
             reply_count: ticket.replies.count,
             attachment_count: ticket.attachments.count,
-            satisfaction_rating: ticket.satisfaction_rating ? {
-              id: ticket.satisfaction_rating.id,
-              rating: ticket.satisfaction_rating.rating,
-              comment: ticket.satisfaction_rating.comment,
-              created_at: ticket.satisfaction_rating.created_at&.iso8601
-            } : nil,
+            satisfaction_rating: if ticket.satisfaction_rating
+                                   {
+                                     id: ticket.satisfaction_rating.id,
+                                     rating: ticket.satisfaction_rating.rating,
+                                     comment: ticket.satisfaction_rating.comment,
+                                     created_at: ticket.satisfaction_rating.created_at&.iso8601
+                                   }
+                                 end,
             pinned_notes: ticket.pinned_notes.includes(:author).map { |n| reply_json(n) },
             replies: replies.map { |r| reply_json(r) },
             activities: activities.map { |a| activity_json(a) }
@@ -251,14 +266,18 @@ module Escalated
             is_internal_note: reply.is_internal,
             is_system: reply.is_system,
             is_pinned: reply.respond_to?(:is_pinned) ? reply.is_pinned : false,
-            author: reply.author ? {
-              id: reply.author.id,
-              name: reply.author.respond_to?(:name) ? reply.author.name : reply.author.email,
-              is_agent: reply.author.respond_to?(:escalated_agent?) ? reply.author.escalated_agent? : false
-            } : { name: "System", is_agent: true },
-            attachments: reply.attachments.map { |a|
+            author: if reply.author
+                      {
+                        id: reply.author.id,
+                        name: reply.author.respond_to?(:name) ? reply.author.name : reply.author.email,
+                        is_agent: reply.author.respond_to?(:escalated_agent?) ? reply.author.escalated_agent? : false
+                      }
+                    else
+                      { name: 'System', is_agent: true }
+                    end,
+            attachments: reply.attachments.map do |a|
               { id: a.id, filename: a.filename, size: a.human_size, content_type: a.content_type }
-            },
+            end,
             created_at: reply.created_at&.iso8601
           }
         end
@@ -268,9 +287,11 @@ module Escalated
             id: activity.id,
             action: activity.action,
             description: activity.description,
-            causer: activity.causer ? {
-              name: activity.causer.respond_to?(:name) ? activity.causer.name : activity.causer.email
-            } : nil,
+            causer: if activity.causer
+                      {
+                        name: activity.causer.respond_to?(:name) ? activity.causer.name : activity.causer.email
+                      }
+                    end,
             details: activity.details,
             created_at: activity.created_at&.iso8601
           }

@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 module Escalated
   module Admin
     class ApiTokensController < Escalated::ApplicationController
       before_action :require_admin!
-      before_action :set_token, only: [:update, :destroy]
+      before_action :set_token, only: %i[update destroy]
 
       def index
-        tokens = Escalated::ApiToken.includes(:tokenable).order(created_at: :desc).map { |token|
+        tokens = Escalated::ApiToken.includes(:tokenable).order(created_at: :desc).map do |token|
           {
             id: token.id,
             name: token.name,
@@ -18,11 +20,11 @@ module Escalated
             is_expired: token.expired?,
             created_at: token.created_at&.iso8601
           }
-        }
+        end
 
         users = agent_list
 
-        render_page "Escalated/Admin/ApiTokens/Index", {
+        render_page 'Escalated/Admin/ApiTokens/Index', {
           tokens: tokens,
           users: users,
           api_enabled: Escalated.configuration.api_enabled
@@ -32,13 +34,9 @@ module Escalated
       def create
         user = Escalated.configuration.user_model.find(params[:user_id])
 
-        expires_at = if params[:expires_in_days].present?
-          params[:expires_in_days].to_i.days.from_now
-        else
-          nil
-        end
+        expires_at = (params[:expires_in_days].to_i.days.from_now if params[:expires_in_days].present?)
 
-        abilities = params[:abilities].present? ? Array(params[:abilities]) : ["*"]
+        abilities = params[:abilities].present? ? Array(params[:abilities]) : ['*']
 
         result = Escalated::ApiToken.create_token(
           user,
@@ -47,10 +45,9 @@ module Escalated
           expires_at
         )
 
-        redirect_back(
-          fallback_location: escalated.admin_api_tokens_path,
-          flash: {
-            success: "API token created.",
+        redirect_back_or_to(
+          escalated.admin_api_tokens_path, flash: {
+            success: 'API token created.',
             plain_text_token: result[:plain_text_token]
           }
         )
@@ -63,18 +60,16 @@ module Escalated
 
         @token.update!(update_attrs)
 
-        redirect_back(
-          fallback_location: escalated.admin_api_tokens_path,
-          flash: { success: "Token updated." }
+        redirect_back_or_to(
+          escalated.admin_api_tokens_path, flash: { success: 'Token updated.' }
         )
       end
 
       def destroy
         @token.destroy!
 
-        redirect_back(
-          fallback_location: escalated.admin_api_tokens_path,
-          flash: { success: "Token revoked." }
+        redirect_back_or_to(
+          escalated.admin_api_tokens_path, flash: { success: 'Token revoked.' }
         )
       end
 
@@ -86,9 +81,9 @@ module Escalated
 
       def agent_list
         if Escalated.configuration.user_model.respond_to?(:escalated_agents)
-          Escalated.configuration.user_model.escalated_agents.map { |a|
+          Escalated.configuration.user_model.escalated_agents.map do |a|
             { id: a.id, name: a.respond_to?(:name) ? a.name : a.email, email: a.email }
-          }
+          end
         else
           []
         end

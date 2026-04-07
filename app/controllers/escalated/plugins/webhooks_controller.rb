@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Plugins
     # Handles incoming webhook requests for SDK plugins.
@@ -6,18 +8,18 @@ module Escalated
     # manifest's "webhooks" array.  CSRF protection is skipped because webhook
     # callers are external services; authentication is delegated to the plugin
     # itself (it verifies signatures, shared secrets, etc. via ctx.config).
-    class WebhooksController < ActionController::Base
+    class WebhooksController < ApplicationController
       protect_from_forgery with: :null_session
 
       # Handle any HTTP method forwarded to a plugin webhook.
       def handle
         plugin       = params[:plugin]
-        webhook_path = params[:webhook_path] || ""
+        webhook_path = params[:webhook_path] || ''
         http_method  = request.method.downcase
 
         bridge = Escalated.plugin_bridge
         unless bridge&.booted?
-          render json: { error: "Plugin runtime is not available" }, status: :service_unavailable
+          render json: { error: 'Plugin runtime is not available' }, status: :service_unavailable
           return
         end
 
@@ -30,7 +32,7 @@ module Escalated
         )
 
         render json: result
-      rescue => e
+      rescue StandardError => e
         Rails.logger.error("[Escalated::Plugins::WebhooksController] #{e.message}")
         render json: { error: e.message }, status: :internal_server_error
       end
@@ -49,13 +51,13 @@ module Escalated
       def request_headers
         request.headers.each_with_object({}) do |(key, value), hash|
           # Expose only HTTP_ headers (standard Rack convention)
-          next unless key.start_with?("HTTP_") || key == "CONTENT_TYPE" || key == "CONTENT_LENGTH"
+          next unless key.start_with?('HTTP_') || key == 'CONTENT_TYPE' || key == 'CONTENT_LENGTH'
 
           normalized = key
-            .sub(/\AHTTP_/, "")
-            .split("_")
-            .map(&:capitalize)
-            .join("-")
+                       .sub(/\AHTTP_/, '')
+                       .split('_')
+                       .map(&:capitalize)
+                       .join('-')
 
           hash[normalized] = value
         end

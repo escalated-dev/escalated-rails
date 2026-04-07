@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module ApiRateLimiting
     extend ActiveSupport::Concern
@@ -21,12 +23,12 @@ module Escalated
       if current[:count] >= max_attempts
         retry_after = [current[:reset_at] - Time.current.to_i, 1].max
 
-        response.headers["Retry-After"] = retry_after.to_s
-        response.headers["X-RateLimit-Limit"] = max_attempts.to_s
-        response.headers["X-RateLimit-Remaining"] = "0"
+        response.headers['Retry-After'] = retry_after.to_s
+        response.headers['X-RateLimit-Limit'] = max_attempts.to_s
+        response.headers['X-RateLimit-Remaining'] = '0'
 
         render json: {
-          message: "Too many requests.",
+          message: 'Too many requests.',
           retry_after: retry_after
         }, status: :too_many_requests
         return
@@ -49,8 +51,8 @@ module Escalated
     end
 
     def set_rate_limit_headers(limit, remaining)
-      response.headers["X-RateLimit-Limit"] = limit.to_s
-      response.headers["X-RateLimit-Remaining"] = [remaining, 0].max.to_s
+      response.headers['X-RateLimit-Limit'] = limit.to_s
+      response.headers['X-RateLimit-Remaining'] = [remaining, 0].max.to_s
     end
   end
 end

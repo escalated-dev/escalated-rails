@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
-  factory :escalated_ticket_status, class: "Escalated::TicketStatus" do
+  factory :escalated_ticket_status, class: 'Escalated::TicketStatus' do
     label { Faker::Lorem.unique.word.capitalize }
     category { %w[open pending resolved closed].sample }
     color { Faker::Color.hex_color }
@@ -11,19 +13,19 @@ FactoryBot.define do
     end
 
     trait :open_category do
-      category { "open" }
+      category { 'open' }
     end
 
     trait :pending_category do
-      category { "pending" }
+      category { 'pending' }
     end
 
     trait :resolved_category do
-      category { "resolved" }
+      category { 'resolved' }
     end
 
     trait :closed_category do
-      category { "closed" }
+      category { 'closed' }
     end
   end
 end

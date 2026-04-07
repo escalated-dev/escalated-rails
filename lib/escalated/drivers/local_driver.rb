@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 module Escalated
   module Drivers
     class LocalDriver
-      ALLOWED_SORT_COLUMNS = %w[created_at updated_at status priority subject reference assigned_to department_id resolved_at closed_at].freeze
+      ALLOWED_SORT_COLUMNS = %w[created_at updated_at status priority subject reference assigned_to department_id
+                                resolved_at closed_at].freeze
 
       def create_ticket(params)
         ticket = Escalated::Ticket.new(
@@ -19,15 +22,13 @@ module Escalated
         ActiveRecord::Base.transaction do
           ticket.save!
 
-          if params[:tag_ids].present?
-            ticket.tags = Escalated::Tag.where(id: params[:tag_ids])
-          end
+          ticket.tags = Escalated::Tag.where(id: params[:tag_ids]) if params[:tag_ids].present?
 
           attach_sla_policy(ticket)
-          log_activity(ticket, params[:requester], "ticket_created", { subject: ticket.subject })
+          log_activity(ticket, params[:requester], 'ticket_created', { subject: ticket.subject })
         end
 
-        instrument("escalated.ticket.created", ticket: ticket)
+        instrument('escalated.ticket.created', ticket: ticket)
         ticket
       end
 
@@ -45,18 +46,14 @@ module Escalated
             ticket.description = params[:description]
           end
 
-          if params[:metadata].present?
-            ticket.metadata = ticket.metadata.merge(params[:metadata])
-          end
+          ticket.metadata = ticket.metadata.merge(params[:metadata]) if params[:metadata].present?
 
           ticket.save!
 
-          if changes.any?
-            log_activity(ticket, actor, "ticket_updated", changes)
-          end
+          log_activity(ticket, actor, 'ticket_updated', changes) if changes.any?
         end
 
-        instrument("escalated.ticket.updated", ticket: ticket)
+        instrument('escalated.ticket.updated', ticket: ticket)
         ticket
       end
 
@@ -66,26 +63,20 @@ module Escalated
         ActiveRecord::Base.transaction do
           ticket.update!(status: new_status)
 
-          if new_status.to_s == "resolved"
-            ticket.update!(resolved_at: Time.current)
-          end
+          ticket.update!(resolved_at: Time.current) if new_status.to_s == 'resolved'
 
-          if new_status.to_s == "closed"
-            ticket.update!(closed_at: Time.current)
-          end
+          ticket.update!(closed_at: Time.current) if new_status.to_s == 'closed'
 
-          if new_status.to_s == "reopened"
-            ticket.update!(resolved_at: nil, closed_at: nil)
-          end
+          ticket.update!(resolved_at: nil, closed_at: nil) if new_status.to_s == 'reopened'
 
-          log_activity(ticket, actor, "status_changed", {
-            from: old_status,
-            to: new_status,
-            note: note
-          })
+          log_activity(ticket, actor, 'status_changed', {
+                         from: old_status,
+                         to: new_status,
+                         note: note
+                       })
         end
 
-        instrument("escalated.ticket.status_changed", ticket: ticket, from: old_status, to: new_status)
+        instrument('escalated.ticket.status_changed', ticket: ticket, from: old_status, to: new_status)
         ticket
       end
 
@@ -95,13 +86,13 @@ module Escalated
         ActiveRecord::Base.transaction do
           ticket.update!(assigned_to: agent.id, status: :in_progress)
 
-          log_activity(ticket, actor, "ticket_assigned", {
-            from_agent_id: old_assignee_id,
-            to_agent_id: agent.id
-          })
+          log_activity(ticket, actor, 'ticket_assigned', {
+                         from_agent_id: old_assignee_id,
+                         to_agent_id: agent.id
+                       })
         end
 
-        instrument("escalated.ticket.assigned", ticket: ticket, agent: agent)
+        instrument('escalated.ticket.assigned', ticket: ticket, agent: agent)
         ticket
       end
 
@@ -111,12 +102,12 @@ module Escalated
         ActiveRecord::Base.transaction do
           ticket.update!(assigned_to: nil, status: :open)
 
-          log_activity(ticket, actor, "ticket_unassigned", {
-            from_agent_id: old_assignee_id
-          })
+          log_activity(ticket, actor, 'ticket_unassigned', {
+                         from_agent_id: old_assignee_id
+                       })
         end
 
-        instrument("escalated.ticket.unassigned", ticket: ticket)
+        instrument('escalated.ticket.unassigned', ticket: ticket)
         ticket
       end
 
@@ -143,12 +134,12 @@ module Escalated
             ticket.update!(status: :waiting_on_agent) if ticket.waiting_on_customer?
           end
 
-          log_activity(ticket, params[:author], params[:is_internal] ? "internal_note_added" : "reply_added", {
-            reply_id: reply.id
-          })
+          log_activity(ticket, params[:author], params[:is_internal] ? 'internal_note_added' : 'reply_added', {
+                         reply_id: reply.id
+                       })
         end
 
-        instrument("escalated.ticket.reply_added", ticket: ticket, reply: reply)
+        instrument('escalated.ticket.reply_added', ticket: ticket, reply: reply)
         reply
       end
 
@@ -166,18 +157,14 @@ module Escalated
         scope = scope.where(requester: filters[:requester]) if filters[:requester].present?
         scope = scope.search(filters[:search]) if filters[:search].present?
 
-        if filters[:sla_breached]
-          scope = scope.breached_sla
-        end
+        scope = scope.breached_sla if filters[:sla_breached]
 
         order_col = filters[:order_by].to_s
         order_col = 'created_at' unless ALLOWED_SORT_COLUMNS.include?(order_col)
         order_dir = filters[:order_dir].to_s.downcase == 'asc' ? :asc : :desc
         scope = scope.order(order_col => order_dir)
 
-        if filters[:page].present?
-          scope = scope.page(filters[:page]).per(filters[:per_page] || 25)
-        end
+        scope = scope.page(filters[:page]).per(filters[:per_page] || 25) if filters[:page].present?
 
         scope
       end
@@ -190,13 +177,13 @@ module Escalated
           ticket.tags << new_tags
 
           if new_tags.any?
-            log_activity(ticket, actor, "tags_added", {
-              tag_names: new_tags.map(&:name)
-            })
+            log_activity(ticket, actor, 'tags_added', {
+                           tag_names: new_tags.map(&:name)
+                         })
           end
         end
 
-        instrument("escalated.ticket.tags_added", ticket: ticket, tags: new_tags)
+        instrument('escalated.ticket.tags_added', ticket: ticket, tags: new_tags)
         ticket
       end
 
@@ -207,13 +194,13 @@ module Escalated
           ticket.tags.delete(tags_to_remove)
 
           if tags_to_remove.any?
-            log_activity(ticket, actor, "tags_removed", {
-              tag_names: tags_to_remove.map(&:name)
-            })
+            log_activity(ticket, actor, 'tags_removed', {
+                           tag_names: tags_to_remove.map(&:name)
+                         })
           end
         end
 
-        instrument("escalated.ticket.tags_removed", ticket: ticket, tags: tags_to_remove)
+        instrument('escalated.ticket.tags_removed', ticket: ticket, tags: tags_to_remove)
         ticket
       end
 
@@ -223,13 +210,13 @@ module Escalated
         ActiveRecord::Base.transaction do
           ticket.update!(department_id: department.id)
 
-          log_activity(ticket, actor, "department_changed", {
-            from_department_id: old_department_id,
-            to_department_id: department.id
-          })
+          log_activity(ticket, actor, 'department_changed', {
+                         from_department_id: old_department_id,
+                         to_department_id: department.id
+                       })
         end
 
-        instrument("escalated.ticket.department_changed", ticket: ticket, department: department)
+        instrument('escalated.ticket.department_changed', ticket: ticket, department: department)
         ticket
       end
 
@@ -239,13 +226,13 @@ module Escalated
         ActiveRecord::Base.transaction do
           ticket.update!(priority: new_priority)
 
-          log_activity(ticket, actor, "priority_changed", {
-            from: old_priority,
-            to: new_priority
-          })
+          log_activity(ticket, actor, 'priority_changed', {
+                         from: old_priority,
+                         to: new_priority
+                       })
         end
 
-        instrument("escalated.ticket.priority_changed", ticket: ticket, from: old_priority, to: new_priority)
+        instrument('escalated.ticket.priority_changed', ticket: ticket, from: old_priority, to: new_priority)
         ticket
       end
 
@@ -277,13 +264,13 @@ module Escalated
                    Escalated::SlaPolicy.default_policy.first
                  end
 
-        if policy
-          ticket.update!(
-            sla_policy_id: policy.id,
-            sla_first_response_due_at: calculate_due_date(policy.first_response_hours_for(ticket.priority)),
-            sla_resolution_due_at: calculate_due_date(policy.resolution_hours_for(ticket.priority))
-          )
-        end
+        return unless policy
+
+        ticket.update!(
+          sla_policy_id: policy.id,
+          sla_first_response_due_at: calculate_due_date(policy.first_response_hours_for(ticket.priority)),
+          sla_resolution_due_at: calculate_due_date(policy.resolution_hours_for(ticket.priority))
+        )
       end
 
       def calculate_due_date(hours)
@@ -301,29 +288,25 @@ module Escalated
         start_hour = bh[:start] || 9
         end_hour = bh[:end] || 17
         working_days = bh[:working_days] || [1, 2, 3, 4, 5]
-        tz = bh[:timezone] || "UTC"
+        tz = bh[:timezone] || 'UTC'
 
         current_time = Time.current.in_time_zone(tz)
         remaining_hours = hours.to_f
-        hours_per_day = end_hour - start_hour
 
-        while remaining_hours > 0
+        while remaining_hours.positive?
           if working_days.include?(current_time.wday)
             day_start = current_time.change(hour: start_hour, min: 0, sec: 0)
             day_end = current_time.change(hour: end_hour, min: 0, sec: 0)
 
-            if current_time < day_start
-              current_time = day_start
-            end
+            current_time = day_start if current_time < day_start
 
             if current_time < day_end
               available_hours = (day_end - current_time) / 3600.0
 
-              if remaining_hours <= available_hours
-                return current_time + remaining_hours.hours
-              else
-                remaining_hours -= available_hours
-              end
+              return current_time + remaining_hours.hours if remaining_hours <= available_hours
+
+              remaining_hours -= available_hours
+
             end
           end
 
@@ -334,7 +317,7 @@ module Escalated
       end
 
       def is_agent?(user)
-        return false unless user.present?
+        return false if user.blank?
 
         # Check if user responds to agent-like methods
         user.respond_to?(:escalated_agent?) && user.escalated_agent?

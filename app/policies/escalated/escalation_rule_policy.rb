@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   class EscalationRulePolicy
     attr_reader :user, :escalation_rule

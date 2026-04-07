@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   # Value object returned by ImportAdapter#extract.
   #

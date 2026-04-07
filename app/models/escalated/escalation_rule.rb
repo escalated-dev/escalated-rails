@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module Escalated
   class EscalationRule < ApplicationRecord
-    self.table_name = Escalated.table_name("escalation_rules")
+    self.table_name = Escalated.table_name('escalation_rules')
 
     validates :name, presence: true
     validates :conditions, presence: true
@@ -49,35 +51,35 @@ module Escalated
     private
 
     def check_status(ticket)
-      return true unless conditions["status"].present?
+      return true if conditions['status'].blank?
 
-      Array(conditions["status"]).include?(ticket.status)
+      Array(conditions['status']).include?(ticket.status)
     end
 
     def check_priority(ticket)
-      return true unless conditions["priority"].present?
+      return true if conditions['priority'].blank?
 
-      Array(conditions["priority"]).include?(ticket.priority)
+      Array(conditions['priority']).include?(ticket.priority)
     end
 
     def check_sla_breach(ticket)
-      return true unless conditions["sla_breached"]
+      return true unless conditions['sla_breached']
 
       ticket.sla_first_response_breached? || ticket.sla_resolution_breached?
     end
 
     def check_unassigned_duration(ticket)
-      return true unless conditions["unassigned_for_minutes"].present?
+      return true if conditions['unassigned_for_minutes'].blank?
       return false if ticket.assigned_to.present?
 
-      minutes = conditions["unassigned_for_minutes"].to_i
+      minutes = conditions['unassigned_for_minutes'].to_i
       ticket.created_at < minutes.minutes.ago
     end
 
     def check_no_response_duration(ticket)
-      return true unless conditions["no_response_for_minutes"].present?
+      return true if conditions['no_response_for_minutes'].blank?
 
-      minutes = conditions["no_response_for_minutes"].to_i
+      minutes = conditions['no_response_for_minutes'].to_i
       last_reply = ticket.replies.public_replies.chronological.last
 
       if last_reply
@@ -88,9 +90,9 @@ module Escalated
     end
 
     def check_department(ticket)
-      return true unless conditions["department_ids"].present?
+      return true if conditions['department_ids'].blank?
 
-      Array(conditions["department_ids"]).include?(ticket.department_id)
+      Array(conditions['department_ids']).include?(ticket.department_id)
     end
   end
 end

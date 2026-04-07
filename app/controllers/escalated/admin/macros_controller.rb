@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 module Escalated
   module Admin
     class MacrosController < Escalated::ApplicationController
       before_action :require_admin!
-      before_action :set_macro, only: [:update, :destroy]
+      before_action :set_macro, only: %i[update destroy]
 
       def index
         macros = Escalated::Macro.ordered
 
-        render_page "Escalated/Admin/Macros/Index", {
+        render_page 'Escalated/Admin/Macros/Index', {
           macros: macros.map { |m| macro_json(m) }
         }
       end
@@ -19,8 +21,7 @@ module Escalated
         if macro.save
           redirect_to admin_macros_path, notice: I18n.t('escalated.admin.macro.created')
         else
-          redirect_back fallback_location: admin_macros_path,
-                        alert: macro.errors.full_messages.join(", ")
+          redirect_back_or_to(admin_macros_path, alert: macro.errors.full_messages.join(', '))
         end
       end
 
@@ -28,8 +29,7 @@ module Escalated
         if @macro.update(macro_params)
           redirect_to admin_macros_path, notice: I18n.t('escalated.admin.macro.updated')
         else
-          redirect_back fallback_location: admin_macros_path,
-                        alert: @macro.errors.full_messages.join(", ")
+          redirect_back_or_to(admin_macros_path, alert: @macro.errors.full_messages.join(', '))
         end
       end
 
@@ -45,7 +45,7 @@ module Escalated
       end
 
       def macro_params
-        params.require(:macro).permit(:name, :description, :is_shared, :order, actions: [:type, :value])
+        params.expect(macro: [:name, :description, :is_shared, :order, { actions: %i[type value] }])
       end
 
       def macro_json(macro)
@@ -56,10 +56,12 @@ module Escalated
           actions: macro.actions,
           is_shared: macro.is_shared,
           order: macro.order,
-          creator: macro.creator ? {
-            id: macro.creator.id,
-            name: macro.creator.respond_to?(:name) ? macro.creator.name : macro.creator.email
-          } : nil,
+          creator: if macro.creator
+                     {
+                       id: macro.creator.id,
+                       name: macro.creator.respond_to?(:name) ? macro.creator.name : macro.creator.email
+                     }
+                   end,
           created_at: macro.created_at&.iso8601,
           updated_at: macro.updated_at&.iso8601
         }

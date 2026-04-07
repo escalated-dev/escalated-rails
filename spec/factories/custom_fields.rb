@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
-  factory :escalated_custom_field, class: "Escalated::CustomField" do
-    name { Faker::Lorem.unique.words(number: 2).map(&:capitalize).join(" ") }
-    field_type { "text" }
-    context { "ticket" }
+  factory :escalated_custom_field, class: 'Escalated::CustomField' do
+    name { Faker::Lorem.unique.words(number: 2).map(&:capitalize).join(' ') }
+    field_type { 'text' }
+    context { 'ticket' }
     position { rand(1..20) }
     required { false }
     description { Faker::Lorem.sentence }
@@ -13,28 +15,28 @@ FactoryBot.define do
     end
 
     trait :select do
-      field_type { "select" }
-      options { ["Option A", "Option B", "Option C"] }
+      field_type { 'select' }
+      options { ['Option A', 'Option B', 'Option C'] }
     end
 
     trait :checkbox do
-      field_type { "checkbox" }
+      field_type { 'checkbox' }
     end
 
     trait :date do
-      field_type { "date" }
+      field_type { 'date' }
     end
 
     trait :number do
-      field_type { "number" }
+      field_type { 'number' }
     end
 
     trait :for_user do
-      context { "user" }
+      context { 'user' }
     end
 
     trait :for_organization do
-      context { "organization" }
+      context { 'organization' }
     end
   end
 end

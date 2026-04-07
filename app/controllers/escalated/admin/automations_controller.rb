@@ -1,19 +1,29 @@
+# frozen_string_literal: true
+
 module Escalated
   module Admin
     class AutomationsController < Escalated::ApplicationController
       before_action :require_admin!
-      before_action :set_automation, only: [:edit, :update, :destroy]
+      before_action :set_automation, only: %i[edit update destroy]
 
       def index
         automations = Escalated::Automation.ordered
 
-        render_page "Escalated/Admin/Automations/Index", {
+        render_page 'Escalated/Admin/Automations/Index', {
           automations: automations.map { |a| automation_json(a) }
         }
       end
 
       def new
-        render_page "Escalated/Admin/Automations/New", {
+        render_page 'Escalated/Admin/Automations/New', {
+          condition_fields: condition_fields,
+          action_types: action_types
+        }
+      end
+
+      def edit
+        render_page 'Escalated/Admin/Automations/Edit', {
+          automation: automation_json(@automation),
           condition_fields: condition_fields,
           action_types: action_types
         }
@@ -23,33 +33,23 @@ module Escalated
         automation = Escalated::Automation.new(automation_params)
 
         if automation.save
-          redirect_to escalated.admin_automations_path, notice: I18n.t("escalated.admin.automation.created")
+          redirect_to escalated.admin_automations_path, notice: I18n.t('escalated.admin.automation.created')
         else
-          redirect_back fallback_location: escalated.admin_automations_path,
-                        alert: automation.errors.full_messages.join(", ")
+          redirect_back_or_to(escalated.admin_automations_path, alert: automation.errors.full_messages.join(', '))
         end
-      end
-
-      def edit
-        render_page "Escalated/Admin/Automations/Edit", {
-          automation: automation_json(@automation),
-          condition_fields: condition_fields,
-          action_types: action_types
-        }
       end
 
       def update
         if @automation.update(automation_params)
-          redirect_to escalated.admin_automations_path, notice: I18n.t("escalated.admin.automation.updated")
+          redirect_to escalated.admin_automations_path, notice: I18n.t('escalated.admin.automation.updated')
         else
-          redirect_back fallback_location: escalated.admin_automations_path,
-                        alert: @automation.errors.full_messages.join(", ")
+          redirect_back_or_to(escalated.admin_automations_path, alert: @automation.errors.full_messages.join(', '))
         end
       end
 
       def destroy
         @automation.destroy!
-        redirect_to escalated.admin_automations_path, notice: I18n.t("escalated.admin.automation.deleted")
+        redirect_to escalated.admin_automations_path, notice: I18n.t('escalated.admin.automation.deleted')
       end
 
       private
@@ -59,10 +59,12 @@ module Escalated
       end
 
       def automation_params
-        params.require(:automation).permit(
-          :name, :active, :position,
-          conditions: [:field, :operator, :value],
-          actions: [:type, :value]
+        params.expect(
+          automation: [:name, :active, :position,
+                       {
+                         conditions: %i[field operator value],
+                         actions: %i[type value]
+                       }]
         )
       end
 

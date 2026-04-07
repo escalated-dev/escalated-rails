@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   class TicketMailer < ApplicationMailer
     def new_ticket(ticket)
@@ -69,7 +71,7 @@ module Escalated
       @ticket = ticket
       @rule = rule
 
-      recipients = Array(rule.actions["notification_recipients"])
+      recipients = Array(rule.actions['notification_recipients'])
       recipients << ticket.assignee&.email if ticket.assignee
       recipients << ticket.department&.email if ticket.department
 

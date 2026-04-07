@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 module Escalated
   module Admin
     class BusinessHoursController < Escalated::ApplicationController
       before_action :require_admin!
-      before_action :set_schedule, only: [:update, :destroy]
+      before_action :set_schedule, only: %i[update destroy]
 
       def index
         schedules = Escalated::BusinessSchedule.includes(:holidays).ordered
 
-        render_page "Escalated/Admin/BusinessHours/Index", {
+        render_page 'Escalated/Admin/BusinessHours/Index', {
           schedules: schedules.map { |s| schedule_json(s) }
         }
       end
@@ -17,20 +19,22 @@ module Escalated
 
         if schedule.save
           sync_holidays(schedule, holidays_param)
-          redirect_to escalated.admin_business_hours_index_path, notice: I18n.t('escalated.admin.business_hours.created')
+          redirect_to escalated.admin_business_hours_index_path,
+                      notice: I18n.t('escalated.admin.business_hours.created')
         else
-          redirect_back fallback_location: escalated.admin_business_hours_index_path,
-                        alert: schedule.errors.full_messages.join(", ")
+          redirect_back_or_to(escalated.admin_business_hours_index_path,
+                              alert: schedule.errors.full_messages.join(', '))
         end
       end
 
       def update
         if @schedule.update(schedule_params)
           sync_holidays(@schedule, holidays_param)
-          redirect_to escalated.admin_business_hours_index_path, notice: I18n.t('escalated.admin.business_hours.updated')
+          redirect_to escalated.admin_business_hours_index_path,
+                      notice: I18n.t('escalated.admin.business_hours.updated')
         else
-          redirect_back fallback_location: escalated.admin_business_hours_index_path,
-                        alert: @schedule.errors.full_messages.join(", ")
+          redirect_back_or_to(escalated.admin_business_hours_index_path,
+                              alert: @schedule.errors.full_messages.join(', '))
         end
       end
 
@@ -46,7 +50,7 @@ module Escalated
       end
 
       def schedule_params
-        params.require(:business_schedule).permit(:name, :timezone, schedule: {})
+        params.expect(business_schedule: [:name, :timezone, { schedule: {} }])
       end
 
       def holidays_param
@@ -58,8 +62,8 @@ module Escalated
 
         holidays_data.each do |holiday|
           schedule.holidays.create!(
-            name: holiday[:name] || holiday["name"],
-            date: holiday[:date] || holiday["date"]
+            name: holiday[:name] || holiday['name'],
+            date: holiday[:date] || holiday['date']
           )
         end
       end

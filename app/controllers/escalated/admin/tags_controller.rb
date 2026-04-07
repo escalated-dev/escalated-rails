@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 module Escalated
   module Admin
     class TagsController < Escalated::ApplicationController
       before_action :require_admin!
-      before_action :set_tag, only: [:update, :destroy]
+      before_action :set_tag, only: %i[update destroy]
 
       def index
         tags = Escalated::Tag.ordered
 
-        render_page "Escalated/Admin/Tags/Index", {
+        render_page 'Escalated/Admin/Tags/Index', {
           tags: tags.map { |t| tag_json(t) }
         }
       end
@@ -18,8 +20,7 @@ module Escalated
         if tag.save
           redirect_to admin_tags_path, notice: I18n.t('escalated.admin.tag.created')
         else
-          redirect_back fallback_location: admin_tags_path,
-                        alert: tag.errors.full_messages.join(", ")
+          redirect_back_or_to(admin_tags_path, alert: tag.errors.full_messages.join(', '))
         end
       end
 
@@ -27,8 +28,7 @@ module Escalated
         if @tag.update(tag_params)
           redirect_to admin_tags_path, notice: I18n.t('escalated.admin.tag.updated')
         else
-          redirect_back fallback_location: admin_tags_path,
-                        alert: @tag.errors.full_messages.join(", ")
+          redirect_back_or_to(admin_tags_path, alert: @tag.errors.full_messages.join(', '))
         end
       end
 
@@ -44,7 +44,7 @@ module Escalated
       end
 
       def tag_params
-        params.require(:tag).permit(:name, :color, :description)
+        params.expect(tag: %i[name color description])
       end
 
       def tag_json(tag)

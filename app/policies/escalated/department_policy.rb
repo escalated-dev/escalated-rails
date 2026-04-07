@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   class DepartmentPolicy
     attr_reader :user, :department

@@ -1,15 +1,17 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
   factory :user do
     name { Faker::Name.name }
     email { Faker::Internet.unique.email }
-    role { "customer" }
+    role { 'customer' }
 
     trait :agent do
-      role { "agent" }
+      role { 'agent' }
     end
 
     trait :admin do
-      role { "admin" }
+      role { 'admin' }
     end
   end
 end

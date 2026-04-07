@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Mail
     module Adapters
@@ -22,12 +24,12 @@ module Escalated
             from_email: from_email,
             from_name: from_name,
             to_email: to_email,
-            subject: safe_param(params, "Subject", "(no subject)"),
-            body_text: safe_param(params, "TextBody"),
-            body_html: safe_param(params, "HtmlBody"),
-            message_id: safe_param(params, "MessageID"),
-            in_reply_to: headers["In-Reply-To"],
-            references: parse_references(headers["References"]),
+            subject: safe_param(params, 'Subject', '(no subject)'),
+            body_text: safe_param(params, 'TextBody'),
+            body_html: safe_param(params, 'HtmlBody'),
+            message_id: safe_param(params, 'MessageID'),
+            in_reply_to: headers['In-Reply-To'],
+            references: parse_references(headers['References']),
             headers: headers,
             attachments: []
           )
@@ -54,38 +56,38 @@ module Escalated
         private
 
         def extract_from_email(params)
-          from_full = params["FromFull"]
+          from_full = params['FromFull']
           if from_full.is_a?(Hash)
-            from_full["Email"]
+            from_full['Email']
           else
-            safe_param(params, "From")&.then { |f| parse_email_address(f).last }
+            safe_param(params, 'From')&.then { |f| parse_email_address(f).last }
           end
         end
 
         def extract_from_name(params)
-          from_full = params["FromFull"]
+          from_full = params['FromFull']
           if from_full.is_a?(Hash)
-            from_full["Name"].presence
+            from_full['Name'].presence
           else
-            safe_param(params, "FromName")
+            safe_param(params, 'FromName')
           end
         end
 
         def extract_to_email(params)
-          to_full = params["ToFull"]
+          to_full = params['ToFull']
           if to_full.is_a?(Array) && to_full.first.is_a?(Hash)
-            to_full.first["Email"]
+            to_full.first['Email']
           else
-            safe_param(params, "To")&.then { |t| parse_email_address(t).last }
+            safe_param(params, 'To')&.then { |t| parse_email_address(t).last }
           end
         end
 
         def extract_headers(params)
-          raw_headers = params["Headers"]
+          raw_headers = params['Headers']
           return {} unless raw_headers.is_a?(Array)
 
           raw_headers.each_with_object({}) do |header, hash|
-            hash[header["Name"]] = header["Value"] if header.is_a?(Hash)
+            hash[header['Name']] = header['Value'] if header.is_a?(Hash)
           end
         end
       end

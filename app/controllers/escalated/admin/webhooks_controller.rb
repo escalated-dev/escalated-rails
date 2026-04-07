@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 module Escalated
   module Admin
     class WebhooksController < Escalated::ApplicationController
       before_action :require_admin!
-      before_action :set_webhook, only: [:update, :destroy, :deliveries]
+      before_action :set_webhook, only: %i[update destroy deliveries]
 
       def index
         webhooks = Escalated::Webhook.ordered
 
-        render_page "Escalated/Admin/Webhooks/Index", {
+        render_page 'Escalated/Admin/Webhooks/Index', {
           webhooks: webhooks.map { |w| webhook_json(w) }
         }
       end
@@ -18,8 +20,7 @@ module Escalated
         if webhook.save
           redirect_to escalated.admin_webhooks_path, notice: I18n.t('escalated.admin.webhook.created')
         else
-          redirect_back fallback_location: escalated.admin_webhooks_path,
-                        alert: webhook.errors.full_messages.join(", ")
+          redirect_back_or_to(escalated.admin_webhooks_path, alert: webhook.errors.full_messages.join(', '))
         end
       end
 
@@ -27,8 +28,7 @@ module Escalated
         if @webhook.update(webhook_params)
           redirect_to escalated.admin_webhooks_path, notice: I18n.t('escalated.admin.webhook.updated')
         else
-          redirect_back fallback_location: escalated.admin_webhooks_path,
-                        alert: @webhook.errors.full_messages.join(", ")
+          redirect_back_or_to(escalated.admin_webhooks_path, alert: @webhook.errors.full_messages.join(', '))
         end
       end
 
@@ -40,7 +40,7 @@ module Escalated
       def deliveries
         result = paginate(@webhook.deliveries.recent)
 
-        render_page "Escalated/Admin/Webhooks/Deliveries", {
+        render_page 'Escalated/Admin/Webhooks/Deliveries', {
           webhook: webhook_json(@webhook),
           deliveries: result[:data].map { |d| delivery_json(d) },
           meta: result[:meta]
@@ -52,11 +52,9 @@ module Escalated
 
         Services::WebhookService.retry(delivery)
 
-        redirect_back fallback_location: escalated.admin_webhooks_path,
-                      notice: I18n.t('escalated.admin.webhook.delivery_retried')
+        redirect_back_or_to(escalated.admin_webhooks_path, notice: I18n.t('escalated.admin.webhook.delivery_retried'))
       rescue ActiveRecord::RecordNotFound
-        redirect_back fallback_location: escalated.admin_webhooks_path,
-                      alert: I18n.t('escalated.middleware.not_found')
+        redirect_back_or_to(escalated.admin_webhooks_path, alert: I18n.t('escalated.middleware.not_found'))
       end
 
       private
@@ -66,7 +64,7 @@ module Escalated
       end
 
       def webhook_params
-        params.require(:webhook).permit(:url, :secret, :is_active, events: [])
+        params.expect(webhook: [:url, :secret, :is_active, { events: [] }])
       end
 
       def webhook_json(webhook)

@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
-  factory :escalated_agent_capacity, class: "Escalated::AgentCapacity" do
+  factory :escalated_agent_capacity, class: 'Escalated::AgentCapacity' do
     max_concurrent { 5 }
     current_count { 0 }
-    channel { "default" }
+    channel { 'default' }
     association :user, factory: :user
 
     trait :at_capacity do

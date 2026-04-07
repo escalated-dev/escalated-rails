@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module Escalated
   class Automation < ApplicationRecord
-    self.table_name = Escalated.table_name("automations")
+    self.table_name = Escalated.table_name('automations')
 
     serialize :conditions, coder: JSON
     serialize :actions, coder: JSON
@@ -21,11 +23,11 @@ module Escalated
     private
 
     def conditions_must_be_array
-      errors.add(:conditions, "must be an array") unless conditions.is_a?(Array)
+      errors.add(:conditions, 'must be an array') unless conditions.is_a?(Array)
     end
 
     def actions_must_be_array
-      errors.add(:actions, "must be an array") unless actions.is_a?(Array)
+      errors.add(:actions, 'must be an array') unless actions.is_a?(Array)
     end
   end
 end

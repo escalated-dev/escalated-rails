@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 module Escalated
-  class PollImapJob < ActiveJob::Base
+  class PollImapJob < ApplicationJob
     queue_as :escalated
 
     # Poll the configured IMAP mailbox for unread messages and process them
@@ -16,21 +18,21 @@ module Escalated
     #   )
     def perform
       unless Escalated.configuration.inbound_email_enabled
-        Rails.logger.debug("[Escalated::PollImapJob] Inbound email is disabled, skipping")
+        Rails.logger.debug('[Escalated::PollImapJob] Inbound email is disabled, skipping')
         return
       end
 
-      unless Escalated.configuration.inbound_email_adapter.to_s == "imap"
-        Rails.logger.debug("[Escalated::PollImapJob] IMAP adapter not configured, skipping")
+      unless Escalated.configuration.inbound_email_adapter.to_s == 'imap'
+        Rails.logger.debug('[Escalated::PollImapJob] IMAP adapter not configured, skipping')
         return
       end
 
       unless imap_configured?
-        Rails.logger.warn("[Escalated::PollImapJob] IMAP credentials not configured")
+        Rails.logger.warn('[Escalated::PollImapJob] IMAP credentials not configured')
         return
       end
 
-      Rails.logger.info("[Escalated::PollImapJob] Polling IMAP mailbox...")
+      Rails.logger.info('[Escalated::PollImapJob] Polling IMAP mailbox...')
 
       adapter = Escalated::Mail::Adapters::ImapAdapter.new
       messages = adapter.fetch_messages
@@ -41,7 +43,7 @@ module Escalated
       failed = 0
 
       messages.each do |message|
-        result = Services::InboundEmailService.process(message, adapter_name: "imap")
+        result = Services::InboundEmailService.process(message, adapter_name: 'imap')
 
         if result&.processed?
           processed += 1

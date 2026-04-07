@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module Escalated
   class CannedResponse < ApplicationRecord
-    self.table_name = Escalated.table_name("canned_responses")
+    self.table_name = Escalated.table_name('canned_responses')
 
     belongs_to :creator,
                class_name: Escalated.configuration.user_class,
@@ -14,8 +16,8 @@ module Escalated
     scope :personal, -> { where(is_shared: false) }
     scope :for_user, ->(user_id) { where(is_shared: true).or(where(created_by: user_id)) }
     scope :by_category, ->(category) { where(category: category) }
-    scope :search, ->(term) {
-      where("title LIKE :term OR body LIKE :term OR shortcode LIKE :term",
+    scope :search, lambda { |term|
+      where('title LIKE :term OR body LIKE :term OR shortcode LIKE :term',
             term: "%#{sanitize_sql_like(term)}%")
     }
     scope :ordered, -> { order(:title) }
@@ -38,7 +40,7 @@ module Escalated
       end
 
       # Remove any unmatched variables
-      rendered.gsub!(/\{\{[^}]+\}\}/, "")
+      rendered.gsub!(/\{\{[^}]+\}\}/, '')
       rendered
     end
   end

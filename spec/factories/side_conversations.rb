@@ -1,21 +1,23 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
-  factory :escalated_side_conversation, class: "Escalated::SideConversation" do
+  factory :escalated_side_conversation, class: 'Escalated::SideConversation' do
     subject { Faker::Lorem.sentence(word_count: 5) }
-    channel { "email" }
-    status { "open" }
+    channel { 'email' }
+    status { 'open' }
     association :ticket, factory: :escalated_ticket
     association :created_by, factory: :user
 
     trait :closed do
-      status { "closed" }
+      status { 'closed' }
     end
 
     trait :via_slack do
-      channel { "slack" }
+      channel { 'slack' }
     end
 
     trait :via_phone do
-      channel { "phone" }
+      channel { 'phone' }
     end
 
     trait :with_replies do
@@ -25,7 +27,7 @@ FactoryBot.define do
     end
   end
 
-  factory :escalated_side_conversation_reply, class: "Escalated::SideConversationReply" do
+  factory :escalated_side_conversation_reply, class: 'Escalated::SideConversationReply' do
     body { Faker::Lorem.paragraph(sentence_count: 2) }
     association :side_conversation, factory: :escalated_side_conversation
     association :author, factory: :user

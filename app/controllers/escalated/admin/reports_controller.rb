@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Admin
     class ReportsController < Escalated::ApplicationController
@@ -17,20 +19,20 @@ module Escalated
             currently_open: Escalated::Ticket.by_open.count,
             currently_unassigned: Escalated::Ticket.by_open.unassigned.count
           },
-          by_status: Escalated::Ticket.statuses.keys.each_with_object({}) { |status, hash|
-            hash[status] = Escalated::Ticket.where(status: status).count
-          },
-          by_priority: Escalated::Ticket.priorities.keys.each_with_object({}) { |priority, hash|
-            hash[priority] = tickets_in_period.where(priority: priority).count
-          },
-          by_department: Escalated::Department.ordered.map { |dept|
+          by_status: Escalated::Ticket.statuses.keys.index_with do |status|
+            Escalated::Ticket.where(status: status).count
+          end,
+          by_priority: Escalated::Ticket.priorities.keys.index_with do |priority|
+            tickets_in_period.where(priority: priority).count
+          end,
+          by_department: Escalated::Department.ordered.map do |dept|
             {
               id: dept.id,
               name: dept.name,
               total: tickets_in_period.where(department_id: dept.id).count,
               open: Escalated::Ticket.by_open.where(department_id: dept.id).count
             }
-          },
+          end,
           sla: Services::SlaService.stats,
           performance: {
             avg_first_response_hours: calculate_avg(:first_response, period_start, period_end),
@@ -42,7 +44,7 @@ module Escalated
           csat: calculate_csat_stats(period_start, period_end)
         }
 
-        render_page "Escalated/Admin/Reports/Index", {
+        render_page 'Escalated/Admin/Reports/Index', {
           stats: stats,
           filters: {
             from: period_start.iso8601,
@@ -52,10 +54,10 @@ module Escalated
       end
 
       def dashboard
-        today = Time.current.beginning_of_day..Time.current.end_of_day
+        today = Time.current.all_day
         this_week = 1.week.ago.beginning_of_day..Time.current.end_of_day
 
-        render_page "Escalated/Admin/Reports/Dashboard", {
+        render_page 'Escalated/Admin/Reports/Dashboard', {
           today: {
             created: Escalated::Ticket.where(created_at: today).count,
             resolved: Escalated::Ticket.where(resolved_at: today).count,
@@ -66,9 +68,9 @@ module Escalated
             created: Escalated::Ticket.where(created_at: this_week).count,
             resolved: Escalated::Ticket.where(resolved_at: this_week).count
           },
-          open_by_priority: Escalated::Ticket.priorities.keys.each_with_object({}) { |priority, hash|
-            hash[priority] = Escalated::Ticket.by_open.where(priority: priority).count
-          },
+          open_by_priority: Escalated::Ticket.priorities.keys.index_with do |priority|
+            Escalated::Ticket.by_open.where(priority: priority).count
+          end,
           sla_breaches_today: Escalated::Ticket.where(sla_breached: true).where(updated_at: today).count,
           unassigned_open: Escalated::Ticket.by_open.unassigned.count,
           csat_this_week: calculate_csat_stats(1.week.ago.beginning_of_day, Time.current.end_of_day)
@@ -78,7 +80,7 @@ module Escalated
       private
 
       def parse_date(value)
-        return nil unless value.present?
+        return nil if value.blank?
 
         Time.zone.parse(value)
       rescue ArgumentError
@@ -113,7 +115,7 @@ module Escalated
           day_end = day_start + 1.day
 
           {
-            date: day_start.strftime("%Y-%m-%d"),
+            date: day_start.strftime('%Y-%m-%d'),
             created: Escalated::Ticket.where(created_at: day_start..day_end).count,
             resolved: Escalated::Ticket.where(resolved_at: day_start..day_end).count,
             closed: Escalated::Ticket.where(closed_at: day_start..day_end).count
@@ -123,12 +125,12 @@ module Escalated
 
       def calculate_top_agents(from, to)
         resolved_counts = Escalated::Ticket
-          .where(resolved_at: from..to)
-          .where.not(assigned_to: nil)
-          .group(:assigned_to)
-          .count
-          .sort_by { |_, count| -count }
-          .first(10)
+                          .where(resolved_at: from..to)
+                          .where.not(assigned_to: nil)
+                          .group(:assigned_to)
+                          .count
+                          .sort_by { |_, count| -count }
+                          .first(10)
 
         resolved_counts.map do |agent_id, count|
           agent = Escalated.configuration.user_model.find_by(id: agent_id)
@@ -149,9 +151,9 @@ module Escalated
         total = ratings.count
         return { average: 0, total: 0, breakdown: {} } if total.zero?
 
-        average = (ratings.average(:rating).to_f).round(2)
-        breakdown = (1..5).each_with_object({}) do |star, hash|
-          hash[star] = ratings.where(rating: star).count
+        average = ratings.average(:rating).to_f.round(2)
+        breakdown = (1..5).index_with do |star|
+          ratings.where(rating: star).count
         end
 
         {
@@ -163,8 +165,8 @@ module Escalated
 
       def calculate_agent_avg_resolution(agent_id, from, to)
         tickets = Escalated::Ticket
-          .where(assigned_to: agent_id, resolved_at: from..to)
-          .where.not(resolved_at: nil)
+                  .where(assigned_to: agent_id, resolved_at: from..to)
+                  .where.not(resolved_at: nil)
 
         return 0 if tickets.empty?
 

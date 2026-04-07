@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
-  factory :escalated_tag, class: "Escalated::Tag" do
+  factory :escalated_tag, class: 'Escalated::Tag' do
     name { Faker::Lorem.unique.word.capitalize }
     slug { name&.parameterize }
     color { Faker::Color.hex_color }

@@ -1,6 +1,8 @@
-require "net/http"
-require "json"
-require "uri"
+# frozen_string_literal: true
+
+require 'net/http'
+require 'json'
+require 'uri'
 
 module Escalated
   module Drivers
@@ -28,8 +30,8 @@ module Escalated
         @api_url = api_url || Escalated.configuration.hosted_api_url
         @api_key = api_key || Escalated.configuration.hosted_api_key
 
-        raise ArgumentError, "Escalated hosted_api_url is required for cloud/synced mode" if @api_url.blank?
-        raise ArgumentError, "Escalated hosted_api_key is required for cloud/synced mode" if @api_key.blank?
+        raise ArgumentError, 'Escalated hosted_api_url is required for cloud/synced mode' if @api_url.blank?
+        raise ArgumentError, 'Escalated hosted_api_key is required for cloud/synced mode' if @api_key.blank?
       end
 
       # Class method for fire-and-forget sync operations
@@ -85,7 +87,7 @@ module Escalated
         uri = URI.parse(url)
 
         if params.present?
-          query = params.compact.map { |k, v| "#{CGI.escape(k.to_s)}=#{CGI.escape(v.to_s)}" }.join("&")
+          query = params.compact.map { |k, v| "#{CGI.escape(k.to_s)}=#{CGI.escape(v.to_s)}" }.join('&')
           uri.query = query
         end
 
@@ -96,29 +98,31 @@ module Escalated
         apply_headers(request)
 
         http = Net::HTTP.new(uri.host, uri.port)
-        http.use_ssl = uri.scheme == "https"
+        http.use_ssl = uri.scheme == 'https'
         http.open_timeout = TIMEOUT
         http.read_timeout = TIMEOUT
 
         response = http.request(request)
         handle_response(response)
       rescue Net::OpenTimeout, Net::ReadTimeout, Errno::ECONNREFUSED, Errno::ECONNRESET => e
-        if retries < MAX_RETRIES
-          sleep(RETRY_DELAY * (retries + 1))
-          execute_request(uri, request, retries: retries + 1)
-        else
-          raise ConnectionError.new(
-            "Failed to connect to Escalated API after #{MAX_RETRIES} retries: #{e.message}"
-          )
+        unless retries < MAX_RETRIES
+          raise ConnectionError, "Failed to connect to Escalated API after #{MAX_RETRIES} retries: #{e.message}"
         end
+
+        sleep(RETRY_DELAY * (retries + 1))
+        execute_request(uri, request, retries: retries + 1)
       end
 
       def apply_headers(request)
-        request["Content-Type"] = "application/json"
-        request["Accept"] = "application/json"
-        request["Authorization"] = "Bearer #{@api_key}"
-        request["User-Agent"] = "Escalated-Rails/#{Escalated::VERSION rescue '0.1.0'}"
-        request["X-Escalated-Source"] = "rails-engine"
+        request['Content-Type'] = 'application/json'
+        request['Accept'] = 'application/json'
+        request['Authorization'] = "Bearer #{@api_key}"
+        request['User-Agent'] = "Escalated-Rails/#{begin
+          Escalated::VERSION
+        rescue StandardError
+          '0.1.0'
+        end}"
+        request['X-Escalated-Source'] = 'rails-engine'
       end
 
       def handle_response(response)
@@ -129,7 +133,7 @@ module Escalated
           body
         when 401
           raise AuthenticationError.new(
-            "Authentication failed. Check your Escalated API key.",
+            'Authentication failed. Check your Escalated API key.',
             status: 401, body: body
           )
         when 429
@@ -157,9 +161,10 @@ module Escalated
 
       def parse_body(raw)
         return {} if raw.blank?
+
         JSON.parse(raw)
       rescue JSON::ParserError
-        { "raw" => raw }
+        { 'raw' => raw }
       end
     end
   end

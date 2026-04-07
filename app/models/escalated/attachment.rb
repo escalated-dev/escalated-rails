@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module Escalated
   class Attachment < ApplicationRecord
-    self.table_name = Escalated.table_name("attachments")
+    self.table_name = Escalated.table_name('attachments')
 
     belongs_to :attachable, polymorphic: true
 
@@ -9,18 +11,18 @@ module Escalated
     validates :filename, presence: true
     validates :content_type, presence: true
     validates :byte_size, presence: true,
-              numericality: {
-                less_than_or_equal_to: -> { Escalated.configuration.max_attachment_size_kb * 1024 }
-              }
+                          numericality: {
+                            less_than_or_equal_to: -> { Escalated.configuration.max_attachment_size_kb * 1024 }
+                          }
 
     before_validation :set_metadata_from_file, if: -> { file.attached? && filename.blank? }
 
-    scope :images, -> { where("content_type LIKE ?", "image/%") }
-    scope :documents, -> { where.not("content_type LIKE ?", "image/%") }
+    scope :images, -> { where('content_type LIKE ?', 'image/%') }
+    scope :documents, -> { where.not('content_type LIKE ?', 'image/%') }
     scope :recent, -> { order(created_at: :desc) }
 
     def image?
-      content_type&.start_with?("image/")
+      content_type&.start_with?('image/')
     end
 
     def human_size

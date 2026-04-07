@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 module Escalated
   module Admin
     class ArticlesController < Escalated::ApplicationController
       before_action :require_admin!
-      before_action :set_article, only: [:update, :destroy]
+      before_action :set_article, only: %i[update destroy]
 
       def index
         scope = Escalated::Article.includes(:category, :author).recent
@@ -13,7 +15,7 @@ module Escalated
 
         result = paginate(scope)
 
-        render_page "Escalated/Admin/Articles/Index", {
+        render_page 'Escalated/Admin/Articles/Index', {
           articles: result[:data].map { |a| article_json(a) },
           meta: result[:meta],
           filters: {
@@ -33,8 +35,7 @@ module Escalated
         if article.save
           redirect_to escalated.admin_articles_path, notice: I18n.t('escalated.admin.article.created')
         else
-          redirect_back fallback_location: escalated.admin_articles_path,
-                        alert: article.errors.full_messages.join(", ")
+          redirect_back_or_to(escalated.admin_articles_path, alert: article.errors.full_messages.join(', '))
         end
       end
 
@@ -42,8 +43,7 @@ module Escalated
         if @article.update(article_params)
           redirect_to escalated.admin_articles_path, notice: I18n.t('escalated.admin.article.updated')
         else
-          redirect_back fallback_location: escalated.admin_articles_path,
-                        alert: @article.errors.full_messages.join(", ")
+          redirect_back_or_to(escalated.admin_articles_path, alert: @article.errors.full_messages.join(', '))
         end
       end
 
@@ -59,7 +59,7 @@ module Escalated
       end
 
       def article_params
-        params.require(:article).permit(:title, :slug, :body, :status, :category_id)
+        params.expect(article: %i[title slug body status category_id])
       end
 
       def article_json(article)
@@ -68,14 +68,18 @@ module Escalated
           title: article.title,
           slug: article.slug,
           status: article.status,
-          category: article.category ? {
-            id: article.category.id,
-            name: article.category.name
-          } : nil,
-          author: article.author ? {
-            id: article.author.id,
-            name: article.author.respond_to?(:name) ? article.author.name : article.author.email
-          } : nil,
+          category: if article.category
+                      {
+                        id: article.category.id,
+                        name: article.category.name
+                      }
+                    end,
+          author: if article.author
+                    {
+                      id: article.author.id,
+                      name: article.author.respond_to?(:name) ? article.author.name : article.author.email
+                    }
+                  end,
           created_at: article.created_at&.iso8601,
           updated_at: article.updated_at&.iso8601
         }

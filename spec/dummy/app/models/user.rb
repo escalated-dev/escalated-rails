@@ -1,11 +1,13 @@
+# frozen_string_literal: true
+
 class User < ApplicationRecord
   has_many :escalated_tickets,
-           class_name: "Escalated::Ticket",
+           class_name: 'Escalated::Ticket',
            as: :requester,
            dependent: :nullify
 
   has_many :escalated_assigned_tickets,
-           class_name: "Escalated::Ticket",
+           class_name: 'Escalated::Ticket',
            foreign_key: :assigned_to,
            dependent: :nullify
 
@@ -13,11 +15,11 @@ class User < ApplicationRecord
   validates :email, presence: true, uniqueness: true
 
   def escalated_agent?
-    role == "agent" || role == "admin"
+    %w[agent admin].include?(role)
   end
 
   def admin?
-    role == "admin"
+    role == 'admin'
   end
 
   def to_s

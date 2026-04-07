@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module ApiAuthentication
     extend ActiveSupport::Concern
@@ -11,24 +13,24 @@ module Escalated
     def authenticate_api_token!
       plain_text = extract_bearer_token
       unless plain_text
-        render json: { message: "Unauthenticated." }, status: :unauthorized
+        render json: { message: 'Unauthenticated.' }, status: :unauthorized
         return
       end
 
-      api_token = Escalated::ApiToken.find_by_plain_text(plain_text)
+      api_token = Escalated::ApiToken.find_by(plain_text: plain_text)
       unless api_token
-        render json: { message: "Invalid token." }, status: :unauthorized
+        render json: { message: 'Invalid token.' }, status: :unauthorized
         return
       end
 
       if api_token.expired?
-        render json: { message: "Token has expired." }, status: :unauthorized
+        render json: { message: 'Token has expired.' }, status: :unauthorized
         return
       end
 
       user = api_token.tokenable
       unless user
-        render json: { message: "Token owner not found." }, status: :unauthorized
+        render json: { message: 'Token owner not found.' }, status: :unauthorized
         return
       end
 
@@ -43,8 +45,8 @@ module Escalated
     end
 
     def extract_bearer_token
-      header = request.headers["Authorization"].to_s
-      return nil unless header.start_with?("Bearer ")
+      header = request.headers['Authorization'].to_s
+      return nil unless header.start_with?('Bearer ')
 
       header[7..]
     end

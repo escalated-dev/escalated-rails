@@ -1,4 +1,6 @@
-require "openssl"
+# frozen_string_literal: true
+
+require 'openssl'
 
 module Escalated
   module Mail
@@ -20,14 +22,14 @@ module Escalated
           InboundMessage.new(
             from_email: from_email,
             from_name: from_name,
-            to_email: safe_param(params, "recipient"),
-            subject: safe_param(params, "subject", "(no subject)"),
-            body_text: safe_param(params, "body-plain"),
-            body_html: safe_param(params, "body-html"),
-            message_id: safe_param(params, "Message-Id"),
-            in_reply_to: safe_param(params, "In-Reply-To"),
-            references: parse_references(safe_param(params, "References")),
-            headers: parse_headers(safe_param(params, "message-headers")),
+            to_email: safe_param(params, 'recipient'),
+            subject: safe_param(params, 'subject', '(no subject)'),
+            body_text: safe_param(params, 'body-plain'),
+            body_html: safe_param(params, 'body-html'),
+            message_id: safe_param(params, 'Message-Id'),
+            in_reply_to: safe_param(params, 'In-Reply-To'),
+            references: parse_references(safe_param(params, 'References')),
+            headers: parse_headers(safe_param(params, 'message-headers')),
             attachments: []
           )
         end
@@ -42,14 +44,14 @@ module Escalated
         def verify_request(request)
           signing_key = Escalated.configuration.mailgun_signing_key
           if signing_key.blank?
-            Rails.logger.warn("[Escalated::MailgunAdapter] Mailgun signing key not configured — rejecting webhook.")
+            Rails.logger.warn('[Escalated::MailgunAdapter] Mailgun signing key not configured — rejecting webhook.')
             return false
           end
 
           params = request.params
-          timestamp = params["timestamp"].to_s
-          token = params["token"].to_s
-          signature = params["signature"].to_s
+          timestamp = params['timestamp'].to_s
+          token = params['token'].to_s
+          signature = params['signature'].to_s
 
           return false if timestamp.blank? || token.blank? || signature.blank?
 
@@ -59,18 +61,18 @@ module Escalated
             return false
           end
 
-          expected = OpenSSL::HMAC.hexdigest("SHA256", signing_key, "#{timestamp}#{token}")
+          expected = OpenSSL::HMAC.hexdigest('SHA256', signing_key, "#{timestamp}#{token}")
           ActiveSupport::SecurityUtils.secure_compare(expected, signature)
         end
 
         private
 
         def parse_from(params)
-          from_field = safe_param(params, "from")
+          from_field = safe_param(params, 'from')
           if from_field
             parse_email_address(from_field)
           else
-            [nil, safe_param(params, "sender")]
+            [nil, safe_param(params, 'sender')]
           end
         end
 

@@ -1,6 +1,8 @@
+# frozen_string_literal: true
+
 module Escalated
   class EscalatedSetting < ApplicationRecord
-    self.table_name = Escalated.table_name("settings")
+    self.table_name = Escalated.table_name('settings')
 
     validates :key, presence: true, uniqueness: true
 
@@ -13,7 +15,7 @@ module Escalated
 
     def self.set(key, value)
       record = find_or_initialize_by(key: key)
-      record.value = value.nil? ? nil : value.to_s
+      record.value = value&.to_s
       record.save!
       record
     end
@@ -33,11 +35,11 @@ module Escalated
     end
 
     def self.guest_tickets_enabled?
-      get_bool("guest_tickets_enabled", default: true)
+      get_bool('guest_tickets_enabled', default: true)
     end
 
     def self.all_as_hash
-      all.each_with_object({}) { |s, hash| hash[s.key] = s.value }
+      all.to_h { |s| [s.key, s.value] }
     end
   end
 end

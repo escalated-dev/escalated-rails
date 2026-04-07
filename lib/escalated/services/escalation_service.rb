@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Services
     class EscalationService
@@ -9,11 +11,11 @@ module Escalated
 
           tickets.find_each do |ticket|
             rules.each do |rule|
-              if rule.matches?(ticket)
-                execute_actions(ticket, rule)
-                escalated_tickets << { ticket: ticket, rule: rule }
-                break # Only apply the first matching rule per ticket
-              end
+              next unless rule.matches?(ticket)
+
+              execute_actions(ticket, rule)
+              escalated_tickets << { ticket: ticket, rule: rule }
+              break # Only apply the first matching rule per ticket
             end
           end
 
@@ -38,24 +40,22 @@ module Escalated
           return unless actions.is_a?(Hash)
 
           ActiveRecord::Base.transaction do
-            change_priority_action(ticket, actions["change_priority"]) if actions["change_priority"]
-            change_status_action(ticket, actions["change_status"]) if actions["change_status"]
-            assign_agent_action(ticket, actions["assign_to_agent_id"]) if actions["assign_to_agent_id"]
-            assign_department_action(ticket, actions["assign_to_department_id"]) if actions["assign_to_department_id"]
-            add_tags_action(ticket, actions["add_tags"]) if actions["add_tags"]
-            add_note_action(ticket, actions["add_internal_note"]) if actions["add_internal_note"]
+            change_priority_action(ticket, actions['change_priority']) if actions['change_priority']
+            change_status_action(ticket, actions['change_status']) if actions['change_status']
+            assign_agent_action(ticket, actions['assign_to_agent_id']) if actions['assign_to_agent_id']
+            assign_department_action(ticket, actions['assign_to_department_id']) if actions['assign_to_department_id']
+            add_tags_action(ticket, actions['add_tags']) if actions['add_tags']
+            add_note_action(ticket, actions['add_internal_note']) if actions['add_internal_note']
 
             log_escalation(ticket, rule)
           end
 
-          if actions["send_notification"]
-            send_escalation_notification(ticket, rule, actions["notification_recipients"])
-          end
+          send_escalation_notification(ticket, rule, actions['notification_recipients']) if actions['send_notification']
 
-          ActiveSupport::Notifications.instrument("escalated.ticket.escalated", {
-            ticket: ticket,
-            rule: rule
-          })
+          ActiveSupport::Notifications.instrument('escalated.ticket.escalated', {
+                                                    ticket: ticket,
+                                                    rule: rule
+                                                  })
         end
 
         private
@@ -65,9 +65,9 @@ module Escalated
           ticket.update!(priority: new_priority)
 
           ticket.activities.create!(
-            action: "priority_changed",
+            action: 'priority_changed',
             causer: nil,
-            details: { from: old_priority, to: new_priority, reason: "escalation_rule" }
+            details: { from: old_priority, to: new_priority, reason: 'escalation_rule' }
           )
         end
 
@@ -76,9 +76,9 @@ module Escalated
           ticket.update!(status: new_status)
 
           ticket.activities.create!(
-            action: "status_changed",
+            action: 'status_changed',
             causer: nil,
-            details: { from: old_status, to: new_status, reason: "escalation_rule" }
+            details: { from: old_status, to: new_status, reason: 'escalation_rule' }
           )
         end
 
@@ -90,9 +90,9 @@ module Escalated
           ticket.update!(assigned_to: agent.id)
 
           ticket.activities.create!(
-            action: "ticket_assigned",
+            action: 'ticket_assigned',
             causer: nil,
-            details: { from_agent_id: old_assignee, to_agent_id: agent.id, reason: "escalation_rule" }
+            details: { from_agent_id: old_assignee, to_agent_id: agent.id, reason: 'escalation_rule' }
           )
         end
 
@@ -104,9 +104,9 @@ module Escalated
           ticket.update!(department_id: department.id)
 
           ticket.activities.create!(
-            action: "department_changed",
+            action: 'department_changed',
             causer: nil,
-            details: { from_department_id: old_department, to_department_id: department.id, reason: "escalation_rule" }
+            details: { from_department_id: old_department, to_department_id: department.id, reason: 'escalation_rule' }
           )
         end
 
@@ -132,7 +132,7 @@ module Escalated
 
         def log_escalation(ticket, rule)
           ticket.activities.create!(
-            action: "ticket_escalated",
+            action: 'ticket_escalated',
             causer: nil,
             details: {
               rule_id: rule.id,
@@ -148,10 +148,10 @@ module Escalated
           end
 
           NotificationService.dispatch(:ticket_escalated, {
-            ticket: ticket,
-            rule: rule,
-            recipients: recipients
-          })
+                                         ticket: ticket,
+                                         rule: rule,
+                                         recipients: recipients
+                                       })
         end
       end
     end

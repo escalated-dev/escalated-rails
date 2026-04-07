@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Plugins
     # Handles requests routed to SDK plugin data endpoints.
@@ -10,13 +12,13 @@ module Escalated
 
       # Handle any HTTP method forwarded to a plugin endpoint.
       def handle
-        plugin       = params[:plugin]
-        endpoint_path = params[:endpoint_path] || ""
-        http_method  = request.method.downcase
+        plugin = params[:plugin]
+        endpoint_path = params[:endpoint_path] || ''
+        http_method = request.method.downcase
 
         bridge = Escalated.plugin_bridge
         unless bridge&.booted?
-          render json: { error: "Plugin runtime is not available" }, status: :service_unavailable
+          render json: { error: 'Plugin runtime is not available' }, status: :service_unavailable
           return
         end
 
@@ -25,13 +27,13 @@ module Escalated
           http_method,
           "/#{endpoint_path}",
           {
-            body:   request_body,
+            body: request_body,
             params: request.query_parameters.to_unsafe_h
           }
         )
 
         render json: result
-      rescue => e
+      rescue StandardError => e
         Rails.logger.error("[Escalated::Plugins::EndpointsController] #{e.message}")
         render json: { error: e.message }, status: :internal_server_error
       end

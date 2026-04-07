@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Admin
     class TicketLinksController < Escalated::ApplicationController
@@ -13,19 +15,23 @@ module Escalated
       def store
         linked_ticket = Escalated::Ticket.find_by(id: params[:linked_ticket_id])
 
-        return render json: { error: "Ticket not found" }, status: :not_found unless linked_ticket
-        return render json: { error: "Cannot link a ticket to itself" }, status: :unprocessable_entity if linked_ticket.id == @ticket.id
+        return render json: { error: 'Ticket not found' }, status: :not_found unless linked_ticket
+        if linked_ticket.id == @ticket.id
+          return render json: { error: 'Cannot link a ticket to itself' },
+                        status: :unprocessable_content
+        end
 
         existing = Escalated::TicketLink.where(ticket_id: @ticket.id, linked_ticket_id: linked_ticket.id)
-          .or(Escalated::TicketLink.where(ticket_id: linked_ticket.id, linked_ticket_id: @ticket.id))
-          .exists?
+                                        .or(Escalated::TicketLink.where(ticket_id: linked_ticket.id,
+                                                                        linked_ticket_id: @ticket.id))
+                                        .exists?
 
-        return render json: { error: "Link already exists" }, status: :unprocessable_entity if existing
+        return render json: { error: 'Link already exists' }, status: :unprocessable_content if existing
 
         link = Escalated::TicketLink.create!(
           ticket: @ticket,
           linked_ticket: linked_ticket,
-          link_type: params[:link_type] || "related"
+          link_type: params[:link_type] || 'related'
         )
 
         render json: link_json(link), status: :created

@@ -1,11 +1,13 @@
-require "rails_helper"
+# frozen_string_literal: true
+
+require 'rails_helper'
 
 RSpec.describe Escalated::Reply, type: :model do
   # ------------------------------------------------------------------ #
   # Associations
   # ------------------------------------------------------------------ #
-  describe "associations" do
-    it { is_expected.to belong_to(:ticket).class_name("Escalated::Ticket") }
+  describe 'associations' do
+    it { is_expected.to belong_to(:ticket).class_name('Escalated::Ticket') }
     it { is_expected.to belong_to(:author).optional }
     it { is_expected.to have_many(:attachments) }
   end
@@ -13,19 +15,19 @@ RSpec.describe Escalated::Reply, type: :model do
   # ------------------------------------------------------------------ #
   # Validations
   # ------------------------------------------------------------------ #
-  describe "validations" do
+  describe 'validations' do
     it { is_expected.to validate_presence_of(:body) }
   end
 
   # ------------------------------------------------------------------ #
   # Scopes
   # ------------------------------------------------------------------ #
-  describe "scopes" do
+  describe 'scopes' do
     let(:ticket) { create(:escalated_ticket) }
     let(:author) { create(:user, :agent) }
 
-    describe ".public_replies" do
-      it "returns only non-internal replies" do
+    describe '.public_replies' do
+      it 'returns only non-internal replies' do
         public_reply = create(:escalated_reply, ticket: ticket, author: author, is_internal: false)
         _internal = create(:escalated_reply, :internal, ticket: ticket, author: author)
 
@@ -35,8 +37,8 @@ RSpec.describe Escalated::Reply, type: :model do
       end
     end
 
-    describe ".internal_notes" do
-      it "returns only internal replies" do
+    describe '.internal_notes' do
+      it 'returns only internal replies' do
         _public = create(:escalated_reply, ticket: ticket, author: author, is_internal: false)
         internal = create(:escalated_reply, :internal, ticket: ticket, author: author)
 
@@ -46,8 +48,8 @@ RSpec.describe Escalated::Reply, type: :model do
       end
     end
 
-    describe ".system_messages" do
-      it "returns only system messages" do
+    describe '.system_messages' do
+      it 'returns only system messages' do
         _regular = create(:escalated_reply, ticket: ticket, author: author)
         system_msg = create(:escalated_reply, :system, ticket: ticket, is_system: true)
 
@@ -57,8 +59,8 @@ RSpec.describe Escalated::Reply, type: :model do
       end
     end
 
-    describe ".pinned" do
-      it "returns only pinned replies" do
+    describe '.pinned' do
+      it 'returns only pinned replies' do
         _unpinned = create(:escalated_reply, ticket: ticket, author: author, is_pinned: false)
         pinned = create(:escalated_reply, ticket: ticket, author: author, is_pinned: true)
 
@@ -68,8 +70,8 @@ RSpec.describe Escalated::Reply, type: :model do
       end
     end
 
-    describe ".chronological" do
-      it "returns replies in chronological order" do
+    describe '.chronological' do
+      it 'returns replies in chronological order' do
         old = create(:escalated_reply, ticket: ticket, author: author, created_at: 2.hours.ago)
         recent = create(:escalated_reply, ticket: ticket, author: author, created_at: 1.hour.ago)
 
@@ -79,8 +81,8 @@ RSpec.describe Escalated::Reply, type: :model do
       end
     end
 
-    describe ".reverse_chronological" do
-      it "returns replies in reverse chronological order" do
+    describe '.reverse_chronological' do
+      it 'returns replies in reverse chronological order' do
         old = create(:escalated_reply, ticket: ticket, author: author, created_at: 2.hours.ago)
         recent = create(:escalated_reply, ticket: ticket, author: author, created_at: 1.hour.ago)
 
@@ -94,49 +96,49 @@ RSpec.describe Escalated::Reply, type: :model do
   # ------------------------------------------------------------------ #
   # Instance methods
   # ------------------------------------------------------------------ #
-  describe "#public?" do
-    it "returns true when not internal" do
+  describe '#public?' do
+    it 'returns true when not internal' do
       reply = build(:escalated_reply, is_internal: false)
       expect(reply.public?).to be(true)
     end
 
-    it "returns false when internal" do
+    it 'returns false when internal' do
       reply = build(:escalated_reply, is_internal: true)
       expect(reply.public?).to be(false)
     end
   end
 
-  describe "#internal?" do
-    it "returns true when internal" do
+  describe '#internal?' do
+    it 'returns true when internal' do
       reply = build(:escalated_reply, is_internal: true)
       expect(reply.internal?).to be(true)
     end
 
-    it "returns false when public" do
+    it 'returns false when public' do
       reply = build(:escalated_reply, is_internal: false)
       expect(reply.internal?).to be(false)
     end
   end
 
-  describe "#system?" do
-    it "returns true for system messages" do
+  describe '#system?' do
+    it 'returns true for system messages' do
       reply = build(:escalated_reply, is_system: true)
       expect(reply.system?).to be(true)
     end
 
-    it "returns false for regular messages" do
+    it 'returns false for regular messages' do
       reply = build(:escalated_reply, is_system: false)
       expect(reply.system?).to be(false)
     end
   end
 
-  describe "#pinned?" do
-    it "returns true when pinned" do
+  describe '#pinned?' do
+    it 'returns true when pinned' do
       reply = build(:escalated_reply, is_pinned: true)
       expect(reply.pinned?).to be(true)
     end
 
-    it "returns false when not pinned" do
+    it 'returns false when not pinned' do
       reply = build(:escalated_reply, is_pinned: false)
       expect(reply.pinned?).to be(false)
     end
@@ -145,8 +147,8 @@ RSpec.describe Escalated::Reply, type: :model do
   # ------------------------------------------------------------------ #
   # Callbacks
   # ------------------------------------------------------------------ #
-  describe "callbacks" do
-    describe "#touch_ticket" do
+  describe 'callbacks' do
+    describe '#touch_ticket' do
       it "updates the ticket's updated_at after creating a reply" do
         ticket = create(:escalated_ticket, updated_at: 1.day.ago)
         author = create(:user, :agent)

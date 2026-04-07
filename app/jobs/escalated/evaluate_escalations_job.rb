@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 module Escalated
-  class EvaluateEscalationsJob < ActiveJob::Base
+  class EvaluateEscalationsJob < ApplicationJob
     queue_as :escalated
 
     def perform
-      Rails.logger.info("[Escalated::EvaluateEscalationsJob] Evaluating escalation rules...")
+      Rails.logger.info('[Escalated::EvaluateEscalationsJob] Evaluating escalation rules...')
 
       results = Services::EscalationService.evaluate_all
 

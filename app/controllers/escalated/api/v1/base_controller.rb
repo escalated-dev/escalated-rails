@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Api
     module V1
@@ -15,9 +17,9 @@ module Escalated
         private
 
         def check_api_enabled!
-          unless Escalated.configuration.api_enabled
-            render json: { message: "API is not enabled." }, status: :not_found
-          end
+          return if Escalated.configuration.api_enabled
+
+          render json: { message: 'API is not enabled.' }, status: :not_found
         end
 
         def current_user
@@ -25,14 +27,14 @@ module Escalated
         end
 
         def not_found
-          render json: { message: "The requested resource was not found." }, status: :not_found
+          render json: { message: 'The requested resource was not found.' }, status: :not_found
         end
 
         def unprocessable(exception)
           render json: {
-            message: "Validation failed.",
+            message: 'Validation failed.',
             errors: exception.record.errors.full_messages
-          }, status: :unprocessable_entity
+          }, status: :unprocessable_content
         end
 
         def paginate(scope, per_page: 25)

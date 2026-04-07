@@ -1,18 +1,20 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
-  factory :escalated_article, class: "Escalated::Article" do
+  factory :escalated_article, class: 'Escalated::Article' do
     title { Faker::Lorem.unique.sentence(word_count: 5) }
     slug { title&.parameterize }
     body { Faker::Lorem.paragraphs(number: 3).join("\n\n") }
-    status { "draft" }
+    status { 'draft' }
     association :category, factory: :escalated_article_category
     association :author, factory: :user
 
     trait :published do
-      status { "published" }
+      status { 'published' }
     end
 
     trait :archived do
-      status { "archived" }
+      status { 'archived' }
     end
 
     trait :without_category do

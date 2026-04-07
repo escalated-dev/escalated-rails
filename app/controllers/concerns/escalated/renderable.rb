@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   # Controller concern that delegates page rendering to the configured
   # Escalated.ui_renderer.  Controllers call `render_page` instead of

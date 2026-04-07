@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Api
     module V1
@@ -14,34 +16,34 @@ module Escalated
               resolved_today: Escalated::Ticket.where(
                 status: :resolved
               ).where(
-                resolved_at: Time.current.beginning_of_day..Time.current.end_of_day
+                resolved_at: Time.current.all_day
               ).count
             },
             recent_tickets: Escalated::Ticket
-              .includes(:requester, :assignee, :department)
-              .recent
-              .limit(10)
-              .map { |t| ticket_summary_json(t) },
+                            .includes(:requester, :assignee, :department)
+                            .recent
+                            .limit(10)
+                            .map { |t| ticket_summary_json(t) },
             needs_attention: {
               sla_breaching: Escalated::Ticket
-                .by_open
-                .breached_sla
-                .includes(:requester, :assignee)
-                .limit(5)
-                .map { |t| attention_ticket_json(t) },
+                             .by_open
+                             .breached_sla
+                             .includes(:requester, :assignee)
+                             .limit(5)
+                             .map { |t| attention_ticket_json(t) },
               unassigned_urgent: Escalated::Ticket
-                .by_open
-                .unassigned
-                .where(priority: [:urgent, :critical])
-                .includes(:requester)
-                .limit(5)
-                .map { |t| attention_ticket_json(t) }
+                                 .by_open
+                                 .unassigned
+                                 .where(priority: %i[urgent critical])
+                                 .includes(:requester)
+                                 .limit(5)
+                                 .map { |t| attention_ticket_json(t) }
             },
             my_performance: {
               resolved_this_week: Escalated::Ticket
-                .assigned_to(user_id)
-                .where("resolved_at >= ?", Time.current.beginning_of_week)
-                .count
+                                  .assigned_to(user_id)
+                                  .where(resolved_at: Time.current.beginning_of_week..)
+                                  .count
             }
           }
         end

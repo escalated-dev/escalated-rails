@@ -1,4 +1,6 @@
-require "net/imap"
+# frozen_string_literal: true
+
+require 'net/imap'
 
 module Escalated
   module Mail
@@ -11,11 +13,11 @@ module Escalated
         # @return [nil]
         def parse_request(request)
           raise NotImplementedError,
-            "ImapAdapter does not support webhook parsing. Use #fetch_messages instead."
+                'ImapAdapter does not support webhook parsing. Use #fetch_messages instead.'
         end
 
         # IMAP does not use webhook verification.
-        def verify_request(request)
+        def verify_request(_request)
           false
         end
 
@@ -34,7 +36,7 @@ module Escalated
             imap.select(config[:mailbox])
 
             # Search for unseen (unread) messages
-            uids = imap.uid_search(["UNSEEN"])
+            uids = imap.uid_search(['UNSEEN'])
 
             uids.each do |uid|
               message = fetch_message(imap, uid)
@@ -65,7 +67,7 @@ module Escalated
           begin
             imap.login(config[:username], config[:password])
             imap.select(config[:mailbox])
-            imap.uid_store(uid, "+FLAGS", [:Seen])
+            imap.uid_store(uid, '+FLAGS', [:Seen])
           rescue Net::IMAP::Error => e
             Rails.logger.error("[Escalated::ImapAdapter] Failed to mark message #{uid} as read: #{e.message}")
           ensure
@@ -88,14 +90,14 @@ module Escalated
             encryption: config.imap_encryption || :ssl,
             username: config.imap_username,
             password: config.imap_password,
-            mailbox: config.imap_mailbox || "INBOX"
+            mailbox: config.imap_mailbox || 'INBOX'
           }
         end
 
         def connect(config)
           return nil if config[:host].blank? || config[:username].blank? || config[:password].blank?
 
-          ssl = config[:encryption] == :ssl || config[:encryption] == :tls
+          ssl = %i[ssl tls].include?(config[:encryption])
           Net::IMAP.new(config[:host], port: config[:port], ssl: ssl)
         rescue SocketError, Errno::ECONNREFUSED, Net::IMAP::Error => e
           Rails.logger.error("[Escalated::ImapAdapter] Connection failed: #{e.message}")
@@ -103,14 +105,14 @@ module Escalated
         end
 
         def fetch_message(imap, uid)
-          fetch_data = imap.uid_fetch(uid, ["ENVELOPE", "BODY[TEXT]", "BODY[HEADER]", "RFC822"])
+          fetch_data = imap.uid_fetch(uid, ['ENVELOPE', 'BODY[TEXT]', 'BODY[HEADER]', 'RFC822'])
           return nil unless fetch_data&.first
 
           data = fetch_data.first
-          envelope = data.attr["ENVELOPE"]
-          raw_body = data.attr["BODY[TEXT]"] || ""
-          raw_headers = data.attr["BODY[HEADER]"] || ""
-          rfc822 = data.attr["RFC822"] || ""
+          envelope = data.attr['ENVELOPE']
+          raw_body = data.attr['BODY[TEXT]'] || ''
+          raw_headers = data.attr['BODY[HEADER]'] || ''
+          rfc822 = data.attr['RFC822'] || ''
 
           from = envelope.from&.first
           to = envelope.to&.first
@@ -129,18 +131,18 @@ module Escalated
             from_email: from_email,
             from_name: from_name,
             to_email: to_email,
-            subject: envelope.subject || "(no subject)",
+            subject: envelope.subject || '(no subject)',
             body_text: body_text.presence || raw_body,
             body_html: body_html,
             message_id: envelope.message_id,
             in_reply_to: envelope.in_reply_to,
-            references: parse_references(headers["References"]),
+            references: parse_references(headers['References']),
             headers: headers,
             attachments: []
           )
 
           # Mark the message as seen after successful fetch
-          imap.uid_store(uid, "+FLAGS", [:Seen])
+          imap.uid_store(uid, '+FLAGS', [:Seen])
 
           message
         rescue StandardError => e
@@ -158,11 +160,11 @@ module Escalated
           raw_headers.each_line do |line|
             if line =~ /\A(\S+):\s*(.*)/
               headers[current_key] = current_value.strip if current_key
-              current_key = $1
-              current_value = $2
+              current_key = ::Regexp.last_match(1)
+              current_value = ::Regexp.last_match(2)
             elsif line =~ /\A\s+(.*)/
               # Continuation of previous header
-              current_value = "#{current_value} #{$1}" if current_key
+              current_value = "#{current_value} #{::Regexp.last_match(1)}" if current_key
             end
           end
 
@@ -171,28 +173,28 @@ module Escalated
         end
 
         def extract_body_parts(rfc822)
-          return ["", nil] if rfc822.blank?
+          return ['', nil] if rfc822.blank?
 
           # Simple MIME extraction — for production, use the `mail` gem
           # This handles the common case of plain text emails
-          body_text = ""
+          body_text = ''
           body_html = nil
 
           # Check for multipart boundary
           if rfc822 =~ /Content-Type:.*?boundary="?([^";\s]+)"?/mi
-            boundary = $1
+            boundary = ::Regexp.last_match(1)
             parts = rfc822.split("--#{boundary}")
 
             parts.each do |part|
-              if part =~ /Content-Type:\s*text\/plain/i
+              if part =~ %r{Content-Type:\s*text/plain}i
                 body_text = extract_part_body(part)
-              elsif part =~ /Content-Type:\s*text\/html/i
+              elsif part =~ %r{Content-Type:\s*text/html}i
                 body_html = extract_part_body(part)
               end
             end
           else
             # No multipart — treat the whole body as text
-            body_text = rfc822.sub(/\A.*?\r?\n\r?\n/m, "")
+            body_text = rfc822.sub(/\A.*?\r?\n\r?\n/m, '')
           end
 
           [body_text, body_html]
@@ -200,8 +202,8 @@ module Escalated
 
         def extract_part_body(part)
           # Skip headers, extract body after blank line
-          body = part.sub(/\A.*?\r?\n\r?\n/m, "")
-          body&.strip || ""
+          body = part.sub(/\A.*?\r?\n\r?\n/m, '')
+          body&.strip || ''
         end
       end
     end

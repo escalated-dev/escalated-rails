@@ -1,32 +1,34 @@
-require "rails/generators"
-require "rails/generators/migration"
+# frozen_string_literal: true
+
+require 'rails/generators'
+require 'rails/generators/migration'
 
 module Escalated
   module Generators
     class InstallGenerator < Rails::Generators::Base
       include Rails::Generators::Migration
 
-      source_root File.expand_path("templates", __dir__)
+      source_root File.expand_path('templates', __dir__)
 
-      desc I18n.t('escalated.commands.install.installing', default: "Installs the Escalated support ticket system")
+      desc I18n.t('escalated.commands.install.installing', default: 'Installs the Escalated support ticket system')
 
-      def self.next_migration_number(dirname)
-        Time.now.strftime("%Y%m%d%H%M%S")
+      def self.next_migration_number(_dirname)
+        Time.zone.now.strftime('%Y%m%d%H%M%S')
       end
 
       def copy_initializer
-        template "initializer.rb", "config/initializers/escalated.rb"
+        template 'initializer.rb', 'config/initializers/escalated.rb'
         say_status :create, I18n.t('escalated.commands.install.create_initializer'), :green
       end
 
       def copy_migrations
-        rake "escalated:install:migrations"
+        rake 'escalated:install:migrations'
         say_status :info, I18n.t('escalated.commands.install.copy_migrations'), :yellow
       end
 
       def add_user_concern
         inject_into_file(
-          "app/models/user.rb",
+          'app/models/user.rb',
           after: "class User < ApplicationRecord\n"
         ) do
           <<-RUBY
@@ -59,16 +61,16 @@ module Escalated
       end
 
       def show_post_install
-        say ""
+        say ''
         say I18n.t('escalated.commands.install.success'), :green
-        say ""
+        say ''
         say I18n.t('escalated.commands.install.next_steps')
         say "  #{I18n.t('escalated.commands.install.step1')}"
         say "  #{I18n.t('escalated.commands.install.step2')}"
         say "  #{I18n.t('escalated.commands.install.step3')}"
         say "  #{I18n.t('escalated.commands.install.step4')}"
         say "  #{I18n.t('escalated.commands.install.step5')}"
-        say ""
+        say ''
       end
     end
   end

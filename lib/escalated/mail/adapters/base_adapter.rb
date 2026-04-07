@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Mail
     module Adapters
@@ -17,7 +19,7 @@ module Escalated
         #
         # @param request [ActionDispatch::Request] the raw HTTP request
         # @return [Boolean]
-        def verify_request(request)
+        def verify_request(_request)
           true
         end
 
@@ -25,7 +27,7 @@ module Escalated
         #
         # @return [String]
         def adapter_name
-          self.class.name.demodulize.underscore.sub(/_adapter\z/, "")
+          self.class.name.demodulize.underscore.sub(/_adapter\z/, '')
         end
 
         private
@@ -33,7 +35,7 @@ module Escalated
         # Safely extract a value from params, returning nil if missing
         def safe_param(params, key, default = nil)
           value = params[key]
-          value.present? ? value : default
+          value.presence || default
         end
 
         # Parse an email address string like "John Doe <john@example.com>"
@@ -41,8 +43,8 @@ module Escalated
         def parse_email_address(address_string)
           return [nil, nil] if address_string.blank?
 
-          if match = address_string.match(/\A\s*(.+?)\s*<([^>]+)>\s*\z/)
-            [match[1].strip.gsub(/\A["']|["']\z/, ""), match[2].strip.downcase]
+          if (match = address_string.match(/\A\s*(.+?)\s*<([^>]+)>\s*\z/))
+            [match[1].strip.gsub(/\A["']|["']\z/, ''), match[2].strip.downcase]
           else
             [nil, address_string.strip.downcase]
           end

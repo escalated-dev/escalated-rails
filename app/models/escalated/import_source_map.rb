@@ -1,21 +1,21 @@
+# frozen_string_literal: true
+
 module Escalated
   class ImportSourceMap < ApplicationRecord
-    self.table_name = Escalated.table_name("import_source_maps")
+    self.table_name = Escalated.table_name('import_source_maps')
 
     # No updated_at column — this is an append-only mapping table.
-    self.ignored_columns += ["updated_at"] if respond_to?(:ignored_columns)
+    self.ignored_columns += ['updated_at'] if respond_to?(:ignored_columns)
 
     belongs_to :import_job,
-               class_name: "Escalated::ImportJob",
-               foreign_key: :import_job_id
+               class_name: 'Escalated::ImportJob'
 
-    validates :import_job_id, presence: true
     validates :entity_type,   presence: true
     validates :source_id,     presence: true
     validates :escalated_id,  presence: true
     validates :source_id,
-              uniqueness: { scope: [:import_job_id, :entity_type],
-                            message: "has already been imported for this job and entity type" }
+              uniqueness: { scope: %i[import_job_id entity_type],
+                            message: 'has already been imported for this job and entity type' }
 
     # ---------------------------------------------------------------------------
     # Class-level lookup helpers

@@ -1,13 +1,15 @@
+# frozen_string_literal: true
+
 module Escalated
   module Admin
     class KbCategoriesController < Escalated::ApplicationController
       before_action :require_admin!
-      before_action :set_category, only: [:update, :destroy]
+      before_action :set_category, only: %i[update destroy]
 
       def index
         categories = Escalated::ArticleCategory.ordered
 
-        render_page "Escalated/Admin/KbCategories/Index", {
+        render_page 'Escalated/Admin/KbCategories/Index', {
           categories: categories.map { |c| category_json(c) }
         }
       end
@@ -18,7 +20,7 @@ module Escalated
         if category.save
           render json: category_json(category), status: :created
         else
-          render json: { error: category.errors.full_messages.join(", ") }, status: :unprocessable_entity
+          render json: { error: category.errors.full_messages.join(', ') }, status: :unprocessable_content
         end
       end
 
@@ -26,7 +28,7 @@ module Escalated
         if @category.update(category_params)
           render json: category_json(@category)
         else
-          render json: { error: @category.errors.full_messages.join(", ") }, status: :unprocessable_entity
+          render json: { error: @category.errors.full_messages.join(', ') }, status: :unprocessable_content
         end
       end
 
@@ -42,7 +44,7 @@ module Escalated
       end
 
       def category_params
-        params.require(:article_category).permit(:name, :description, :slug, :position)
+        params.expect(article_category: %i[name description slug position])
       end
 
       def category_json(category)

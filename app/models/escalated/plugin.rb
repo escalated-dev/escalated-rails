@@ -1,9 +1,14 @@
+# frozen_string_literal: true
+
 module Escalated
   class Plugin < ApplicationRecord
-    self.table_name = Escalated.table_name("plugins")
+    self.table_name = Escalated.table_name('plugins')
 
     validates :slug, presence: true, uniqueness: true,
-              format: { with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/, message: "must be a lowercase slug (e.g. my-plugin)" }
+                     format: {
+                       with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/,
+                       message: 'must be a lowercase slug (e.g. my-plugin)'
+                     }
 
     scope :active,   -> { where(is_active: true) }
     scope :inactive, -> { where(is_active: false) }

@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 module Escalated
   module Services
     class InboundEmailService
-      ALLOWED_TAGS = %w[p br b strong i em u a ul ol li h1 h2 h3 h4 h5 h6 blockquote pre code table thead tbody tr th td img hr div span sub sup].freeze
+      ALLOWED_TAGS = %w[p br b strong i em u a ul ol li h1 h2 h3 h4 h5 h6 blockquote pre code table thead tbody tr th
+                        td img hr div span sub sup].freeze
 
       BLOCKED_EXTENSIONS = %w[
         exe bat cmd com msi scr pif vbs vbe
@@ -18,14 +21,14 @@ module Escalated
         # @param message [Escalated::Mail::InboundMessage] the parsed email message
         # @param adapter_name [String] the name of the adapter that parsed this message
         # @return [Escalated::InboundEmail] the inbound email record
-        def process(message, adapter_name: "unknown")
+        def process(message, adapter_name: 'unknown')
           unless Escalated.configuration.inbound_email_enabled
-            Rails.logger.info("[Escalated::InboundEmailService] Inbound email is disabled, skipping")
+            Rails.logger.info('[Escalated::InboundEmailService] Inbound email is disabled, skipping')
             return nil
           end
 
           unless message.valid?
-            Rails.logger.warn("[Escalated::InboundEmailService] Invalid message: missing required fields")
+            Rails.logger.warn('[Escalated::InboundEmailService] Invalid message: missing required fields')
             return nil
           end
 
@@ -46,7 +49,8 @@ module Escalated
             end
           rescue StandardError => e
             Rails.logger.error(
-              "[Escalated::InboundEmailService] Failed to process message: #{e.message}\n#{e.backtrace&.first(5)&.join("\n")}"
+              '[Escalated::InboundEmailService] Failed to process message: ' \
+              "#{e.message}\n#{e.backtrace&.first(5)&.join("\n")}"
             )
             inbound_email.mark_failed!(e.message)
           end
@@ -127,16 +131,14 @@ module Escalated
           author = find_user_by_email(message.from_email)
           body = get_sanitized_body(message)
 
-          if body.blank?
-            body = "(empty reply from #{message.from_email})"
-          end
+          body = "(empty reply from #{message.from_email})" if body.blank?
 
           reply = Services::TicketService.reply(ticket, {
-            body: body,
-            author: author,
-            is_internal: false,
-            is_system: false
-          })
+                                                  body: body,
+                                                  author: author,
+                                                  is_internal: false,
+                                                  is_system: false
+                                                })
 
           Rails.logger.info(
             "[Escalated::InboundEmailService] Added reply to ticket #{ticket.reference} from #{message.from_email}"
@@ -154,9 +156,7 @@ module Escalated
           subject = message.clean_subject.presence || message.subject
           description = get_sanitized_body(message)
 
-          if description.blank?
-            description = "(no content)"
-          end
+          description = '(no content)' if description.blank?
 
           if user
             # Authenticated user ticket
@@ -165,7 +165,7 @@ module Escalated
               description: description,
               priority: Escalated.configuration.default_priority,
               requester: user,
-              metadata: { channel: "email", original_message_id: message.message_id }
+              metadata: { channel: 'email', original_message_id: message.message_id }
             )
           else
             # Guest ticket (follows guest/tickets_controller.rb pattern)
@@ -179,7 +179,7 @@ module Escalated
               subject: subject,
               description: description,
               priority: Escalated.configuration.default_priority,
-              metadata: { channel: "email", original_message_id: message.message_id }
+              metadata: { channel: 'email', original_message_id: message.message_id }
             )
 
             # Dispatch notifications manually since we bypassed TicketService.create
@@ -188,7 +188,7 @@ module Escalated
 
           Rails.logger.info(
             "[Escalated::InboundEmailService] Created ticket #{ticket.reference} from #{message.from_email}" \
-            "#{user ? '' : ' (guest)'}"
+            "#{' (guest)' unless user}"
           )
 
           ticket
@@ -208,14 +208,14 @@ module Escalated
             # Fallback: strip all tags except allowed
             clean = html.dup
             # Remove script tags and their content
-            clean.gsub!(/<script\b[^>]*>.*?<\/script>/mi, '')
+            clean.gsub!(%r{<script\b[^>]*>.*?</script>}mi, '')
             # Remove event handlers
             clean.gsub!(/\s+on\w+\s*=\s*["'][^"']*["']/i, '')
             clean.gsub!(/\s+on\w+\s*=\s*\S+/i, '')
             # Remove javascript: protocol
             clean.gsub!(/\b(href|src|action)\s*=\s*["']?\s*javascript\s*:/i, '\1="')
             # Remove dangerous data: URLs
-            clean.gsub!(/\b(href|src|action)\s*=\s*["']?\s*data\s*:(?!image\/)/i, '\1="')
+            clean.gsub!(%r{\b(href|src|action)\s*=\s*["']?\s*data\s*:(?!image/)}i, '\1="')
             clean
           end
         end
@@ -238,11 +238,7 @@ module Escalated
           return nil if email.blank?
 
           user_class = Escalated.configuration.user_model
-          if user_class.respond_to?(:find_by)
-            user_class.find_by(email: email.downcase.strip)
-          else
-            nil
-          end
+          user_class.find_by(email: email.downcase.strip) if user_class.respond_to?(:find_by)
         rescue StandardError => e
           Rails.logger.warn(
             "[Escalated::InboundEmailService] Failed to look up user by email: #{e.message}"

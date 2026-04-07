@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
-  factory :escalated_ticket, class: "Escalated::Ticket" do
+  factory :escalated_ticket, class: 'Escalated::Ticket' do
     subject { Faker::Lorem.sentence(word_count: 6) }
     description { Faker::Lorem.paragraph(sentence_count: 3) }
     status { :open }

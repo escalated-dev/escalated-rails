@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Services
     class AttachmentService
@@ -80,29 +82,29 @@ module Escalated
           existing_count = attachable.attachments.count
           max = Escalated.configuration.max_attachments
 
-          if existing_count + new_count > max
-            raise TooManyAttachmentsError,
-                  "Maximum #{max} attachments allowed. Currently has #{existing_count}, " \
-                  "trying to add #{new_count}."
-          end
+          return unless existing_count + new_count > max
+
+          raise TooManyAttachmentsError,
+                "Maximum #{max} attachments allowed. Currently has #{existing_count}, " \
+                "trying to add #{new_count}."
         end
 
         def validate_size(file)
           max_bytes = Escalated.configuration.max_attachment_size_kb * 1024
 
-          if file.size > max_bytes
-            raise FileTooLargeError,
-                  "File '#{file.original_filename}' is #{(file.size / 1024.0).round(1)} KB. " \
-                  "Maximum allowed is #{Escalated.configuration.max_attachment_size_kb} KB."
-          end
+          return unless file.size > max_bytes
+
+          raise FileTooLargeError,
+                "File '#{file.original_filename}' is #{(file.size / 1024.0).round(1)} KB. " \
+                "Maximum allowed is #{Escalated.configuration.max_attachment_size_kb} KB."
         end
 
         def validate_type(file)
-          unless ALLOWED_CONTENT_TYPES.include?(file.content_type)
-            raise InvalidFileTypeError,
-                  "File type '#{file.content_type}' is not allowed. " \
-                  "Allowed types: #{ALLOWED_CONTENT_TYPES.join(', ')}"
-          end
+          return if ALLOWED_CONTENT_TYPES.include?(file.content_type)
+
+          raise InvalidFileTypeError,
+                "File type '#{file.content_type}' is not allowed. " \
+                "Allowed types: #{ALLOWED_CONTENT_TYPES.join(', ')}"
         end
       end
     end

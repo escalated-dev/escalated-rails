@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 FactoryBot.define do
-  factory :escalated_skill, class: "Escalated::Skill" do
+  factory :escalated_skill, class: 'Escalated::Skill' do
     name { Faker::Job.unique.field }
 
     trait :with_agents do

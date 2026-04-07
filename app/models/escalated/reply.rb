@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 module Escalated
   class Reply < ApplicationRecord
-    self.table_name = Escalated.table_name("replies")
+    self.table_name = Escalated.table_name('replies')
 
-    belongs_to :ticket, class_name: "Escalated::Ticket"
+    belongs_to :ticket, class_name: 'Escalated::Ticket'
     belongs_to :author, polymorphic: true, optional: true
-    has_many :attachments, as: :attachable, dependent: :destroy, class_name: "Escalated::Attachment"
+    has_many :attachments, as: :attachable, dependent: :destroy, class_name: 'Escalated::Attachment'
 
     validates :body, presence: true
 

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Services
     # Central registry of all available hooks and filters in Escalated.
@@ -13,8 +15,8 @@ module Escalated
             # ==============================================================
             # PLUGIN LIFECYCLE
             # ==============================================================
-            "plugin_loaded" => {
-              description: "Fired when a plugin file is loaded",
+            'plugin_loaded' => {
+              description: 'Fired when a plugin file is loaded',
               parameters: %w[slug manifest],
               example: <<~RUBY
                 Escalated.hooks.add_action('plugin_loaded') do |slug, manifest|
@@ -22,8 +24,8 @@ module Escalated
                 end
               RUBY
             },
-            "plugin_activated" => {
-              description: "Fired when any plugin is activated",
+            'plugin_activated' => {
+              description: 'Fired when any plugin is activated',
               parameters: %w[slug],
               example: <<~RUBY
                 Escalated.hooks.add_action('plugin_activated') do |slug|
@@ -31,15 +33,15 @@ module Escalated
                 end
               RUBY
             },
-            "plugin_activated_{slug}" => {
-              description: "Fired when a specific plugin is activated (replace {slug} with your plugin slug)",
+            'plugin_activated_{slug}' => {
+              description: 'Fired when a specific plugin is activated (replace {slug} with your plugin slug)',
               parameters: [],
               example: <<~RUBY
                 Escalated.hooks.add_action('plugin_activated_my-plugin') { puts 'My plugin activated!' }
               RUBY
             },
-            "plugin_deactivated" => {
-              description: "Fired when any plugin is deactivated",
+            'plugin_deactivated' => {
+              description: 'Fired when any plugin is deactivated',
               parameters: %w[slug],
               example: <<~RUBY
                 Escalated.hooks.add_action('plugin_deactivated') do |slug|
@@ -47,15 +49,15 @@ module Escalated
                 end
               RUBY
             },
-            "plugin_deactivated_{slug}" => {
-              description: "Fired when a specific plugin is deactivated",
+            'plugin_deactivated_{slug}' => {
+              description: 'Fired when a specific plugin is deactivated',
               parameters: [],
               example: <<~RUBY
                 Escalated.hooks.add_action('plugin_deactivated_my-plugin') { puts 'Bye!' }
               RUBY
             },
-            "plugin_uninstalling" => {
-              description: "Fired before any plugin is deleted",
+            'plugin_uninstalling' => {
+              description: 'Fired before any plugin is deleted',
               parameters: %w[slug],
               example: <<~RUBY
                 Escalated.hooks.add_action('plugin_uninstalling') do |slug|
@@ -63,8 +65,8 @@ module Escalated
                 end
               RUBY
             },
-            "plugin_uninstalling_{slug}" => {
-              description: "Fired before a specific plugin is deleted",
+            'plugin_uninstalling_{slug}' => {
+              description: 'Fired before a specific plugin is deleted',
               parameters: [],
               example: <<~RUBY
                 Escalated.hooks.add_action('plugin_uninstalling_my-plugin') { cleanup! }
@@ -74,8 +76,8 @@ module Escalated
             # ==============================================================
             # TICKET LIFECYCLE
             # ==============================================================
-            "ticket_before_create" => {
-              description: "Fired before a ticket is created",
+            'ticket_before_create' => {
+              description: 'Fired before a ticket is created',
               parameters: %w[params],
               example: <<~RUBY
                 Escalated.hooks.add_action('ticket_before_create') do |params|
@@ -83,8 +85,8 @@ module Escalated
                 end
               RUBY
             },
-            "ticket_created" => {
-              description: "Fired after a ticket is created",
+            'ticket_created' => {
+              description: 'Fired after a ticket is created',
               parameters: %w[ticket],
               example: <<~RUBY
                 Escalated.hooks.add_action('ticket_created') do |ticket|
@@ -92,8 +94,8 @@ module Escalated
                 end
               RUBY
             },
-            "ticket_updated" => {
-              description: "Fired after a ticket is updated",
+            'ticket_updated' => {
+              description: 'Fired after a ticket is updated',
               parameters: %w[ticket actor],
               example: <<~RUBY
                 Escalated.hooks.add_action('ticket_updated') do |ticket, actor|
@@ -101,8 +103,8 @@ module Escalated
                 end
               RUBY
             },
-            "ticket_status_changed" => {
-              description: "Fired when a ticket status changes",
+            'ticket_status_changed' => {
+              description: 'Fired when a ticket status changes',
               parameters: %w[ticket old_status new_status actor],
               example: <<~RUBY
                 Escalated.hooks.add_action('ticket_status_changed') do |ticket, old_status, new_status, actor|
@@ -110,8 +112,8 @@ module Escalated
                 end
               RUBY
             },
-            "ticket_assigned" => {
-              description: "Fired when a ticket is assigned to an agent",
+            'ticket_assigned' => {
+              description: 'Fired when a ticket is assigned to an agent',
               parameters: %w[ticket agent],
               example: <<~RUBY
                 Escalated.hooks.add_action('ticket_assigned') do |ticket, agent|
@@ -119,8 +121,8 @@ module Escalated
                 end
               RUBY
             },
-            "ticket_closed" => {
-              description: "Fired when a ticket is closed",
+            'ticket_closed' => {
+              description: 'Fired when a ticket is closed',
               parameters: %w[ticket actor],
               example: <<~RUBY
                 Escalated.hooks.add_action('ticket_closed') do |ticket, actor|
@@ -128,8 +130,8 @@ module Escalated
                 end
               RUBY
             },
-            "ticket_reopened" => {
-              description: "Fired when a ticket is reopened",
+            'ticket_reopened' => {
+              description: 'Fired when a ticket is reopened',
               parameters: %w[ticket actor],
               example: <<~RUBY
                 Escalated.hooks.add_action('ticket_reopened') do |ticket, actor|
@@ -137,8 +139,8 @@ module Escalated
                 end
               RUBY
             },
-            "reply_added" => {
-              description: "Fired after a reply is added to a ticket",
+            'reply_added' => {
+              description: 'Fired after a reply is added to a ticket',
               parameters: %w[ticket reply],
               example: <<~RUBY
                 Escalated.hooks.add_action('reply_added') do |ticket, reply|
@@ -146,8 +148,8 @@ module Escalated
                 end
               RUBY
             },
-            "ticket_priority_changed" => {
-              description: "Fired when ticket priority changes",
+            'ticket_priority_changed' => {
+              description: 'Fired when ticket priority changes',
               parameters: %w[ticket old_priority new_priority actor],
               example: <<~RUBY
                 Escalated.hooks.add_action('ticket_priority_changed') do |ticket, old_p, new_p, actor|
@@ -155,8 +157,8 @@ module Escalated
                 end
               RUBY
             },
-            "ticket_department_changed" => {
-              description: "Fired when a ticket is moved to another department",
+            'ticket_department_changed' => {
+              description: 'Fired when a ticket is moved to another department',
               parameters: %w[ticket old_department new_department actor],
               example: <<~RUBY
                 Escalated.hooks.add_action('ticket_department_changed') do |ticket, old_dept, new_dept, actor|
@@ -168,8 +170,8 @@ module Escalated
             # ==============================================================
             # DASHBOARD / UI
             # ==============================================================
-            "dashboard_viewed" => {
-              description: "Fired when the agent dashboard is viewed",
+            'dashboard_viewed' => {
+              description: 'Fired when the agent dashboard is viewed',
               parameters: %w[user],
               example: <<~RUBY
                 Escalated.hooks.add_action('dashboard_viewed') do |user|
@@ -181,8 +183,8 @@ module Escalated
             # ==============================================================
             # IMPORT LIFECYCLE
             # ==============================================================
-            "import.completed" => {
-              description: "Fired when an ImportJob finishes successfully",
+            'import.completed' => {
+              description: 'Fired when an ImportJob finishes successfully',
               parameters: %w[import_job],
               example: <<~RUBY
                 Escalated.hooks.add_action('import.completed') do |job|
@@ -191,15 +193,15 @@ module Escalated
                 end
               RUBY
             },
-            "import.run_async" => {
-              description: "Override to run imports via your own job queue (Sidekiq, GoodJob, etc.)",
+            'import.run_async' => {
+              description: 'Override to run imports via your own job queue (Sidekiq, GoodJob, etc.)',
               parameters: %w[import_job],
               example: <<~RUBY
                 Escalated.hooks.add_action('import.run_async') do |job|
                   EscalatedImportJob.perform_later(job.id)
                 end
               RUBY
-            },
+            }
           }
         end
 
@@ -211,8 +213,8 @@ module Escalated
             # ==============================================================
             # TICKET FILTERS
             # ==============================================================
-            "ticket_create_params" => {
-              description: "Modify validated params before creating a ticket",
+            'ticket_create_params' => {
+              description: 'Modify validated params before creating a ticket',
               parameters: %w[params],
               example: <<~RUBY
                 Escalated.hooks.add_filter('ticket_create_params') do |params|
@@ -220,8 +222,8 @@ module Escalated
                 end
               RUBY
             },
-            "ticket_list_query" => {
-              description: "Modify the ticket listing query",
+            'ticket_list_query' => {
+              description: 'Modify the ticket listing query',
               parameters: %w[query request],
               example: <<~RUBY
                 Escalated.hooks.add_filter('ticket_list_query') do |query, request|
@@ -229,8 +231,8 @@ module Escalated
                 end
               RUBY
             },
-            "ticket_show_data" => {
-              description: "Modify ticket data before rendering the show page",
+            'ticket_show_data' => {
+              description: 'Modify ticket data before rendering the show page',
               parameters: %w[data ticket],
               example: <<~RUBY
                 Escalated.hooks.add_filter('ticket_show_data') do |data, ticket|
@@ -242,8 +244,8 @@ module Escalated
             # ==============================================================
             # DASHBOARD FILTERS
             # ==============================================================
-            "dashboard_stats_data" => {
-              description: "Modify dashboard statistics before rendering",
+            'dashboard_stats_data' => {
+              description: 'Modify dashboard statistics before rendering',
               parameters: %w[stats user],
               example: <<~RUBY
                 Escalated.hooks.add_filter('dashboard_stats_data') do |stats, user|
@@ -251,8 +253,8 @@ module Escalated
                 end
               RUBY
             },
-            "dashboard_page_data" => {
-              description: "Modify all data passed to the dashboard page",
+            'dashboard_page_data' => {
+              description: 'Modify all data passed to the dashboard page',
               parameters: %w[data user],
               example: <<~RUBY
                 Escalated.hooks.add_filter('dashboard_page_data') do |data, user|
@@ -264,8 +266,8 @@ module Escalated
             # ==============================================================
             # UI FILTERS
             # ==============================================================
-            "navigation_menu" => {
-              description: "Add or modify navigation menu items",
+            'navigation_menu' => {
+              description: 'Add or modify navigation menu items',
               parameters: %w[menu_items user],
               example: <<~RUBY
                 Escalated.hooks.add_filter('navigation_menu') do |items, user|
@@ -273,8 +275,8 @@ module Escalated
                 end
               RUBY
             },
-            "sidebar_menu" => {
-              description: "Add or modify sidebar menu items",
+            'sidebar_menu' => {
+              description: 'Add or modify sidebar menu items',
               parameters: %w[menu_items user],
               example: <<~RUBY
                 Escalated.hooks.add_filter('sidebar_menu') do |items, user|
@@ -286,8 +288,8 @@ module Escalated
             # ==============================================================
             # SLA FILTERS
             # ==============================================================
-            "sla_response_deadline" => {
-              description: "Modify the calculated SLA response deadline",
+            'sla_response_deadline' => {
+              description: 'Modify the calculated SLA response deadline',
               parameters: %w[deadline ticket sla_policy],
               example: <<~RUBY
                 Escalated.hooks.add_filter('sla_response_deadline') do |deadline, ticket, policy|
@@ -299,8 +301,8 @@ module Escalated
             # ==============================================================
             # NOTIFICATION FILTERS
             # ==============================================================
-            "notification_recipients" => {
-              description: "Modify notification recipients before dispatch",
+            'notification_recipients' => {
+              description: 'Modify notification recipients before dispatch',
               parameters: %w[recipients ticket event],
               example: <<~RUBY
                 Escalated.hooks.add_filter('notification_recipients') do |recipients, ticket, event|
@@ -312,15 +314,15 @@ module Escalated
             # ==============================================================
             # IMPORT FILTERS
             # ==============================================================
-            "import.adapters" => {
-              description: "Register import adapters. Return value replaces the adapters array.",
+            'import.adapters' => {
+              description: 'Register import adapters. Return value replaces the adapters array.',
               parameters: %w[adapters],
               example: <<~RUBY
                 Escalated.hooks.add_filter('import.adapters') do |adapters|
                   adapters + [MyPlatformAdapter.new]
                 end
               RUBY
-            },
+            }
           }
         end
 

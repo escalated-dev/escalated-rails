@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 module Escalated
-  class InboundController < ActionController::Base
+  class InboundController < ApplicationController
     skip_before_action :verify_authenticity_token
 
     before_action :ensure_inbound_enabled
@@ -8,7 +10,8 @@ module Escalated
       adapter = resolve_adapter(params[:adapter])
 
       unless adapter
-        render json: { error: I18n.t('escalated.inbound.unknown_adapter', adapter: params[:adapter]) }, status: :bad_request
+        render json: { error: I18n.t('escalated.inbound.unknown_adapter', adapter: params[:adapter]) },
+               status: :bad_request
         return
       end
 
@@ -26,7 +29,7 @@ module Escalated
 
       # SES subscription confirmations return nil — acknowledge silently
       unless message
-        render json: { status: "ok" }, status: :ok
+        render json: { status: 'ok' }, status: :ok
         return
       end
 
@@ -38,17 +41,17 @@ module Escalated
 
       if inbound_email&.processed?
         render json: {
-          status: "processed",
+          status: 'processed',
           ticket_id: inbound_email.ticket_id,
           reply_id: inbound_email.reply_id
         }, status: :ok
       elsif inbound_email&.failed?
         render json: {
-          status: "failed",
+          status: 'failed',
           error: inbound_email.error_message
-        }, status: :unprocessable_entity
+        }, status: :unprocessable_content
       else
-        render json: { status: "ok" }, status: :ok
+        render json: { status: 'ok' }, status: :ok
       end
     rescue StandardError => e
       Rails.logger.error(
@@ -60,15 +63,15 @@ module Escalated
     private
 
     def ensure_inbound_enabled
-      unless Escalated.configuration.inbound_email_enabled
-        render json: { error: I18n.t('escalated.inbound.disabled') }, status: :not_found
-      end
+      return if Escalated.configuration.inbound_email_enabled
+
+      render json: { error: I18n.t('escalated.inbound.disabled') }, status: :not_found
     end
 
     ADAPTER_MAP = {
-      "mailgun" => -> { Escalated::Mail::Adapters::MailgunAdapter.new },
-      "postmark" => -> { Escalated::Mail::Adapters::PostmarkAdapter.new },
-      "ses" => -> { Escalated::Mail::Adapters::SesAdapter.new }
+      'mailgun' => -> { Escalated::Mail::Adapters::MailgunAdapter.new },
+      'postmark' => -> { Escalated::Mail::Adapters::PostmarkAdapter.new },
+      'ses' => -> { Escalated::Mail::Adapters::SesAdapter.new }
     }.freeze
 
     def resolve_adapter(adapter_name)

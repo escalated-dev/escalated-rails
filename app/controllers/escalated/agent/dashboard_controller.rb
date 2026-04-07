@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Agent
     class DashboardController < Escalated::ApplicationController
@@ -15,23 +17,23 @@ module Escalated
           breached_sla: all_open.breached_sla.count,
           resolved_today: Escalated::Ticket.where(
             status: :resolved,
-            resolved_at: Time.current.beginning_of_day..Time.current.end_of_day
+            resolved_at: Time.current.all_day
           ).count,
           avg_first_response: calculate_avg_first_response,
           avg_resolution_time: calculate_avg_resolution_time,
           avg_csat_rating: calculate_avg_csat_rating,
           total_ratings: Escalated::SatisfactionRating.count,
           resolved_with_rating_count: Escalated::SatisfactionRating
-            .joins(:ticket)
-            .where("#{Escalated.table_name('tickets')}.status" => [:resolved, :closed])
-            .count
+                                      .joins(:ticket)
+                                      .where("#{Escalated.table_name('tickets')}.status" => %i[resolved closed])
+                                      .count
         }
 
         recent_tickets = my_tickets.by_open.recent.limit(10)
         unassigned_tickets = all_open.unassigned.recent.limit(10)
         breached_tickets = all_open.breached_sla.recent.limit(10)
 
-        render_page "Escalated/Agent/Dashboard", {
+        render_page 'Escalated/Agent/Dashboard', {
           stats: stats,
           recent_tickets: recent_tickets.map { |t| ticket_summary_json(t) },
           unassigned_tickets: unassigned_tickets.map { |t| ticket_summary_json(t) },
@@ -44,8 +46,8 @@ module Escalated
 
       def calculate_avg_first_response
         tickets = Escalated::Ticket
-          .where.not(first_response_at: nil)
-          .where(created_at: 30.days.ago..Time.current)
+                  .where.not(first_response_at: nil)
+                  .where(created_at: 30.days.ago..Time.current)
 
         return 0 if tickets.empty?
 
@@ -56,8 +58,8 @@ module Escalated
 
       def calculate_avg_resolution_time
         tickets = Escalated::Ticket
-          .where.not(resolved_at: nil)
-          .where(created_at: 30.days.ago..Time.current)
+                  .where.not(resolved_at: nil)
+                  .where(created_at: 30.days.ago..Time.current)
 
         return 0 if tickets.empty?
 
@@ -70,7 +72,7 @@ module Escalated
         ratings = Escalated::SatisfactionRating.all
         return 0.0 if ratings.empty?
 
-        (ratings.average(:rating).to_f).round(2)
+        ratings.average(:rating).to_f.round(2)
       end
 
       def ticket_summary_json(ticket)

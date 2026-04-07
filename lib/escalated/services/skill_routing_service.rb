@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Services
     class SkillRoutingService
@@ -13,11 +15,16 @@ module Escalated
 
         user_class = Escalated.configuration.user_class.constantize
         user_class.where(id: agent_user_ids)
-          .left_joins(:escalated_assigned_tickets)
-          .where.not(Escalated.table_name("tickets") => { status: [:resolved, :closed] })
-          .or(user_class.where(id: agent_user_ids).left_joins(:escalated_assigned_tickets).where(Escalated.table_name("tickets") => { id: nil }))
-          .group(:id)
-          .order(Arel.sql("COUNT(#{Escalated.table_name("tickets")}.id) ASC"))
+                  .left_joins(:escalated_assigned_tickets)
+                  .where.not(Escalated.table_name('tickets') => { status: %i[resolved closed] })
+                  .or(
+                    user_class
+                      .where(id: agent_user_ids)
+                      .left_joins(:escalated_assigned_tickets)
+                      .where(Escalated.table_name('tickets') => { id: nil })
+                  )
+                  .group(:id)
+                  .order(Arel.sql("COUNT(#{Escalated.table_name('tickets')}.id) ASC"))
       end
     end
   end

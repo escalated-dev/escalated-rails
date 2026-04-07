@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 module Escalated
   class SlaPolicy < ApplicationRecord
-    self.table_name = Escalated.table_name("sla_policies")
+    self.table_name = Escalated.table_name('sla_policies')
 
-    has_many :tickets, class_name: "Escalated::Ticket", dependent: :nullify
+    has_many :tickets, class_name: 'Escalated::Ticket', dependent: :nullify
     has_many :departments,
-             class_name: "Escalated::Department",
+             class_name: 'Escalated::Department',
              foreign_key: :default_sla_policy_id,
              dependent: :nullify
 

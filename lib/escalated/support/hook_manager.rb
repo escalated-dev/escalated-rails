@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   module Support
     class HookManager
@@ -19,7 +21,7 @@ module Escalated
       # @return [void]
       def add_action(tag, callback = nil, priority: 10, &block)
         cb = callback || block
-        raise ArgumentError, "add_action requires a callback or block" unless cb
+        raise ArgumentError, 'add_action requires a callback or block' unless cb
 
         @actions[tag] ||= {}
         @actions[tag][priority] ||= []
@@ -68,7 +70,7 @@ module Escalated
           @actions[tag].delete(priority) if callbacks.empty?
         end
 
-        @actions.delete(tag) if @actions[tag]&.empty?
+        @actions.delete(tag) if @actions[tag] && @actions[tag].empty?
       end
 
       # ================================================================
@@ -88,7 +90,7 @@ module Escalated
       # @return [void]
       def add_filter(tag, callback = nil, priority: 10, &block)
         cb = callback || block
-        raise ArgumentError, "add_filter requires a callback or block" unless cb
+        raise ArgumentError, 'add_filter requires a callback or block' unless cb
 
         @filters[tag] ||= {}
         @filters[tag][priority] ||= []
@@ -137,7 +139,7 @@ module Escalated
           @filters[tag].delete(priority) if callbacks.empty?
         end
 
-        @filters.delete(tag) if @filters[tag]&.empty?
+        @filters.delete(tag) if @filters[tag] && @filters[tag].empty?
       end
 
       # ================================================================
@@ -145,14 +147,10 @@ module Escalated
       # ================================================================
 
       # @return [Hash] all registered actions
-      def actions
-        @actions
-      end
+      attr_reader :actions
 
       # @return [Hash] all registered filters
-      def filters
-        @filters
-      end
+      attr_reader :filters
 
       # Reset all hooks (useful for testing).
       #

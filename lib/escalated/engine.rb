@@ -1,8 +1,10 @@
+# frozen_string_literal: true
+
 module Escalated
   class Engine < ::Rails::Engine
     isolate_namespace Escalated
 
-    initializer "escalated.configuration" do |app|
+    initializer 'escalated.configuration' do |app|
       # Allow host app to configure Escalated before boot
     end
 
@@ -10,44 +12,44 @@ module Escalated
       config.i18n.load_path += Dir[root.join('config', 'locales', '*.yml')]
     end
 
-    initializer "escalated.assets" do |app|
+    initializer 'escalated.assets' do |app|
       next unless Escalated.configuration.ui_enabled?
 
       # Make engine assets available to host app
       app.config.assets.precompile += %w[escalated_manifest.js] if app.config.respond_to?(:assets)
     end
 
-    initializer "escalated.migrations" do |app|
+    initializer 'escalated.migrations' do |app|
       unless app.root.to_s.match?(root.to_s)
-        config.paths["db/migrate"].expanded.each do |expanded_path|
-          app.config.paths["db/migrate"] << expanded_path
+        config.paths['db/migrate'].expanded.each do |expanded_path|
+          app.config.paths['db/migrate'] << expanded_path
         end
       end
     end
 
-    initializer "escalated.pundit" do
+    initializer 'escalated.pundit' do
       ActiveSupport.on_load(:action_controller) do
         # Pundit policies are auto-discovered via namespace
       end
     end
 
-    initializer "escalated.append_routes" do |app|
+    initializer 'escalated.append_routes' do |app|
       app.routes.append do
         mount Escalated::Engine, at: "/#{Escalated.configuration.route_prefix}"
       end
     end
 
-    initializer "escalated.api_routes" do |app|
+    initializer 'escalated.api_routes' do |app|
       # Conditionally load API routes when api_enabled is true.
       # These are mounted directly on the host app (not inside the engine mount)
       # so they can use ActionController::API without CSRF.
       app.routes.append do
         if Escalated.configuration.api_enabled
-          scope Escalated.configuration.api_prefix, module: "escalated/api/v1", as: "escalated_api_v1" do
-            post "auth/validate", to: "auth#validate"
-            get "dashboard", to: "dashboard#index"
+          scope Escalated.configuration.api_prefix, module: 'escalated/api/v1', as: 'escalated_api_v1' do
+            post 'auth/validate', to: 'auth#validate'
+            get 'dashboard', to: 'dashboard#index'
 
-            resources :tickets, param: :reference, only: [:index, :show, :create, :destroy] do
+            resources :tickets, param: :reference, only: %i[index show create destroy] do
               member do
                 post :reply
                 patch :status
@@ -59,18 +61,18 @@ module Escalated
               end
             end
 
-            get "agents", to: "resources#agents"
-            get "departments", to: "resources#departments"
-            get "tags", to: "resources#tags"
-            get "canned-responses", to: "resources#canned_responses"
-            get "macros", to: "resources#macros"
-            get "realtime/config", to: "resources#realtime_config"
+            get 'agents', to: 'resources#agents'
+            get 'departments', to: 'resources#departments'
+            get 'tags', to: 'resources#tags'
+            get 'canned-responses', to: 'resources#canned_responses'
+            get 'macros', to: 'resources#macros'
+            get 'realtime/config', to: 'resources#realtime_config'
           end
         end
       end
     end
 
-    initializer "escalated.inertia" do
+    initializer 'escalated.inertia' do
       next unless Escalated.configuration.ui_enabled?
 
       ActiveSupport.on_load(:action_controller) do
@@ -81,9 +83,9 @@ module Escalated
     # Set default plugins_path to Rails.root/lib/escalated/plugins when not
     # explicitly configured. Must run after the host app has booted so
     # Rails.root is available.
-    initializer "escalated.plugins_path", after: :load_config_initializers do |app|
+    initializer 'escalated.plugins_path', after: :load_config_initializers do |app|
       if Escalated.configuration.plugins_path.nil?
-        Escalated.configuration.plugins_path = app.root.join("lib", "escalated", "plugins").to_s
+        Escalated.configuration.plugins_path = app.root.join('lib', 'escalated', 'plugins').to_s
       end
     end
 
@@ -127,7 +129,7 @@ module Escalated
           next unless bridge.booted?
 
           # Serialize args to a plain hash/array for JSON transport.
-          event = { "args" => args.map { |a| a.respond_to?(:as_json) ? a.as_json : a } }
+          event = { 'args' => args.map { |a| a.respond_to?(:as_json) ? a.as_json : a } }
           bridge.dispatch_action(hook, event)
         end
       end
@@ -137,12 +139,12 @@ module Escalated
 
     config.generators do |g|
       g.test_framework :rspec
-      g.fixture_replacement :factory_bot, dir: "spec/factories"
+      g.fixture_replacement :factory_bot, dir: 'spec/factories'
     end
 
     # Expose escalated:import:* rake tasks to the host app
     rake_tasks do
-      load "tasks/escalated_import.rake"
+      load 'tasks/escalated_import.rake'
     end
   end
 end

@@ -1,20 +1,38 @@
+# frozen_string_literal: true
+
 module Escalated
   module Admin
     class EscalationRulesController < Escalated::ApplicationController
       before_action :require_admin!
-      before_action :set_rule, only: [:show, :edit, :update, :destroy]
+      before_action :set_rule, only: %i[show edit update destroy]
 
       def index
         rules = Escalated::EscalationRule.ordered
 
-        render_page "Escalated/Admin/EscalationRules/Index", {
+        render_page 'Escalated/Admin/EscalationRules/Index', {
           escalation_rules: rules.map { |r| rule_json(r) }
         }
       end
 
+      def show
+        render_page 'Escalated/Admin/EscalationRules/Show', {
+          escalation_rule: rule_json(@rule)
+        }
+      end
+
       def new
-        render_page "Escalated/Admin/EscalationRules/Form", {
+        render_page 'Escalated/Admin/EscalationRules/Form', {
           escalation_rule: nil,
+          departments: Escalated::Department.active.ordered.map { |d| { id: d.id, name: d.name } },
+          agents: agent_list,
+          statuses: Escalated::Ticket.statuses.keys,
+          priorities: Escalated::Ticket.priorities.keys
+        }
+      end
+
+      def edit
+        render_page 'Escalated/Admin/EscalationRules/Form', {
+          escalation_rule: rule_json(@rule),
           departments: Escalated::Department.active.ordered.map { |d| { id: d.id, name: d.name } },
           agents: agent_list,
           statuses: Escalated::Ticket.statuses.keys,
@@ -28,33 +46,15 @@ module Escalated
         if rule.save
           redirect_to admin_escalation_rule_path(rule), notice: I18n.t('escalated.admin.escalation_rule.created')
         else
-          redirect_back fallback_location: new_admin_escalation_rule_path,
-                        alert: rule.errors.full_messages.join(", ")
+          redirect_back_or_to(new_admin_escalation_rule_path, alert: rule.errors.full_messages.join(', '))
         end
-      end
-
-      def show
-        render_page "Escalated/Admin/EscalationRules/Show", {
-          escalation_rule: rule_json(@rule)
-        }
-      end
-
-      def edit
-        render_page "Escalated/Admin/EscalationRules/Form", {
-          escalation_rule: rule_json(@rule),
-          departments: Escalated::Department.active.ordered.map { |d| { id: d.id, name: d.name } },
-          agents: agent_list,
-          statuses: Escalated::Ticket.statuses.keys,
-          priorities: Escalated::Ticket.priorities.keys
-        }
       end
 
       def update
         if @rule.update(rule_params)
           redirect_to admin_escalation_rule_path(@rule), notice: I18n.t('escalated.admin.escalation_rule.updated')
         else
-          redirect_back fallback_location: edit_admin_escalation_rule_path(@rule),
-                        alert: @rule.errors.full_messages.join(", ")
+          redirect_back_or_to(edit_admin_escalation_rule_path(@rule), alert: @rule.errors.full_messages.join(', '))
         end
       end
 
@@ -70,10 +70,12 @@ module Escalated
       end
 
       def rule_params
-        params.require(:escalation_rule).permit(
-          :name, :description, :is_active, :priority,
-          conditions: {},
-          actions: {}
+        params.expect(
+          escalation_rule: [:name, :description, :is_active, :priority,
+                            {
+                              conditions: {},
+                              actions: {}
+                            }]
         )
       end
 
@@ -93,9 +95,9 @@ module Escalated
 
       def agent_list
         if Escalated.configuration.user_model.respond_to?(:escalated_agents)
-          Escalated.configuration.user_model.escalated_agents.map { |a|
+          Escalated.configuration.user_model.escalated_agents.map do |a|
             { id: a.id, name: a.respond_to?(:name) ? a.name : a.email, email: a.email }
-          }
+          end
         else
           []
         end

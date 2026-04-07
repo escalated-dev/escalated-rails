@@ -1,6 +1,8 @@
-require "escalated/drivers/local_driver"
-require "escalated/drivers/synced_driver"
-require "escalated/drivers/cloud_driver"
+# frozen_string_literal: true
+
+require 'escalated/drivers/local_driver'
+require 'escalated/drivers/synced_driver'
+require 'escalated/drivers/cloud_driver'
 
 module Escalated
   class Manager
@@ -25,7 +27,7 @@ module Escalated
           Drivers::CloudDriver.new
         else
           raise ArgumentError, "Unknown Escalated mode: #{Escalated.configuration.mode}. " \
-                               "Valid modes are :self_hosted, :synced, :cloud"
+                               'Valid modes are :self_hosted, :synced, :cloud'
         end
       end
     end

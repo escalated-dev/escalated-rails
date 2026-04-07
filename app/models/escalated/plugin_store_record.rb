@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Escalated
   # Persistent key-value / document store for SDK plugins.
   #
@@ -8,7 +10,7 @@ module Escalated
   # The +data+ column is a JSON blob that can hold any serialisable structure
   # that the plugin wants to persist.
   class PluginStoreRecord < ApplicationRecord
-    self.table_name = Escalated.table_name("plugin_store")
+    self.table_name = Escalated.table_name('plugin_store')
 
     # -------------------------------------------------------------------------
     # Validations
@@ -17,7 +19,7 @@ module Escalated
     validates :plugin,     presence: true
     validates :collection, presence: true
     validates :key,
-              uniqueness: { scope: [:plugin, :collection], allow_nil: true },
+              uniqueness: { scope: %i[plugin collection], allow_nil: true },
               allow_nil: true
 
     # -------------------------------------------------------------------------

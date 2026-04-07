@@ -1,17 +1,19 @@
-source "https://rubygems.org"
+# frozen_string_literal: true
+
+source 'https://rubygems.org'
 
 gemspec
 
-gem "tzinfo-data"
+gem 'tzinfo-data'
 
 group :development, :test do
-  gem "sqlite3"
-  gem "rspec-rails"
-  gem "factory_bot_rails"
-  gem "faker"
-  gem "shoulda-matchers"
-  gem "database_cleaner-active_record"
-  gem "rubocop", require: false
-  gem "rubocop-rails", require: false
-  gem "rubocop-rspec", require: false
+  gem 'database_cleaner-active_record'
+  gem 'factory_bot_rails'
+  gem 'faker'
+  gem 'rspec-rails'
+  gem 'rubocop', require: false
+  gem 'rubocop-rails', require: false
+  gem 'rubocop-rspec', require: false
+  gem 'shoulda-matchers'
+  gem 'sqlite3'
 end

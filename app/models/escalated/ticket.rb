@@ -34,6 +34,7 @@ module Escalated
              dependent: :destroy
     belongs_to :merged_into, class_name: 'Escalated::Ticket', optional: true
     has_many :side_conversations, class_name: 'Escalated::SideConversation', dependent: :destroy
+    has_many :chat_sessions, class_name: 'Escalated::ChatSession', dependent: :destroy
 
     enum :status, {
       open: 0,
@@ -87,6 +88,9 @@ module Escalated
     scope :by_department, ->(department_id) { where(department_id: department_id) }
     scope :created_between, ->(from, to) { where(created_at: from..to) }
     scope :recent, -> { order(created_at: :desc) }
+    scope :chat, -> { where(channel: 'chat') }
+    scope :live_chats, -> { chat.where(status: %i[open in_progress]) }
+    scope :by_channel, ->(channel) { where(channel: channel) }
     scope :snoozed, -> { where.not(snoozed_until: nil).where('snoozed_until > ?', Time.current) }
     scope :not_snoozed, -> { where(snoozed_until: nil).or(where(snoozed_until: ..Time.current)) }
     scope :snooze_expired, -> { where.not(snoozed_until: nil).where(snoozed_until: ..Time.current) }
@@ -146,6 +150,16 @@ module Escalated
       return nil unless resolved_at
 
       resolved_at - created_at
+    end
+
+    # Chat helpers
+
+    def chat?
+      channel == 'chat'
+    end
+
+    def active_chat_session
+      chat_sessions.active.first
     end
 
     # Guest ticket helpers

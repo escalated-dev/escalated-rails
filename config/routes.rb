@@ -166,6 +166,18 @@ Escalated::Engine.routes.draw do
       end
     end
 
+    # Live Chat
+    scope 'chat', controller: :chat do
+      get '/', action: :index, as: :chat
+      get :queue, as: :chat_queue
+      post :update_status, as: :chat_update_status
+      post ':id/accept', action: :accept, as: :chat_accept
+      post ':id/end', action: :end_chat, as: :chat_end
+      post ':id/transfer', action: :transfer, as: :chat_transfer
+      post ':id/message', action: :message, as: :chat_message
+      post ':id/typing', action: :typing, as: :chat_typing
+    end
+
     # Import framework
     resources :imports, only: %i[index show create destroy] do
       member do
@@ -184,6 +196,16 @@ Escalated::Engine.routes.draw do
     get 'articles/:slug', action: :article, as: :widget_article
     post :tickets, action: :create_ticket, as: :widget_create_ticket
     get 'tickets/:token', action: :lookup_ticket, as: :widget_lookup_ticket
+  end
+
+  # Widget chat routes (public, rate limited)
+  scope 'widget/chat', controller: :widget_chat do
+    get :availability, as: :widget_chat_availability
+    post :start, as: :widget_chat_start
+    post ':session_id/message', action: :message, as: :widget_chat_message
+    post ':session_id/typing', action: :typing, as: :widget_chat_typing
+    post ':session_id/end', action: :end_chat, as: :widget_chat_end
+    post ':session_id/rate', action: :rate, as: :widget_chat_rate
   end
 
   # Guest routes (no authentication required)

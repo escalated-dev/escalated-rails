@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 
 gemspec
 
+gem 'rexml'
 gem 'tzinfo-data'
 
 group :development, :test do

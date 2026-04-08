@@ -3,7 +3,10 @@
 module Escalated
   module Admin
     class ArticlesController < Escalated::ApplicationController
+      include Escalated::KnowledgeBaseGuard
+
       before_action :require_admin!
+      before_action :require_knowledge_base_enabled!
       before_action :set_article, only: %i[update destroy]
 
       def index

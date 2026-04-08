@@ -38,6 +38,18 @@ module Escalated
       get_bool('guest_tickets_enabled', default: true)
     end
 
+    def self.knowledge_base_enabled?
+      get_bool('knowledge_base_enabled', default: true)
+    end
+
+    def self.knowledge_base_public?
+      get_bool('knowledge_base_public', default: true)
+    end
+
+    def self.knowledge_base_feedback_enabled?
+      get_bool('knowledge_base_feedback_enabled', default: true)
+    end
+
     def self.all_as_hash
       all.to_h { |s| [s.key, s.value] }
     end

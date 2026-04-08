@@ -4,6 +4,15 @@ require 'rails_helper'
 
 RSpec.describe Escalated::Services::TicketService, '.split' do
   let(:user) { create(:user) }
+  let(:ticket) do
+    t = create(:escalated_ticket, :with_department, priority: :high, requester: user, department: department)
+    t.tags << tag1
+    t.tags << tag2
+    t
+  end
+  let(:reply) do
+    create(:escalated_reply, ticket: ticket, author: user, body: 'I have a separate issue with billing.')
+  end
   let(:agent) { create(:user, :agent) }
   let(:department) { create(:escalated_department) }
   let(:tag1) { create(:escalated_tag) }
@@ -13,16 +22,7 @@ RSpec.describe Escalated::Services::TicketService, '.split' do
     allow(Escalated.configuration).to receive_messages(notification_channels: [], webhook_url: nil)
   end
 
-  let(:ticket) do
-    t = create(:escalated_ticket, :with_department, priority: :high, requester: user, department: department)
-    t.tags << tag1
-    t.tags << tag2
-    t
-  end
 
-  let(:reply) do
-    create(:escalated_reply, ticket: ticket, author: user, body: 'I have a separate issue with billing.')
-  end
 
   describe '.split' do
     it 'creates a new ticket from the reply' do

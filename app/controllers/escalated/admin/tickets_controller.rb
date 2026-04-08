@@ -5,10 +5,18 @@ module Escalated
     class TicketsController < Escalated::ApplicationController
       before_action :require_admin!
       before_action :set_ticket,
-                    only: %i[show reply note assign status priority tags department apply_macro follow presence pin]
+                    only: %i[show reply note assign status priority tags department apply_macro follow presence pin
+                             snooze unsnooze]
 
       def index
         scope = Escalated::Ticket.all.recent
+
+        # Exclude snoozed tickets by default unless explicitly requested
+        scope = if params[:snoozed] == 'true'
+                  scope.snoozed
+                else
+                  scope.not_snoozed
+                end
 
         scope = scope.where(status: params[:status]) if params[:status].present?
         scope = scope.where(priority: params[:priority]) if params[:priority].present?
@@ -196,6 +204,17 @@ module Escalated
         end
 
         render json: { viewers: viewers }
+      end
+
+      def snooze
+        until_time = Time.zone.parse(params[:snoozed_until])
+        Services::TicketService.snooze_ticket(@ticket, until_time, actor: escalated_current_user)
+        redirect_to admin_ticket_path(@ticket), notice: I18n.t('escalated.ticket.snoozed')
+      end
+
+      def unsnooze
+        Services::TicketService.unsnooze_ticket(@ticket)
+        redirect_to admin_ticket_path(@ticket), notice: I18n.t('escalated.ticket.unsnoozed')
       end
 
       def pin

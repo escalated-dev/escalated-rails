@@ -92,6 +92,36 @@ module Escalated
           result
         end
 
+        def snooze_ticket(ticket, until_time, actor:)
+          ticket.update!(
+            status_before_snooze: Escalated::Ticket.statuses[ticket.status],
+            snoozed_until: until_time,
+            snoozed_by: actor.id
+          )
+
+          Services::NotificationService.dispatch(:ticket_snoozed, ticket: ticket)
+
+          ticket
+        end
+
+        def unsnooze_ticket(ticket)
+          previous_status = ticket.status_before_snooze
+          ticket.update!(
+            snoozed_until: nil,
+            snoozed_by: nil,
+            status_before_snooze: nil
+          )
+
+          if previous_status.present?
+            status_key = Escalated::Ticket.statuses.key(previous_status)
+            ticket.update!(status: status_key) if status_key
+          end
+
+          Services::NotificationService.dispatch(:ticket_unsnoozed, ticket: ticket)
+
+          ticket
+        end
+
         def close(ticket, actor:)
           transition_status(ticket, :closed, actor: actor)
         end

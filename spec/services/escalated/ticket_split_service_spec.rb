@@ -22,8 +22,6 @@ RSpec.describe Escalated::Services::TicketService, '.split' do
     allow(Escalated.configuration).to receive_messages(notification_channels: [], webhook_url: nil)
   end
 
-
-
   describe '.split' do
     it 'creates a new ticket from the reply' do
       expect { described_class.split(ticket, reply, actor: agent) }

@@ -123,6 +123,11 @@ Escalated::Engine.routes.draw do
         post 'replies/:reply_id/split', action: :split, as: :split_reply
       end
     end
+    resources :saved_views, only: %i[index create update destroy] do
+      collection do
+        post :reorder
+      end
+    end
     resources :articles, only: %i[index create update destroy]
     resources :kb_categories, only: %i[index create update destroy]
 

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Escalated
-  class WidgetController < ActionController::Base
+  class WidgetController < ApplicationController
     include Escalated::ApiRateLimiting
 
     protect_from_forgery with: :null_session
@@ -23,9 +23,7 @@ module Escalated
     def articles
       scope = Escalated::Article.published.recent
 
-      if params[:q].present?
-        scope = scope.search(params[:q])
-      end
+      scope = scope.search(params[:q]) if params[:q].present?
 
       articles = scope.limit(10)
 
@@ -83,13 +81,13 @@ module Escalated
         subject: ticket.subject,
         status: ticket.status,
         created_at: ticket.created_at&.iso8601,
-        replies: ticket.replies.public_replies.chronological.map { |r|
+        replies: ticket.replies.public_replies.chronological.map do |r|
           {
             body: r.body,
             is_agent: r.author.respond_to?(:escalated_agent?) ? r.author.escalated_agent? : false,
             created_at: r.created_at&.iso8601
           }
-        }
+        end
       }
     rescue ActiveRecord::RecordNotFound
       render json: { error: 'Ticket not found' }, status: :not_found

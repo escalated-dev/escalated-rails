@@ -65,7 +65,7 @@ RSpec.describe Escalated::WidgetController do
 
   describe 'ticket creation from widget' do
     it 'creates a ticket via TicketService' do
-      expect {
+      expect do
         Escalated::Services::TicketService.create(
           subject: 'Widget ticket',
           description: 'Created from widget',
@@ -74,7 +74,7 @@ RSpec.describe Escalated::WidgetController do
           priority: :medium,
           metadata: { 'source' => 'widget' }
         )
-      }.to change(Escalated::Ticket, :count).by(1)
+      end.to change(Escalated::Ticket, :count).by(1)
     end
 
     it 'stores widget source in metadata' do
@@ -99,9 +99,9 @@ RSpec.describe Escalated::WidgetController do
     end
 
     it 'raises RecordNotFound for invalid token' do
-      expect {
+      expect do
         Escalated::Ticket.find_by!(guest_token: 'invalid_token')
-      }.to raise_error(ActiveRecord::RecordNotFound)
+      end.to raise_error(ActiveRecord::RecordNotFound)
     end
   end
 end

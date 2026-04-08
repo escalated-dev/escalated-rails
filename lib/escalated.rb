@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'escalated/broadcasting'
 require 'escalated/engine'
 require 'escalated/configuration'
 require 'escalated/manager'

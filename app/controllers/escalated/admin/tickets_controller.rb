@@ -6,7 +6,7 @@ module Escalated
       before_action :require_admin!
       before_action :set_ticket,
                     only: %i[show reply note assign status priority tags department apply_macro follow presence pin
-                             snooze unsnooze]
+                             snooze unsnooze split]
 
       def index
         scope = Escalated::Ticket.all.recent
@@ -204,6 +204,14 @@ module Escalated
       def unsnooze
         Services::TicketService.unsnooze_ticket(@ticket)
         redirect_to admin_ticket_path(@ticket), notice: I18n.t('escalated.ticket.unsnoozed')
+      end
+
+      def split
+        reply = @ticket.replies.find(params[:reply_id])
+        new_ticket = Services::TicketService.split(@ticket, reply, actor: escalated_current_user)
+
+        redirect_to admin_ticket_path(new_ticket),
+                    notice: I18n.t('escalated.ticket.split_created', reference: new_ticket.reference)
       end
 
       def pin

@@ -3,7 +3,10 @@
 module Escalated
   module Admin
     class KbCategoriesController < Escalated::ApplicationController
+      include Escalated::KnowledgeBaseGuard
+
       before_action :require_admin!
+      before_action :require_knowledge_base_enabled!
       before_action :set_category, only: %i[update destroy]
 
       def index

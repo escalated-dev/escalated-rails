@@ -104,7 +104,8 @@ module Escalated
 
       def update
         # Boolean settings
-        %w[guest_tickets_enabled allow_customer_close inbound_email_enabled show_powered_by].each do |key|
+        %w[guest_tickets_enabled allow_customer_close inbound_email_enabled show_powered_by
+           knowledge_base_enabled knowledge_base_public knowledge_base_feedback_enabled].each do |key|
           value = params[key].in?(%w[1 true on]) ? '1' : '0'
           Escalated::EscalatedSetting.set(key, value)
         end

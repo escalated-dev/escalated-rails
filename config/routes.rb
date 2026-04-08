@@ -122,6 +122,12 @@ Escalated::Engine.routes.draw do
         post :store_side_conversation, to: 'side_conversations#store'
         post 'side_conversations/:conversation_id/reply', to: 'side_conversations#reply', as: :side_conversation_reply
         post 'side_conversations/:conversation_id/close', to: 'side_conversations#close', as: :side_conversation_close
+        post 'replies/:reply_id/split', action: :split, as: :split_reply
+      end
+    end
+    resources :saved_views, only: %i[index create update destroy] do
+      collection do
+        post :reorder
       end
     end
     resources :articles, only: %i[index create update destroy]
@@ -169,6 +175,15 @@ Escalated::Engine.routes.draw do
         get  :source_maps
       end
     end
+  end
+
+  # Widget routes (public, no authentication required)
+  scope 'widget', controller: :widget do
+    get :config, as: :widget_config
+    get :articles, as: :widget_articles
+    get 'articles/:slug', action: :article, as: :widget_article
+    post :tickets, action: :create_ticket, as: :widget_create_ticket
+    get 'tickets/:token', action: :lookup_ticket, as: :widget_lookup_ticket
   end
 
   # Guest routes (no authentication required)

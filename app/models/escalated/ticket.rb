@@ -88,8 +88,8 @@ module Escalated
     scope :created_between, ->(from, to) { where(created_at: from..to) }
     scope :recent, -> { order(created_at: :desc) }
     scope :snoozed, -> { where.not(snoozed_until: nil).where('snoozed_until > ?', Time.current) }
-    scope :not_snoozed, -> { where(snoozed_until: nil).or(where('snoozed_until <= ?', Time.current)) }
-    scope :snooze_expired, -> { where.not(snoozed_until: nil).where('snoozed_until <= ?', Time.current) }
+    scope :not_snoozed, -> { where(snoozed_until: nil).or(where(snoozed_until: ..Time.current)) }
+    scope :snooze_expired, -> { where.not(snoozed_until: nil).where(snoozed_until: ..Time.current) }
 
     def self.generate_reference
       prefix = Escalated::EscalatedSetting.get('ticket_reference_prefix', 'ESC')

@@ -79,7 +79,7 @@ RSpec.describe Escalated::Services::TicketService do
   end
 end
 
-RSpec.describe Escalated::Ticket, 'snooze scopes' do
+RSpec.describe Escalated::Ticket do # snooze scopes
   before do
     allow(Escalated.configuration).to receive_messages(notification_channels: [], webhook_url: nil)
   end
@@ -90,7 +90,7 @@ RSpec.describe Escalated::Ticket, 'snooze scopes' do
 
   describe '.snoozed' do
     it 'returns only actively snoozed tickets' do
-      result = Escalated::Ticket.snoozed
+      result = described_class.snoozed
       expect(result).to include(snoozed_ticket)
       expect(result).not_to include(expired_snooze_ticket, normal_ticket)
     end
@@ -98,7 +98,7 @@ RSpec.describe Escalated::Ticket, 'snooze scopes' do
 
   describe '.not_snoozed' do
     it 'returns tickets that are not snoozed' do
-      result = Escalated::Ticket.not_snoozed
+      result = described_class.not_snoozed
       expect(result).to include(expired_snooze_ticket, normal_ticket)
       expect(result).not_to include(snoozed_ticket)
     end
@@ -106,7 +106,7 @@ RSpec.describe Escalated::Ticket, 'snooze scopes' do
 
   describe '.snooze_expired' do
     it 'returns tickets whose snooze has expired' do
-      result = Escalated::Ticket.snooze_expired
+      result = described_class.snooze_expired
       expect(result).to include(expired_snooze_ticket)
       expect(result).not_to include(snoozed_ticket, normal_ticket)
     end

@@ -27,18 +27,7 @@ module Escalated
         scope = scope.breached_sla if params[:sla_breached] == 'true'
         scope = scope.search(params[:search]) if params[:search].present?
 
-        # Following filter
-        if params[:following] == 'true'
-          followers_table = Escalated.table_name('ticket_followers')
-          tickets_table = Escalated.table_name('tickets')
-          join_sql = "INNER JOIN #{followers_table} " \
-                     "ON #{followers_table}.ticket_id = #{tickets_table}.id"
-          followed_ticket_ids = Escalated::Ticket
-                                .joins(join_sql)
-                                .where("#{followers_table}.user_id = ?", escalated_current_user.id)
-                                .pluck(:id)
-          scope = scope.where(id: followed_ticket_ids)
-        end
+        scope = filter_by_following(scope)
 
         result = paginate(scope)
 
@@ -236,6 +225,20 @@ module Escalated
       end
 
       private
+
+      def filter_by_following(scope)
+        return scope unless params[:following] == 'true'
+
+        followers_table = Escalated.table_name('ticket_followers')
+        tickets_table = Escalated.table_name('tickets')
+        join_sql = "INNER JOIN #{followers_table} " \
+                   "ON #{followers_table}.ticket_id = #{tickets_table}.id"
+        followed_ticket_ids = Escalated::Ticket
+                              .joins(join_sql)
+                              .where("#{followers_table}.user_id = ?", escalated_current_user.id)
+                              .pluck(:id)
+        scope.where(id: followed_ticket_ids)
+      end
 
       def set_ticket
         @ticket = Escalated::Ticket.find_by!(reference: params[:id])

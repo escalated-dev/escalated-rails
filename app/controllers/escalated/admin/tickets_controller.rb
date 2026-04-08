@@ -6,10 +6,17 @@ module Escalated
       before_action :require_admin!
       before_action :set_ticket,
                     only: %i[show reply note assign status priority tags department apply_macro follow presence pin
-                             split]
+                             snooze unsnooze split]
 
       def index
         scope = Escalated::Ticket.all.recent
+
+        # Exclude snoozed tickets by default unless explicitly requested
+        scope = if params[:snoozed] == 'true'
+                  scope.snoozed
+                else
+                  scope.not_snoozed
+                end
 
         scope = scope.where(status: params[:status]) if params[:status].present?
         scope = scope.where(priority: params[:priority]) if params[:priority].present?
@@ -20,18 +27,7 @@ module Escalated
         scope = scope.breached_sla if params[:sla_breached] == 'true'
         scope = scope.search(params[:search]) if params[:search].present?
 
-        # Following filter
-        if params[:following] == 'true'
-          followers_table = Escalated.table_name('ticket_followers')
-          tickets_table = Escalated.table_name('tickets')
-          join_sql = "INNER JOIN #{followers_table} " \
-                     "ON #{followers_table}.ticket_id = #{tickets_table}.id"
-          followed_ticket_ids = Escalated::Ticket
-                                .joins(join_sql)
-                                .where("#{followers_table}.user_id = ?", escalated_current_user.id)
-                                .pluck(:id)
-          scope = scope.where(id: followed_ticket_ids)
-        end
+        scope = filter_by_following(scope)
 
         result = paginate(scope)
 
@@ -199,6 +195,17 @@ module Escalated
         render json: { viewers: viewers }
       end
 
+      def snooze
+        until_time = Time.zone.parse(params[:snoozed_until])
+        Services::TicketService.snooze_ticket(@ticket, until_time, actor: escalated_current_user)
+        redirect_to admin_ticket_path(@ticket), notice: I18n.t('escalated.ticket.snoozed')
+      end
+
+      def unsnooze
+        Services::TicketService.unsnooze_ticket(@ticket)
+        redirect_to admin_ticket_path(@ticket), notice: I18n.t('escalated.ticket.unsnoozed')
+      end
+
       def split
         reply = @ticket.replies.find(params[:reply_id])
         new_ticket = Services::TicketService.split(@ticket, reply, actor: escalated_current_user)
@@ -226,6 +233,20 @@ module Escalated
       end
 
       private
+
+      def filter_by_following(scope)
+        return scope unless params[:following] == 'true'
+
+        followers_table = Escalated.table_name('ticket_followers')
+        tickets_table = Escalated.table_name('tickets')
+        join_sql = "INNER JOIN #{followers_table} " \
+                   "ON #{followers_table}.ticket_id = #{tickets_table}.id"
+        followed_ticket_ids = Escalated::Ticket
+                              .joins(join_sql)
+                              .where("#{followers_table}.user_id = ?", escalated_current_user.id)
+                              .pluck(:id)
+        scope.where(id: followed_ticket_ids)
+      end
 
       def set_ticket
         @ticket = Escalated::Ticket.find_by!(reference: params[:id])

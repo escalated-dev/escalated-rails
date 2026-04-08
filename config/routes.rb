@@ -72,6 +72,8 @@ Escalated::Engine.routes.draw do
         post :department
         post :macro, action: :apply_macro
         post :follow
+        post :snooze
+        post :unsnooze
         post :presence
         post 'replies/:reply_id/pin', action: :pin, as: :reply_pin
       end

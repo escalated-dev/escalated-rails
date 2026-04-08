@@ -32,7 +32,10 @@ module Escalated
           max_attachment_size_kb: Escalated.configuration.max_attachment_size_kb,
           guest_tickets_enabled: Escalated::EscalatedSetting.guest_tickets_enabled?,
           show_powered_by: Escalated::EscalatedSetting.get_bool('show_powered_by', default: true),
-          plugins_enabled: Escalated.configuration.plugins_enabled?
+          plugins_enabled: Escalated.configuration.plugins_enabled?,
+          knowledge_base_enabled: Escalated::EscalatedSetting.knowledge_base_enabled?,
+          knowledge_base_public: Escalated::EscalatedSetting.knowledge_base_public?,
+          knowledge_base_feedback_enabled: Escalated::EscalatedSetting.knowledge_base_feedback_enabled?
         },
         flash: {
           success: flash[:success],

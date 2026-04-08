@@ -120,6 +120,7 @@ Escalated::Engine.routes.draw do
         post :store_side_conversation, to: 'side_conversations#store'
         post 'side_conversations/:conversation_id/reply', to: 'side_conversations#reply', as: :side_conversation_reply
         post 'side_conversations/:conversation_id/close', to: 'side_conversations#close', as: :side_conversation_close
+        post 'replies/:reply_id/split', action: :split, as: :split_reply
       end
     end
     resources :articles, only: %i[index create update destroy]

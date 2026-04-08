@@ -5,7 +5,8 @@ module Escalated
     class TicketsController < Escalated::ApplicationController
       before_action :require_admin!
       before_action :set_ticket,
-                    only: %i[show reply note assign status priority tags department apply_macro follow presence pin]
+                    only: %i[show reply note assign status priority tags department apply_macro follow presence pin
+                             split]
 
       def index
         scope = Escalated::Ticket.all.recent
@@ -196,6 +197,14 @@ module Escalated
         end
 
         render json: { viewers: viewers }
+      end
+
+      def split
+        reply = @ticket.replies.find(params[:reply_id])
+        new_ticket = Services::TicketService.split(@ticket, reply, actor: escalated_current_user)
+
+        redirect_to admin_ticket_path(new_ticket),
+                    notice: I18n.t('escalated.ticket.split_created', reference: new_ticket.reference)
       end
 
       def pin

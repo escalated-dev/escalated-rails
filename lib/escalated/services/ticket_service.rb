@@ -92,6 +92,51 @@ module Escalated
           result
         end
 
+        def split(ticket, reply, actor:)
+          new_ticket = nil
+
+          ActiveRecord::Base.transaction do
+            new_ticket = driver.create_ticket(
+              subject: "Split from #{ticket.reference}: #{reply.body.truncate(80)}",
+              description: reply.body,
+              requester: ticket.requester,
+              priority: ticket.priority,
+              department_id: ticket.department_id,
+              tag_ids: ticket.tag_ids,
+              metadata: (ticket.metadata || {}).merge('split_from' => ticket.reference)
+            )
+
+            # Link the new ticket to the original
+            Escalated::TicketLink.create!(
+              parent_ticket: ticket,
+              child_ticket: new_ticket,
+              link_type: 'parent_child'
+            )
+
+            # System note on original ticket
+            Escalated::Reply.create!(
+              ticket: ticket,
+              body: "Reply was split into new ticket #{new_ticket.reference}.",
+              is_internal: true,
+              is_system: true,
+              is_pinned: false
+            )
+
+            # System note on new ticket
+            Escalated::Reply.create!(
+              ticket: new_ticket,
+              body: "This ticket was split from #{ticket.reference}.",
+              is_internal: true,
+              is_system: true,
+              is_pinned: false
+            )
+          end
+
+          Services::NotificationService.dispatch(:ticket_created, ticket: new_ticket)
+
+          new_ticket
+        end
+
         def close(ticket, actor:)
           transition_status(ticket, :closed, actor: actor)
         end

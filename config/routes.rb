@@ -169,6 +169,15 @@ Escalated::Engine.routes.draw do
     end
   end
 
+  # Widget routes (public, no authentication required)
+  scope 'widget', controller: :widget do
+    get :config, as: :widget_config
+    get :articles, as: :widget_articles
+    get 'articles/:slug', action: :article, as: :widget_article
+    post :tickets, action: :create_ticket, as: :widget_create_ticket
+    get 'tickets/:token', action: :lookup_ticket, as: :widget_lookup_ticket
+  end
+
   # Guest routes (no authentication required)
   namespace :guest do
     get 'create', to: 'tickets#create'

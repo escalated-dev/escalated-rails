@@ -25,13 +25,9 @@ module Escalated
       return false unless current_user
 
       # Agents and admins can subscribe
-      if current_user.respond_to?(:escalated_agent?)
-        return true if current_user.escalated_agent?
-      end
+      return true if current_user.respond_to?(:escalated_agent?) && current_user.escalated_agent?
 
-      if current_user.respond_to?(:escalated_admin?)
-        return true if current_user.escalated_admin?
-      end
+      return true if current_user.respond_to?(:escalated_admin?) && current_user.escalated_admin?
 
       # Requesters can subscribe to their own tickets
       ticket.requester == current_user

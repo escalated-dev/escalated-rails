@@ -55,14 +55,19 @@ module Escalated
           ticket_reference: ticket.reference,
           reply_id: reply.id,
           is_internal: reply.is_internal,
-          author: reply.author ? { id: reply.author.id, name: reply.author.respond_to?(:name) ? reply.author.name : reply.author.email } : nil
+          author: if reply.author
+                    { id: reply.author.id,
+                      name: reply.author.respond_to?(:name) ? reply.author.name : reply.author.email }
+                  end
         }
         broadcast(ticket_channel(ticket), :reply_created, data)
       end
 
       def ticket_assigned(ticket, agent)
         data = ticket_payload(ticket).merge(
-          assigned_to: agent ? { id: agent.id, name: agent.respond_to?(:name) ? agent.name : agent.email } : nil
+          assigned_to: if agent
+                         { id: agent.id, name: agent.respond_to?(:name) ? agent.name : agent.email }
+                       end
         )
         broadcast(ticket_channel(ticket), :ticket_assigned, data)
         broadcast(agent_channel(agent&.id), :ticket_assigned, data) if agent

@@ -68,8 +68,8 @@ RSpec.describe Escalated::SavedView do
 
     describe '.ordered' do
       it 'orders by position then name' do
-        view_a = create(:escalated_saved_view, user: user, position: 1, name: 'B View')
-        view_b = create(:escalated_saved_view, user: user, position: 0, name: 'A View')
+        create(:escalated_saved_view, user: user, position: 1, name: 'B View')
+        create(:escalated_saved_view, user: user, position: 0, name: 'A View')
         result = described_class.for_user(user.id).ordered
         positions = result.pluck(:position)
         expect(positions).to eq(positions.sort)

@@ -145,6 +145,7 @@ module Escalated
     # Expose escalated:import:* rake tasks to the host app
     rake_tasks do
       load 'tasks/escalated_import.rake'
+      load 'tasks/escalated_chat.rake'
     end
   end
 end

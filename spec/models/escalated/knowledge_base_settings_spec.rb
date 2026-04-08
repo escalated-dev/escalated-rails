@@ -2,55 +2,53 @@
 
 require 'rails_helper'
 
-RSpec.describe 'Knowledge Base Settings' do
+RSpec.describe Escalated::EscalatedSetting do # Knowledge Base Settings
   before do
     allow(Escalated.configuration).to receive_messages(notification_channels: [], webhook_url: nil)
   end
 
-  describe Escalated::EscalatedSetting do
-    describe '.knowledge_base_enabled?' do
-      it 'defaults to true' do
-        expect(described_class.knowledge_base_enabled?).to be true
-      end
-
-      it 'returns false when set to 0' do
-        described_class.set('knowledge_base_enabled', '0')
-        expect(described_class.knowledge_base_enabled?).to be false
-      end
-
-      it 'returns true when set to 1' do
-        described_class.set('knowledge_base_enabled', '1')
-        expect(described_class.knowledge_base_enabled?).to be true
-      end
+  describe '.knowledge_base_enabled?' do
+    it 'defaults to true' do
+      expect(described_class.knowledge_base_enabled?).to be true
     end
 
-    describe '.knowledge_base_public?' do
-      it 'defaults to true' do
-        expect(described_class.knowledge_base_public?).to be true
-      end
-
-      it 'returns false when set to 0' do
-        described_class.set('knowledge_base_public', '0')
-        expect(described_class.knowledge_base_public?).to be false
-      end
+    it 'returns false when set to 0' do
+      described_class.set('knowledge_base_enabled', '0')
+      expect(described_class.knowledge_base_enabled?).to be false
     end
 
-    describe '.knowledge_base_feedback_enabled?' do
-      it 'defaults to true' do
-        expect(described_class.knowledge_base_feedback_enabled?).to be true
-      end
+    it 'returns true when set to 1' do
+      described_class.set('knowledge_base_enabled', '1')
+      expect(described_class.knowledge_base_enabled?).to be true
+    end
+  end
 
-      it 'returns false when set to 0' do
-        described_class.set('knowledge_base_feedback_enabled', '0')
-        expect(described_class.knowledge_base_feedback_enabled?).to be false
-      end
+  describe '.knowledge_base_public?' do
+    it 'defaults to true' do
+      expect(described_class.knowledge_base_public?).to be true
+    end
+
+    it 'returns false when set to 0' do
+      described_class.set('knowledge_base_public', '0')
+      expect(described_class.knowledge_base_public?).to be false
+    end
+  end
+
+  describe '.knowledge_base_feedback_enabled?' do
+    it 'defaults to true' do
+      expect(described_class.knowledge_base_feedback_enabled?).to be true
+    end
+
+    it 'returns false when set to 0' do
+      described_class.set('knowledge_base_feedback_enabled', '0')
+      expect(described_class.knowledge_base_feedback_enabled?).to be false
     end
   end
 
   describe Escalated::KnowledgeBaseGuard do
     # Create a test controller to include the concern
     let(:controller_class) do
-      Class.new(ActionController::Base) do
+      Class.new(ApplicationController) do
         include Escalated::KnowledgeBaseGuard
 
         def test_enabled

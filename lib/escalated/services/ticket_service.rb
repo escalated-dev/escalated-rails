@@ -12,12 +12,15 @@ module Escalated
           end
 
           Services::NotificationService.dispatch(:ticket_created, ticket: ticket)
+          Escalated::Broadcasting.ticket_created(ticket)
 
           ticket
         end
 
         def update(ticket, params, actor:)
-          driver.update_ticket(ticket, params, actor: actor)
+          result = driver.update_ticket(ticket, params, actor: actor)
+          Escalated::Broadcasting.ticket_updated(result)
+          result
         end
 
         def transition_status(ticket, new_status, actor:, note: nil)
@@ -32,6 +35,7 @@ module Escalated
           end
 
           Services::NotificationService.dispatch(:status_changed, ticket: result, status: new_status)
+          Escalated::Broadcasting.ticket_status_changed(result, ticket.status_was || ticket.status, new_status)
 
           result
         end
@@ -44,6 +48,7 @@ module Escalated
           end
 
           Services::NotificationService.dispatch(:ticket_assigned, ticket: result, agent: agent)
+          Escalated::Broadcasting.ticket_assigned(result, agent)
 
           result
         end
@@ -60,6 +65,7 @@ module Escalated
           end
 
           Services::NotificationService.dispatch(:reply_added, ticket: ticket, reply: reply)
+          Escalated::Broadcasting.reply_created(ticket, reply)
 
           reply
         end

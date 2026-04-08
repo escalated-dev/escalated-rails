@@ -122,6 +122,11 @@ Escalated::Engine.routes.draw do
         post 'side_conversations/:conversation_id/close', to: 'side_conversations#close', as: :side_conversation_close
       end
     end
+    resources :saved_views, only: %i[index create update destroy] do
+      collection do
+        post :reorder
+      end
+    end
     resources :articles, only: %i[index create update destroy]
     resources :kb_categories, only: %i[index create update destroy]
 

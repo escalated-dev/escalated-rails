@@ -1,0 +1,111 @@
+ko:
+  escalated:
+    ticket:
+      reply_sent: "답변이 전송되었습니다."
+      note_added: "내부 메모가 추가되었습니다."
+      assigned: "티켓이 %{name}에게 할당되었습니다."
+      unassigned: "티켓 할당이 해제되었습니다."
+      status_updated: "상태가 %{status}(으)로 업데이트되었습니다."
+      priority_updated: "우선순위가 %{priority}(으)로 업데이트되었습니다."
+      tags_updated: "태그가 업데이트되었습니다."
+      department_updated: "부서가 %{name}(으)로 변경되었습니다."
+      macro_applied: "매크로 \"%{name}\"이(가) 적용되었습니다."
+      following: "티켓을 팔로우합니다."
+      unfollowed: "티켓 팔로우를 취소했습니다."
+      only_internal_notes_pinned: "내부 메모만 고정할 수 있습니다."
+      updated: "티켓이 업데이트되었습니다."
+      created: "티켓이 성공적으로 생성되었습니다."
+      closed: "티켓이 종료되었습니다."
+      reopened: "티켓이 다시 열렸습니다."
+      customers_cannot_close: "고객은 티켓을 종료할 수 없습니다."
+      note_pinned: "메모가 고정되었습니다."
+      note_unpinned: "메모 고정이 해제되었습니다."
+    guest:
+      created: "티켓이 성공적으로 생성되었습니다."
+      ticket_closed: "이 티켓은 종료되었습니다."
+    bulk:
+      updated: "%{count}개의 티켓이 업데이트되었습니다."
+    rating:
+      only_resolved_closed: "해결되었거나 종료된 티켓만 평가할 수 있습니다."
+      already_rated: "이 티켓은 이미 평가되었습니다."
+      thanks: "피드백 감사합니다!"
+    admin:
+      canned_response:
+        created: "정형 응답이 생성되었습니다."
+        updated: "정형 응답이 업데이트되었습니다."
+        deleted: "정형 응답이 삭제되었습니다."
+      department:
+        created: "부서가 생성되었습니다."
+        updated: "부서가 업데이트되었습니다."
+        deleted: "부서가 삭제되었습니다."
+      tag:
+        created: "태그가 생성되었습니다."
+        updated: "태그가 업데이트되었습니다."
+        deleted: "태그가 삭제되었습니다."
+      macro:
+        created: "매크로가 생성되었습니다."
+        updated: "매크로가 업데이트되었습니다."
+        deleted: "매크로가 삭제되었습니다."
+      escalation_rule:
+        created: "에스컬레이션 규칙이 생성되었습니다."
+        updated: "에스컬레이션 규칙이 업데이트되었습니다."
+        deleted: "에스컬레이션 규칙이 삭제되었습니다."
+      sla_policy:
+        created: "SLA 정책이 생성되었습니다."
+        updated: "SLA 정책이 업데이트되었습니다."
+        deleted: "SLA 정책이 삭제되었습니다."
+      settings:
+        updated: "설정이 성공적으로 업데이트되었습니다."
+      plugin:
+        uploaded: "플러그인이 성공적으로 업로드되었습니다. 이제 활성화할 수 있습니다."
+        upload_failed: "플러그인 업로드 실패: %{error}"
+        activated: "플러그인이 성공적으로 활성화되었습니다."
+        activate_failed: "플러그인 활성화 실패: %{error}"
+        deactivated: "플러그인이 성공적으로 비활성화되었습니다."
+        deactivate_failed: "플러그인 비활성화 실패: %{error}"
+        composer_delete: "Composer 플러그인은 삭제할 수 없습니다. 대신 Composer를 통해 패키지를 제거하세요."
+        deleted: "플러그인이 성공적으로 삭제되었습니다."
+        delete_failed: "플러그인 삭제 실패: %{error}"
+    middleware:
+      not_admin: "접근이 거부되었습니다."
+      not_agent: "접근이 거부되었습니다."
+      not_authorized: "이 작업을 수행할 권한이 없습니다."
+      not_found: "요청한 리소스를 찾을 수 없습니다."
+    inbound:
+      unknown_adapter: "알 수 없는 어댑터: %{adapter}"
+      verification_failed: "인증 실패"
+      internal_error: "내부 오류"
+      disabled: "수신 이메일이 비활성화되어 있습니다"
+    mailer:
+      new_ticket: "[%{reference}] 티켓 생성: %{subject}"
+      reply: "Re: [%{reference}] %{subject}"
+      assigned: "[%{reference}] 티켓 할당: %{subject}"
+      status_updated: "[%{reference}] 상태 업데이트: %{status}"
+      sla_breach: "[SLA 위반] [%{reference}] %{subject}"
+      escalated: "[에스컬레이션] [%{reference}] %{subject}"
+      resolved: "[%{reference}] 티켓 해결: %{subject}"
+    validation:
+      name_required: "이름은 필수입니다."
+      email_required: "이메일은 필수입니다."
+      subject_required: "제목은 필수입니다."
+      description_required: "설명은 필수입니다."
+    commands:
+      install:
+        installing: "Escalated 지원 티켓 시스템 설치"
+        create_initializer: "config/initializers/escalated.rb"
+        copy_migrations: "마이그레이션을 복사했습니다. `rails db:migrate`를 실행하여 적용하세요."
+        inject_user_model: "app/models/user.rb (Escalated 역할 메서드)"
+        inject_skip: "User 모델에 주입할 수 없습니다: %{error}"
+        inject_manual: "이 메서드를 User 모델에 수동으로 추가하세요:"
+        inject_agent: "escalated_agent? - 지원 에이전트인 경우 true 반환"
+        inject_admin: "escalated_admin? - 지원 관리자인 경우 true 반환"
+        inject_agents_scope: "self.escalated_agents - 모든 에이전트를 반환하는 스코프"
+        success: "Escalated가 성공적으로 설치되었습니다!"
+        next_steps: "다음 단계:"
+        step1: "1. `rails db:migrate` 실행"
+        step2: "2. config/initializers/escalated.rb 설정"
+        step3: "3. User 모델에 escalated_agent?와 escalated_admin? 메서드 추가"
+        step4: "4. Vue 컴포넌트 설치: vendor/escalated/resources/js/에서 복사"
+        step5: "5. Escalated 페이지를 포함하도록 Inertia 페이지 리졸버 설정"
+      guest_not_enabled: "게스트 티켓이 활성화되지 않았습니다."
+      ticket_not_found: "티켓을 찾을 수 없습니다."

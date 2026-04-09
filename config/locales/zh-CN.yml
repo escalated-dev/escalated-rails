@@ -1,0 +1,111 @@
+zh-CN:
+  escalated:
+    ticket:
+      reply_sent: "回复已发送。"
+      note_added: "内部备注已添加。"
+      assigned: "工单已分配给%{name}。"
+      unassigned: "工单已取消分配。"
+      status_updated: "状态已更新为%{status}。"
+      priority_updated: "优先级已更新为%{priority}。"
+      tags_updated: "标签已更新。"
+      department_updated: "部门已更改为%{name}。"
+      macro_applied: "宏\"%{name}\"已应用。"
+      following: "正在关注此工单。"
+      unfollowed: "已取消关注此工单。"
+      only_internal_notes_pinned: "只有内部备注可以置顶。"
+      updated: "工单已更新。"
+      created: "工单创建成功。"
+      closed: "工单已关闭。"
+      reopened: "工单已重新打开。"
+      customers_cannot_close: "客户无法关闭工单。"
+      note_pinned: "备注已置顶。"
+      note_unpinned: "备注已取消置顶。"
+    guest:
+      created: "工单创建成功。"
+      ticket_closed: "此工单已关闭。"
+    bulk:
+      updated: "已更新%{count}个工单。"
+    rating:
+      only_resolved_closed: "您只能评价已解决或已关闭的工单。"
+      already_rated: "此工单已被评价。"
+      thanks: "感谢您的反馈！"
+    admin:
+      canned_response:
+        created: "预设回复已创建。"
+        updated: "预设回复已更新。"
+        deleted: "预设回复已删除。"
+      department:
+        created: "部门已创建。"
+        updated: "部门已更新。"
+        deleted: "部门已删除。"
+      tag:
+        created: "标签已创建。"
+        updated: "标签已更新。"
+        deleted: "标签已删除。"
+      macro:
+        created: "宏已创建。"
+        updated: "宏已更新。"
+        deleted: "宏已删除。"
+      escalation_rule:
+        created: "升级规则已创建。"
+        updated: "升级规则已更新。"
+        deleted: "升级规则已删除。"
+      sla_policy:
+        created: "SLA策略已创建。"
+        updated: "SLA策略已更新。"
+        deleted: "SLA策略已删除。"
+      settings:
+        updated: "设置更新成功。"
+      plugin:
+        uploaded: "插件上传成功。您现在可以激活它。"
+        upload_failed: "插件上传失败：%{error}"
+        activated: "插件激活成功。"
+        activate_failed: "插件激活失败：%{error}"
+        deactivated: "插件停用成功。"
+        deactivate_failed: "插件停用失败：%{error}"
+        composer_delete: "Composer插件无法删除。请通过Composer移除该包。"
+        deleted: "插件删除成功。"
+        delete_failed: "插件删除失败：%{error}"
+    middleware:
+      not_admin: "访问被拒绝。"
+      not_agent: "访问被拒绝。"
+      not_authorized: "您没有权限执行此操作。"
+      not_found: "未找到请求的资源。"
+    inbound:
+      unknown_adapter: "未知适配器：%{adapter}"
+      verification_failed: "验证失败"
+      internal_error: "内部错误"
+      disabled: "入站邮件已禁用"
+    mailer:
+      new_ticket: "[%{reference}] 工单已创建：%{subject}"
+      reply: "回复：[%{reference}] %{subject}"
+      assigned: "[%{reference}] 工单已分配：%{subject}"
+      status_updated: "[%{reference}] 状态已更新：%{status}"
+      sla_breach: "[SLA违规] [%{reference}] %{subject}"
+      escalated: "[升级] [%{reference}] %{subject}"
+      resolved: "[%{reference}] 工单已解决：%{subject}"
+    validation:
+      name_required: "姓名为必填项。"
+      email_required: "电子邮件为必填项。"
+      subject_required: "主题为必填项。"
+      description_required: "描述为必填项。"
+    commands:
+      install:
+        installing: "安装Escalated支持工单系统"
+        create_initializer: "config/initializers/escalated.rb"
+        copy_migrations: "迁移文件已复制。运行`rails db:migrate`以应用。"
+        inject_user_model: "app/models/user.rb (Escalated角色方法)"
+        inject_skip: "无法注入User模型：%{error}"
+        inject_manual: "请手动将这些方法添加到您的User模型中："
+        inject_agent: "escalated_agent? - 对支持代理返回true"
+        inject_admin: "escalated_admin? - 对支持管理员返回true"
+        inject_agents_scope: "self.escalated_agents - 返回所有代理的作用域"
+        success: "Escalated安装成功！"
+        next_steps: "后续步骤："
+        step1: "1. 运行`rails db:migrate`"
+        step2: "2. 配置config/initializers/escalated.rb"
+        step3: "3. 将escalated_agent?和escalated_admin?方法添加到User模型"
+        step4: "4. 安装Vue组件：从vendor/escalated/resources/js/复制"
+        step5: "5. 设置Inertia页面解析器以包含Escalated页面"
+      guest_not_enabled: "访客工单未启用。"
+      ticket_not_found: "工单未找到。"

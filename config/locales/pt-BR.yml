@@ -1,0 +1,111 @@
+pt-BR:
+  escalated:
+    ticket:
+      reply_sent: "Resposta enviada."
+      note_added: "Nota interna adicionada."
+      assigned: "Chamado atribuido a %{name}."
+      unassigned: "Chamado desatribuido."
+      status_updated: "Status atualizado para %{status}."
+      priority_updated: "Prioridade atualizada para %{priority}."
+      tags_updated: "Tags atualizadas."
+      department_updated: "Departamento alterado para %{name}."
+      macro_applied: "Macro \"%{name}\" aplicada."
+      following: "Seguindo o chamado."
+      unfollowed: "Deixou de seguir o chamado."
+      only_internal_notes_pinned: "Apenas notas internas podem ser fixadas."
+      updated: "Chamado atualizado."
+      created: "Chamado criado com sucesso."
+      closed: "Chamado fechado."
+      reopened: "Chamado reaberto."
+      customers_cannot_close: "Clientes nao podem fechar chamados."
+      note_pinned: "Nota fixada."
+      note_unpinned: "Nota desafixada."
+    guest:
+      created: "Chamado criado com sucesso."
+      ticket_closed: "Este chamado esta fechado."
+    bulk:
+      updated: "%{count} chamado(s) atualizado(s)."
+    rating:
+      only_resolved_closed: "Voce so pode avaliar chamados resolvidos ou fechados."
+      already_rated: "Este chamado ja foi avaliado."
+      thanks: "Obrigado pelo seu feedback!"
+    admin:
+      canned_response:
+        created: "Resposta padrao criada."
+        updated: "Resposta padrao atualizada."
+        deleted: "Resposta padrao excluida."
+      department:
+        created: "Departamento criado."
+        updated: "Departamento atualizado."
+        deleted: "Departamento excluido."
+      tag:
+        created: "Tag criada."
+        updated: "Tag atualizada."
+        deleted: "Tag excluida."
+      macro:
+        created: "Macro criada."
+        updated: "Macro atualizada."
+        deleted: "Macro excluida."
+      escalation_rule:
+        created: "Regra de escalacao criada."
+        updated: "Regra de escalacao atualizada."
+        deleted: "Regra de escalacao excluida."
+      sla_policy:
+        created: "Politica SLA criada."
+        updated: "Politica SLA atualizada."
+        deleted: "Politica SLA excluida."
+      settings:
+        updated: "Configuracoes atualizadas com sucesso."
+      plugin:
+        uploaded: "Plugin enviado com sucesso. Voce pode ativa-lo agora."
+        upload_failed: "Falha ao enviar plugin: %{error}"
+        activated: "Plugin ativado com sucesso."
+        activate_failed: "Falha ao ativar plugin: %{error}"
+        deactivated: "Plugin desativado com sucesso."
+        deactivate_failed: "Falha ao desativar plugin: %{error}"
+        composer_delete: "Plugins Composer nao podem ser excluidos. Remova o pacote via Composer."
+        deleted: "Plugin excluido com sucesso."
+        delete_failed: "Falha ao excluir plugin: %{error}"
+    middleware:
+      not_admin: "Acesso negado."
+      not_agent: "Acesso negado."
+      not_authorized: "Voce nao tem autorizacao para realizar esta acao."
+      not_found: "O recurso solicitado nao foi encontrado."
+    inbound:
+      unknown_adapter: "Adaptador desconhecido: %{adapter}"
+      verification_failed: "Falha na verificacao"
+      internal_error: "Erro interno"
+      disabled: "E-mail de entrada desabilitado"
+    mailer:
+      new_ticket: "[%{reference}] Chamado criado: %{subject}"
+      reply: "Re: [%{reference}] %{subject}"
+      assigned: "[%{reference}] Chamado atribuido: %{subject}"
+      status_updated: "[%{reference}] Status atualizado: %{status}"
+      sla_breach: "[VIOLACAO SLA] [%{reference}] %{subject}"
+      escalated: "[ESCALADO] [%{reference}] %{subject}"
+      resolved: "[%{reference}] Chamado resolvido: %{subject}"
+    validation:
+      name_required: "Nome e obrigatorio."
+      email_required: "E-mail e obrigatorio."
+      subject_required: "Assunto e obrigatorio."
+      description_required: "Descricao e obrigatoria."
+    commands:
+      install:
+        installing: "Instalando o sistema de chamados Escalated"
+        create_initializer: "config/initializers/escalated.rb"
+        copy_migrations: "Migracoes copiadas. Execute `rails db:migrate` para aplica-las."
+        inject_user_model: "app/models/user.rb (metodos de funcoes Escalated)"
+        inject_skip: "Nao foi possivel injetar no modelo User: %{error}"
+        inject_manual: "Adicione estes metodos manualmente ao seu modelo User:"
+        inject_agent: "escalated_agent? - retorna true para agentes de suporte"
+        inject_admin: "escalated_admin? - retorna true para administradores de suporte"
+        inject_agents_scope: "self.escalated_agents - escopo que retorna todos os agentes"
+        success: "Escalated instalado com sucesso!"
+        next_steps: "Proximos passos:"
+        step1: "1. Execute `rails db:migrate`"
+        step2: "2. Configure config/initializers/escalated.rb"
+        step3: "3. Adicione os metodos escalated_agent? e escalated_admin? ao seu modelo User"
+        step4: "4. Instale os componentes Vue: copie de vendor/escalated/resources/js/"
+        step5: "5. Configure o resolver de paginas Inertia para incluir as paginas Escalated"
+      guest_not_enabled: "Chamados de convidados nao estao habilitados."
+      ticket_not_found: "Chamado nao encontrado."

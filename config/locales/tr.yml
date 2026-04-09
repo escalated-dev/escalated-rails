@@ -1,0 +1,111 @@
+tr:
+  escalated:
+    ticket:
+      reply_sent: "Yanit gonderildi."
+      note_added: "Dahili not eklendi."
+      assigned: "Destek talebi %{name} adina atandi."
+      unassigned: "Destek talebi atamasi kaldirildi."
+      status_updated: "Durum %{status} olarak guncellendi."
+      priority_updated: "Oncelik %{priority} olarak guncellendi."
+      tags_updated: "Etiketler guncellendi."
+      department_updated: "Departman %{name} olarak degistirildi."
+      macro_applied: "Makro \"%{name}\" uygulandi."
+      following: "Destek talebini takip ediyorsunuz."
+      unfollowed: "Destek talebini takipten cikarildi."
+      only_internal_notes_pinned: "Yalnizca dahili notlar sabitlenebilir."
+      updated: "Destek talebi guncellendi."
+      created: "Destek talebi basariyla olusturuldu."
+      closed: "Destek talebi kapatildi."
+      reopened: "Destek talebi yeniden acildi."
+      customers_cannot_close: "Musteriler destek taleplerini kapatamazlar."
+      note_pinned: "Not sabitlendi."
+      note_unpinned: "Not sabitleme kaldirildi."
+    guest:
+      created: "Destek talebi basariyla olusturuldu."
+      ticket_closed: "Bu destek talebi kapatilmistir."
+    bulk:
+      updated: "%{count} destek talebi guncellendi."
+    rating:
+      only_resolved_closed: "Yalnizca cozulmus veya kapatilmis destek taleplerini derecelendirebilirsiniz."
+      already_rated: "Bu destek talebi zaten derecelendirilmis."
+      thanks: "Geri bildiriminiz icin tesekkurler!"
+    admin:
+      canned_response:
+        created: "Hazir yanit olusturuldu."
+        updated: "Hazir yanit guncellendi."
+        deleted: "Hazir yanit silindi."
+      department:
+        created: "Departman olusturuldu."
+        updated: "Departman guncellendi."
+        deleted: "Departman silindi."
+      tag:
+        created: "Etiket olusturuldu."
+        updated: "Etiket guncellendi."
+        deleted: "Etiket silindi."
+      macro:
+        created: "Makro olusturuldu."
+        updated: "Makro guncellendi."
+        deleted: "Makro silindi."
+      escalation_rule:
+        created: "Eskalasyon kurali olusturuldu."
+        updated: "Eskalasyon kurali guncellendi."
+        deleted: "Eskalasyon kurali silindi."
+      sla_policy:
+        created: "SLA Politikasi olusturuldu."
+        updated: "SLA Politikasi guncellendi."
+        deleted: "SLA Politikasi silindi."
+      settings:
+        updated: "Ayarlar basariyla guncellendi."
+      plugin:
+        uploaded: "Eklenti basariyla yuklendi. Simdi etkinlestirebilirsiniz."
+        upload_failed: "Eklenti yuklemesi basarisiz: %{error}"
+        activated: "Eklenti basariyla etkinlestirildi."
+        activate_failed: "Eklenti etkinlestirme basarisiz: %{error}"
+        deactivated: "Eklenti basariyla devre disi birakildi."
+        deactivate_failed: "Eklenti devre disi birakma basarisiz: %{error}"
+        composer_delete: "Composer eklentileri silinemez. Paketi Composer uzerinden kaldirin."
+        deleted: "Eklenti basariyla silindi."
+        delete_failed: "Eklenti silme basarisiz: %{error}"
+    middleware:
+      not_admin: "Erisim reddedildi."
+      not_agent: "Erisim reddedildi."
+      not_authorized: "Bu islemi gerceklestirme yetkiniz yok."
+      not_found: "Istenen kaynak bulunamadi."
+    inbound:
+      unknown_adapter: "Bilinmeyen adaptor: %{adapter}"
+      verification_failed: "Dogrulama basarisiz"
+      internal_error: "Dahili hata"
+      disabled: "Gelen e-posta devre disi"
+    mailer:
+      new_ticket: "[%{reference}] Destek talebi olusturuldu: %{subject}"
+      reply: "Re: [%{reference}] %{subject}"
+      assigned: "[%{reference}] Destek talebi atandi: %{subject}"
+      status_updated: "[%{reference}] Durum guncellendi: %{status}"
+      sla_breach: "[SLA IHLALI] [%{reference}] %{subject}"
+      escalated: "[ESKALASYON] [%{reference}] %{subject}"
+      resolved: "[%{reference}] Destek talebi cozuldu: %{subject}"
+    validation:
+      name_required: "Ad gereklidir."
+      email_required: "E-posta gereklidir."
+      subject_required: "Konu gereklidir."
+      description_required: "Aciklama gereklidir."
+    commands:
+      install:
+        installing: "Escalated destek talep sistemini kuruyor"
+        create_initializer: "config/initializers/escalated.rb"
+        copy_migrations: "Migrasyon dosyalari kopyalandi. Uygulamak icin `rails db:migrate` calistirin."
+        inject_user_model: "app/models/user.rb (Escalated rol metodlari)"
+        inject_skip: "User modeline enjekte edilemedi: %{error}"
+        inject_manual: "Bu metodlari User modelinize manuel olarak ekleyin:"
+        inject_agent: "escalated_agent? - destek temsilcileri icin true dondurur"
+        inject_admin: "escalated_admin? - destek yoneticileri icin true dondurur"
+        inject_agents_scope: "self.escalated_agents - tum temsilcileri donduren kapsam"
+        success: "Escalated basariyla kuruldu!"
+        next_steps: "Sonraki adimlar:"
+        step1: "1. `rails db:migrate` calistirin"
+        step2: "2. config/initializers/escalated.rb yapilandirin"
+        step3: "3. User modeline escalated_agent? ve escalated_admin? metodlarini ekleyin"
+        step4: "4. Vue bilesenlerini kurun: vendor/escalated/resources/js/ kaynagindan kopyalayin"
+        step5: "5. Escalated sayfalarini icermesi icin Inertia sayfa cozucuyu ayarlayin"
+      guest_not_enabled: "Misafir destek talepleri etkin degil."
+      ticket_not_found: "Destek talebi bulunamadi."

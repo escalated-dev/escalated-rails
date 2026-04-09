@@ -1,0 +1,111 @@
+ja:
+  escalated:
+    ticket:
+      reply_sent: "返信を送信しました。"
+      note_added: "内部メモを追加しました。"
+      assigned: "チケットを%{name}に割り当てました。"
+      unassigned: "チケットの割り当てを解除しました。"
+      status_updated: "ステータスを%{status}に更新しました。"
+      priority_updated: "優先度を%{priority}に更新しました。"
+      tags_updated: "タグを更新しました。"
+      department_updated: "部門を%{name}に変更しました。"
+      macro_applied: "マクロ「%{name}」を適用しました。"
+      following: "チケットをフォロー中です。"
+      unfollowed: "チケットのフォローを解除しました。"
+      only_internal_notes_pinned: "内部メモのみピン留めできます。"
+      updated: "チケットを更新しました。"
+      created: "チケットを正常に作成しました。"
+      closed: "チケットをクローズしました。"
+      reopened: "チケットを再開しました。"
+      customers_cannot_close: "顧客はチケットをクローズできません。"
+      note_pinned: "メモをピン留めしました。"
+      note_unpinned: "メモのピン留めを解除しました。"
+    guest:
+      created: "チケットを正常に作成しました。"
+      ticket_closed: "このチケットはクローズされています。"
+    bulk:
+      updated: "%{count}件のチケットを更新しました。"
+    rating:
+      only_resolved_closed: "解決済みまたはクローズ済みのチケットのみ評価できます。"
+      already_rated: "このチケットは既に評価されています。"
+      thanks: "フィードバックありがとうございます！"
+    admin:
+      canned_response:
+        created: "定型応答を作成しました。"
+        updated: "定型応答を更新しました。"
+        deleted: "定型応答を削除しました。"
+      department:
+        created: "部門を作成しました。"
+        updated: "部門を更新しました。"
+        deleted: "部門を削除しました。"
+      tag:
+        created: "タグを作成しました。"
+        updated: "タグを更新しました。"
+        deleted: "タグを削除しました。"
+      macro:
+        created: "マクロを作成しました。"
+        updated: "マクロを更新しました。"
+        deleted: "マクロを削除しました。"
+      escalation_rule:
+        created: "エスカレーションルールを作成しました。"
+        updated: "エスカレーションルールを更新しました。"
+        deleted: "エスカレーションルールを削除しました。"
+      sla_policy:
+        created: "SLAポリシーを作成しました。"
+        updated: "SLAポリシーを更新しました。"
+        deleted: "SLAポリシーを削除しました。"
+      settings:
+        updated: "設定を正常に更新しました。"
+      plugin:
+        uploaded: "プラグインを正常にアップロードしました。有効化できます。"
+        upload_failed: "プラグインのアップロードに失敗しました: %{error}"
+        activated: "プラグインを正常に有効化しました。"
+        activate_failed: "プラグインの有効化に失敗しました: %{error}"
+        deactivated: "プラグインを正常に無効化しました。"
+        deactivate_failed: "プラグインの無効化に失敗しました: %{error}"
+        composer_delete: "Composerプラグインは削除できません。代わりにComposer経由でパッケージを削除してください。"
+        deleted: "プラグインを正常に削除しました。"
+        delete_failed: "プラグインの削除に失敗しました: %{error}"
+    middleware:
+      not_admin: "アクセスが拒否されました。"
+      not_agent: "アクセスが拒否されました。"
+      not_authorized: "この操作を実行する権限がありません。"
+      not_found: "リクエストされたリソースが見つかりません。"
+    inbound:
+      unknown_adapter: "不明なアダプター: %{adapter}"
+      verification_failed: "検証に失敗しました"
+      internal_error: "内部エラー"
+      disabled: "受信メールは無効です"
+    mailer:
+      new_ticket: "[%{reference}] チケット作成: %{subject}"
+      reply: "Re: [%{reference}] %{subject}"
+      assigned: "[%{reference}] チケット割り当て: %{subject}"
+      status_updated: "[%{reference}] ステータス更新: %{status}"
+      sla_breach: "[SLA違反] [%{reference}] %{subject}"
+      escalated: "[エスカレーション] [%{reference}] %{subject}"
+      resolved: "[%{reference}] チケット解決: %{subject}"
+    validation:
+      name_required: "名前は必須です。"
+      email_required: "メールアドレスは必須です。"
+      subject_required: "件名は必須です。"
+      description_required: "説明は必須です。"
+    commands:
+      install:
+        installing: "Escalatedサポートチケットシステムをインストール"
+        create_initializer: "config/initializers/escalated.rb"
+        copy_migrations: "マイグレーションをコピーしました。`rails db:migrate`を実行して適用してください。"
+        inject_user_model: "app/models/user.rb (Escalatedロールメソッド)"
+        inject_skip: "Userモデルへの注入に失敗しました: %{error}"
+        inject_manual: "これらのメソッドをUserモデルに手動で追加してください:"
+        inject_agent: "escalated_agent? - サポートエージェントの場合trueを返す"
+        inject_admin: "escalated_admin? - サポート管理者の場合trueを返す"
+        inject_agents_scope: "self.escalated_agents - すべてのエージェントを返すスコープ"
+        success: "Escalatedを正常にインストールしました！"
+        next_steps: "次のステップ:"
+        step1: "1. `rails db:migrate`を実行"
+        step2: "2. config/initializers/escalated.rbを設定"
+        step3: "3. Userモデルにescalated_agent?とescalated_admin?メソッドを追加"
+        step4: "4. Vueコンポーネントをインストール: vendor/escalated/resources/js/からコピー"
+        step5: "5. EscalatedページをInertiaページリゾルバに設定"
+      guest_not_enabled: "ゲストチケットは有効になっていません。"
+      ticket_not_found: "チケットが見つかりません。"

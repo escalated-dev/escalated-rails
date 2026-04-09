@@ -7,6 +7,7 @@ module Escalated
     belongs_to :ticket, class_name: 'Escalated::Ticket'
     belongs_to :author, polymorphic: true, optional: true
     has_many :attachments, as: :attachable, dependent: :destroy, class_name: 'Escalated::Attachment'
+    has_many :mentions, class_name: 'Escalated::Mention', dependent: :destroy
 
     validates :body, presence: true
 
@@ -18,6 +19,7 @@ module Escalated
     scope :reverse_chronological, -> { order(created_at: :desc) }
 
     after_create :touch_ticket
+    after_create :process_mentions
 
     def public?
       !is_internal
@@ -39,6 +41,10 @@ module Escalated
 
     def touch_ticket
       ticket.touch
+    end
+
+    def process_mentions
+      Escalated::MentionService.new.process_mentions(self)
     end
   end
 end

@@ -148,6 +148,18 @@ Escalated::Engine.routes.draw do
     end
     resources :automations, only: %i[index new create edit update destroy]
 
+    # Workflow automation engine
+    resources :workflows, only: %i[index show new create edit update destroy] do
+      member do
+        post :toggle
+        get :logs
+        post :dry_run
+      end
+      collection do
+        post :reorder
+      end
+    end
+
     # Phase 5
     get 'settings/two_factor', to: 'settings#two_factor', as: :settings_two_factor
     post 'settings/two_factor/setup', to: 'settings#two_factor_setup', as: :settings_two_factor_setup

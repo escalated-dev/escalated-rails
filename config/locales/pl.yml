@@ -1,0 +1,111 @@
+pl:
+  escalated:
+    ticket:
+      reply_sent: "Odpowiedz wyslana."
+      note_added: "Notatka wewnetrzna dodana."
+      assigned: "Zgloszenie przypisane do %{name}."
+      unassigned: "Usunieto przypisanie zgloszenia."
+      status_updated: "Status zaktualizowany na %{status}."
+      priority_updated: "Priorytet zaktualizowany na %{priority}."
+      tags_updated: "Tagi zaktualizowane."
+      department_updated: "Dzial zmieniony na %{name}."
+      macro_applied: "Makro \"%{name}\" zastosowane."
+      following: "Obserwujesz zgloszenie."
+      unfollowed: "Przestales obserwowac zgloszenie."
+      only_internal_notes_pinned: "Tylko notatki wewnetrzne moga byc przypiete."
+      updated: "Zgloszenie zaktualizowane."
+      created: "Zgloszenie utworzone pomyslnie."
+      closed: "Zgloszenie zamkniete."
+      reopened: "Zgloszenie ponownie otwarte."
+      customers_cannot_close: "Klienci nie moga zamykac zgloszen."
+      note_pinned: "Notatka przypieta."
+      note_unpinned: "Notatka odpieta."
+    guest:
+      created: "Zgloszenie utworzone pomyslnie."
+      ticket_closed: "To zgloszenie jest zamkniete."
+    bulk:
+      updated: "Zaktualizowano %{count} zgloszen."
+    rating:
+      only_resolved_closed: "Mozesz oceniac tylko rozwiazane lub zamkniete zgloszenia."
+      already_rated: "To zgloszenie zostalo juz ocenione."
+      thanks: "Dziekujemy za opinie!"
+    admin:
+      canned_response:
+        created: "Gotowa odpowiedz utworzona."
+        updated: "Gotowa odpowiedz zaktualizowana."
+        deleted: "Gotowa odpowiedz usunieta."
+      department:
+        created: "Dzial utworzony."
+        updated: "Dzial zaktualizowany."
+        deleted: "Dzial usuniety."
+      tag:
+        created: "Tag utworzony."
+        updated: "Tag zaktualizowany."
+        deleted: "Tag usuniety."
+      macro:
+        created: "Makro utworzone."
+        updated: "Makro zaktualizowane."
+        deleted: "Makro usuniete."
+      escalation_rule:
+        created: "Regula eskalacji utworzona."
+        updated: "Regula eskalacji zaktualizowana."
+        deleted: "Regula eskalacji usunieta."
+      sla_policy:
+        created: "Polityka SLA utworzona."
+        updated: "Polityka SLA zaktualizowana."
+        deleted: "Polityka SLA usunieta."
+      settings:
+        updated: "Ustawienia zaktualizowane pomyslnie."
+      plugin:
+        uploaded: "Plugin przeslany pomyslnie. Mozesz go teraz aktywowac."
+        upload_failed: "Przesylanie pluginu nie powiodlo sie: %{error}"
+        activated: "Plugin aktywowany pomyslnie."
+        activate_failed: "Aktywacja pluginu nie powiodla sie: %{error}"
+        deactivated: "Plugin dezaktywowany pomyslnie."
+        deactivate_failed: "Dezaktywacja pluginu nie powiodla sie: %{error}"
+        composer_delete: "Pluginy Composer nie moga byc usuniete. Usun pakiet przez Composer."
+        deleted: "Plugin usuniety pomyslnie."
+        delete_failed: "Usuwanie pluginu nie powiodlo sie: %{error}"
+    middleware:
+      not_admin: "Odmowa dostepu."
+      not_agent: "Odmowa dostepu."
+      not_authorized: "Nie masz uprawnien do wykonania tej czynnosci."
+      not_found: "Zadany zasob nie zostal znaleziony."
+    inbound:
+      unknown_adapter: "Nieznany adapter: %{adapter}"
+      verification_failed: "Weryfikacja nie powiodla sie"
+      internal_error: "Blad wewnetrzny"
+      disabled: "Poczta przychodzaca jest wylaczona"
+    mailer:
+      new_ticket: "[%{reference}] Zgloszenie utworzone: %{subject}"
+      reply: "Re: [%{reference}] %{subject}"
+      assigned: "[%{reference}] Zgloszenie przypisane: %{subject}"
+      status_updated: "[%{reference}] Status zaktualizowany: %{status}"
+      sla_breach: "[NARUSZENIE SLA] [%{reference}] %{subject}"
+      escalated: "[ESKALACJA] [%{reference}] %{subject}"
+      resolved: "[%{reference}] Zgloszenie rozwiazane: %{subject}"
+    validation:
+      name_required: "Imie jest wymagane."
+      email_required: "E-mail jest wymagany."
+      subject_required: "Temat jest wymagany."
+      description_required: "Opis jest wymagany."
+    commands:
+      install:
+        installing: "Instalacja systemu zgloszen Escalated"
+        create_initializer: "config/initializers/escalated.rb"
+        copy_migrations: "Migracje skopiowane. Uruchom `rails db:migrate` aby je zastosowac."
+        inject_user_model: "app/models/user.rb (metody rol Escalated)"
+        inject_skip: "Nie mozna wstrzyknac do modelu User: %{error}"
+        inject_manual: "Dodaj te metody recznie do modelu User:"
+        inject_agent: "escalated_agent? - zwraca true dla agentow wsparcia"
+        inject_admin: "escalated_admin? - zwraca true dla administratorow wsparcia"
+        inject_agents_scope: "self.escalated_agents - zakres zwracajacy wszystkich agentow"
+        success: "Escalated zainstalowany pomyslnie!"
+        next_steps: "Nastepne kroki:"
+        step1: "1. Uruchom `rails db:migrate`"
+        step2: "2. Skonfiguruj config/initializers/escalated.rb"
+        step3: "3. Dodaj metody escalated_agent? i escalated_admin? do modelu User"
+        step4: "4. Zainstaluj komponenty Vue: skopiuj z vendor/escalated/resources/js/"
+        step5: "5. Skonfiguruj resolver stron Inertia aby uwzglednial strony Escalated"
+      guest_not_enabled: "Zgloszenia gosci nie sa wlaczone."
+      ticket_not_found: "Zgloszenie nie znalezione."

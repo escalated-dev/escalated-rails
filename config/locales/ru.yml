@@ -1,0 +1,111 @@
+ru:
+  escalated:
+    ticket:
+      reply_sent: "Ответ отправлен."
+      note_added: "Внутренняя заметка добавлена."
+      assigned: "Заявка назначена на %{name}."
+      unassigned: "Назначение заявки снято."
+      status_updated: "Статус обновлен на %{status}."
+      priority_updated: "Приоритет обновлен на %{priority}."
+      tags_updated: "Теги обновлены."
+      department_updated: "Отдел изменен на %{name}."
+      macro_applied: "Макрос \"%{name}\" применен."
+      following: "Вы подписаны на заявку."
+      unfollowed: "Вы отписались от заявки."
+      only_internal_notes_pinned: "Можно закрепить только внутренние заметки."
+      updated: "Заявка обновлена."
+      created: "Заявка успешно создана."
+      closed: "Заявка закрыта."
+      reopened: "Заявка переоткрыта."
+      customers_cannot_close: "Клиенты не могут закрывать заявки."
+      note_pinned: "Заметка закреплена."
+      note_unpinned: "Заметка откреплена."
+    guest:
+      created: "Заявка успешно создана."
+      ticket_closed: "Эта заявка закрыта."
+    bulk:
+      updated: "Обновлено %{count} заявок."
+    rating:
+      only_resolved_closed: "Вы можете оценивать только решенные или закрытые заявки."
+      already_rated: "Эта заявка уже оценена."
+      thanks: "Спасибо за ваш отзыв!"
+    admin:
+      canned_response:
+        created: "Шаблон ответа создан."
+        updated: "Шаблон ответа обновлен."
+        deleted: "Шаблон ответа удален."
+      department:
+        created: "Отдел создан."
+        updated: "Отдел обновлен."
+        deleted: "Отдел удален."
+      tag:
+        created: "Тег создан."
+        updated: "Тег обновлен."
+        deleted: "Тег удален."
+      macro:
+        created: "Макрос создан."
+        updated: "Макрос обновлен."
+        deleted: "Макрос удален."
+      escalation_rule:
+        created: "Правило эскалации создано."
+        updated: "Правило эскалации обновлено."
+        deleted: "Правило эскалации удалено."
+      sla_policy:
+        created: "Политика SLA создана."
+        updated: "Политика SLA обновлена."
+        deleted: "Политика SLA удалена."
+      settings:
+        updated: "Настройки успешно обновлены."
+      plugin:
+        uploaded: "Плагин успешно загружен. Теперь вы можете его активировать."
+        upload_failed: "Не удалось загрузить плагин: %{error}"
+        activated: "Плагин успешно активирован."
+        activate_failed: "Не удалось активировать плагин: %{error}"
+        deactivated: "Плагин успешно деактивирован."
+        deactivate_failed: "Не удалось деактивировать плагин: %{error}"
+        composer_delete: "Плагины Composer нельзя удалить. Удалите пакет через Composer."
+        deleted: "Плагин успешно удален."
+        delete_failed: "Не удалось удалить плагин: %{error}"
+    middleware:
+      not_admin: "Доступ запрещен."
+      not_agent: "Доступ запрещен."
+      not_authorized: "У вас нет прав для выполнения этого действия."
+      not_found: "Запрашиваемый ресурс не найден."
+    inbound:
+      unknown_adapter: "Неизвестный адаптер: %{adapter}"
+      verification_failed: "Проверка не пройдена"
+      internal_error: "Внутренняя ошибка"
+      disabled: "Входящая почта отключена"
+    mailer:
+      new_ticket: "[%{reference}] Заявка создана: %{subject}"
+      reply: "Re: [%{reference}] %{subject}"
+      assigned: "[%{reference}] Заявка назначена: %{subject}"
+      status_updated: "[%{reference}] Статус обновлен: %{status}"
+      sla_breach: "[НАРУШЕНИЕ SLA] [%{reference}] %{subject}"
+      escalated: "[ЭСКАЛАЦИЯ] [%{reference}] %{subject}"
+      resolved: "[%{reference}] Заявка решена: %{subject}"
+    validation:
+      name_required: "Имя обязательно."
+      email_required: "Электронная почта обязательна."
+      subject_required: "Тема обязательна."
+      description_required: "Описание обязательно."
+    commands:
+      install:
+        installing: "Установка системы заявок Escalated"
+        create_initializer: "config/initializers/escalated.rb"
+        copy_migrations: "Миграции скопированы. Запустите `rails db:migrate` для их применения."
+        inject_user_model: "app/models/user.rb (методы ролей Escalated)"
+        inject_skip: "Не удалось внедрить в модель User: %{error}"
+        inject_manual: "Добавьте эти методы вручную в вашу модель User:"
+        inject_agent: "escalated_agent? - возвращает true для агентов поддержки"
+        inject_admin: "escalated_admin? - возвращает true для администраторов поддержки"
+        inject_agents_scope: "self.escalated_agents - scope, возвращающий всех агентов"
+        success: "Escalated успешно установлен!"
+        next_steps: "Следующие шаги:"
+        step1: "1. Запустите `rails db:migrate`"
+        step2: "2. Настройте config/initializers/escalated.rb"
+        step3: "3. Добавьте методы escalated_agent? и escalated_admin? в модель User"
+        step4: "4. Установите компоненты Vue: скопируйте из vendor/escalated/resources/js/"
+        step5: "5. Настройте Inertia page resolver для включения страниц Escalated"
+      guest_not_enabled: "Гостевые заявки не включены."
+      ticket_not_found: "Заявка не найдена."

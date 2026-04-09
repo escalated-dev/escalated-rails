@@ -1,0 +1,111 @@
+nl:
+  escalated:
+    ticket:
+      reply_sent: "Antwoord verzonden."
+      note_added: "Interne notitie toegevoegd."
+      assigned: "Ticket toegewezen aan %{name}."
+      unassigned: "Ticket niet meer toegewezen."
+      status_updated: "Status bijgewerkt naar %{status}."
+      priority_updated: "Prioriteit bijgewerkt naar %{priority}."
+      tags_updated: "Tags bijgewerkt."
+      department_updated: "Afdeling gewijzigd naar %{name}."
+      macro_applied: "Macro \"%{name}\" toegepast."
+      following: "Je volgt dit ticket."
+      unfollowed: "Je volgt dit ticket niet meer."
+      only_internal_notes_pinned: "Alleen interne notities kunnen worden vastgezet."
+      updated: "Ticket bijgewerkt."
+      created: "Ticket succesvol aangemaakt."
+      closed: "Ticket gesloten."
+      reopened: "Ticket heropend."
+      customers_cannot_close: "Klanten kunnen tickets niet sluiten."
+      note_pinned: "Notitie vastgezet."
+      note_unpinned: "Notitie losgemaakt."
+    guest:
+      created: "Ticket succesvol aangemaakt."
+      ticket_closed: "Dit ticket is gesloten."
+    bulk:
+      updated: "%{count} ticket(s) bijgewerkt."
+    rating:
+      only_resolved_closed: "Je kunt alleen opgeloste of gesloten tickets beoordelen."
+      already_rated: "Dit ticket is al beoordeeld."
+      thanks: "Bedankt voor je feedback!"
+    admin:
+      canned_response:
+        created: "Standaardantwoord aangemaakt."
+        updated: "Standaardantwoord bijgewerkt."
+        deleted: "Standaardantwoord verwijderd."
+      department:
+        created: "Afdeling aangemaakt."
+        updated: "Afdeling bijgewerkt."
+        deleted: "Afdeling verwijderd."
+      tag:
+        created: "Tag aangemaakt."
+        updated: "Tag bijgewerkt."
+        deleted: "Tag verwijderd."
+      macro:
+        created: "Macro aangemaakt."
+        updated: "Macro bijgewerkt."
+        deleted: "Macro verwijderd."
+      escalation_rule:
+        created: "Escalatieregel aangemaakt."
+        updated: "Escalatieregel bijgewerkt."
+        deleted: "Escalatieregel verwijderd."
+      sla_policy:
+        created: "SLA-beleid aangemaakt."
+        updated: "SLA-beleid bijgewerkt."
+        deleted: "SLA-beleid verwijderd."
+      settings:
+        updated: "Instellingen succesvol bijgewerkt."
+      plugin:
+        uploaded: "Plugin succesvol geupload. Je kunt het nu activeren."
+        upload_failed: "Plugin upload mislukt: %{error}"
+        activated: "Plugin succesvol geactiveerd."
+        activate_failed: "Plugin activering mislukt: %{error}"
+        deactivated: "Plugin succesvol gedeactiveerd."
+        deactivate_failed: "Plugin deactivering mislukt: %{error}"
+        composer_delete: "Composer-plugins kunnen niet worden verwijderd. Verwijder het pakket via Composer."
+        deleted: "Plugin succesvol verwijderd."
+        delete_failed: "Plugin verwijdering mislukt: %{error}"
+    middleware:
+      not_admin: "Toegang geweigerd."
+      not_agent: "Toegang geweigerd."
+      not_authorized: "Je bent niet gemachtigd om deze actie uit te voeren."
+      not_found: "De gevraagde bron is niet gevonden."
+    inbound:
+      unknown_adapter: "Onbekende adapter: %{adapter}"
+      verification_failed: "Verificatie mislukt"
+      internal_error: "Interne fout"
+      disabled: "Inkomende e-mail is uitgeschakeld"
+    mailer:
+      new_ticket: "[%{reference}] Ticket aangemaakt: %{subject}"
+      reply: "Re: [%{reference}] %{subject}"
+      assigned: "[%{reference}] Ticket toegewezen: %{subject}"
+      status_updated: "[%{reference}] Status bijgewerkt: %{status}"
+      sla_breach: "[SLA-SCHENDING] [%{reference}] %{subject}"
+      escalated: "[GEESCALEERD] [%{reference}] %{subject}"
+      resolved: "[%{reference}] Ticket opgelost: %{subject}"
+    validation:
+      name_required: "Naam is verplicht."
+      email_required: "E-mailadres is verplicht."
+      subject_required: "Onderwerp is verplicht."
+      description_required: "Beschrijving is verplicht."
+    commands:
+      install:
+        installing: "Installeert het Escalated support ticket systeem"
+        create_initializer: "config/initializers/escalated.rb"
+        copy_migrations: "Migraties gekopieerd. Voer `rails db:migrate` uit om ze toe te passen."
+        inject_user_model: "app/models/user.rb (Escalated rolmethoden)"
+        inject_skip: "Kon niet injecteren in het User model: %{error}"
+        inject_manual: "Voeg deze methoden handmatig toe aan je User model:"
+        inject_agent: "escalated_agent? - geeft true terug voor supportmedewerkers"
+        inject_admin: "escalated_admin? - geeft true terug voor supportbeheerders"
+        inject_agents_scope: "self.escalated_agents - scope die alle medewerkers teruggeeft"
+        success: "Escalated succesvol geinstalleerd!"
+        next_steps: "Volgende stappen:"
+        step1: "1. Voer `rails db:migrate` uit"
+        step2: "2. Configureer config/initializers/escalated.rb"
+        step3: "3. Voeg escalated_agent? en escalated_admin? methoden toe aan je User model"
+        step4: "4. Installeer Vue componenten: kopieer van vendor/escalated/resources/js/"
+        step5: "5. Stel de Inertia page resolver in om Escalated paginas op te nemen"
+      guest_not_enabled: "Gasttickets zijn niet ingeschakeld."
+      ticket_not_found: "Ticket niet gevonden."

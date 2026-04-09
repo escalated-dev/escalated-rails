@@ -1,0 +1,111 @@
+ar:
+  escalated:
+    ticket:
+      reply_sent: "تم إرسال الرد."
+      note_added: "تمت إضافة ملاحظة داخلية."
+      assigned: "تم تعيين التذكرة إلى %{name}."
+      unassigned: "تم إلغاء تعيين التذكرة."
+      status_updated: "تم تحديث الحالة إلى %{status}."
+      priority_updated: "تم تحديث الأولوية إلى %{priority}."
+      tags_updated: "تم تحديث الوسوم."
+      department_updated: "تم تغيير القسم إلى %{name}."
+      macro_applied: "تم تطبيق الماكرو \"%{name}\"."
+      following: "أنت تتابع التذكرة."
+      unfollowed: "تم إلغاء متابعة التذكرة."
+      only_internal_notes_pinned: "يمكن تثبيت الملاحظات الداخلية فقط."
+      updated: "تم تحديث التذكرة."
+      created: "تم إنشاء التذكرة بنجاح."
+      closed: "تم إغلاق التذكرة."
+      reopened: "تم إعادة فتح التذكرة."
+      customers_cannot_close: "لا يمكن للعملاء إغلاق التذاكر."
+      note_pinned: "تم تثبيت الملاحظة."
+      note_unpinned: "تم إلغاء تثبيت الملاحظة."
+    guest:
+      created: "تم إنشاء التذكرة بنجاح."
+      ticket_closed: "هذه التذكرة مغلقة."
+    bulk:
+      updated: "تم تحديث %{count} تذكرة (تذاكر)."
+    rating:
+      only_resolved_closed: "يمكنك تقييم التذاكر المحلولة أو المغلقة فقط."
+      already_rated: "تم تقييم هذه التذكرة بالفعل."
+      thanks: "شكرًا لك على ملاحظاتك!"
+    admin:
+      canned_response:
+        created: "تم إنشاء الرد الجاهز."
+        updated: "تم تحديث الرد الجاهز."
+        deleted: "تم حذف الرد الجاهز."
+      department:
+        created: "تم إنشاء القسم."
+        updated: "تم تحديث القسم."
+        deleted: "تم حذف القسم."
+      tag:
+        created: "تم إنشاء الوسم."
+        updated: "تم تحديث الوسم."
+        deleted: "تم حذف الوسم."
+      macro:
+        created: "تم إنشاء الماكرو."
+        updated: "تم تحديث الماكرو."
+        deleted: "تم حذف الماكرو."
+      escalation_rule:
+        created: "تم إنشاء قاعدة التصعيد."
+        updated: "تم تحديث قاعدة التصعيد."
+        deleted: "تم حذف قاعدة التصعيد."
+      sla_policy:
+        created: "تم إنشاء سياسة SLA."
+        updated: "تم تحديث سياسة SLA."
+        deleted: "تم حذف سياسة SLA."
+      settings:
+        updated: "تم تحديث الإعدادات بنجاح."
+      plugin:
+        uploaded: "تم رفع الإضافة بنجاح. يمكنك الآن تفعيلها."
+        upload_failed: "فشل رفع الإضافة: %{error}"
+        activated: "تم تفعيل الإضافة بنجاح."
+        activate_failed: "فشل تفعيل الإضافة: %{error}"
+        deactivated: "تم تعطيل الإضافة بنجاح."
+        deactivate_failed: "فشل تعطيل الإضافة: %{error}"
+        composer_delete: "لا يمكن حذف إضافات Composer. قم بإزالة الحزمة عبر Composer بدلاً من ذلك."
+        deleted: "تم حذف الإضافة بنجاح."
+        delete_failed: "فشل حذف الإضافة: %{error}"
+    middleware:
+      not_admin: "تم رفض الوصول."
+      not_agent: "تم رفض الوصول."
+      not_authorized: "ليس لديك صلاحية لتنفيذ هذا الإجراء."
+      not_found: "لم يتم العثور على المورد المطلوب."
+    inbound:
+      unknown_adapter: "محوّل غير معروف: %{adapter}"
+      verification_failed: "فشل التحقق"
+      internal_error: "خطأ داخلي"
+      disabled: "البريد الإلكتروني الوارد معطّل"
+    mailer:
+      new_ticket: "[%{reference}] تذكرة جديدة: %{subject}"
+      reply: "رد: [%{reference}] %{subject}"
+      assigned: "[%{reference}] تم تعيين التذكرة: %{subject}"
+      status_updated: "[%{reference}] تم تحديث الحالة: %{status}"
+      sla_breach: "[انتهاك SLA] [%{reference}] %{subject}"
+      escalated: "[تصعيد] [%{reference}] %{subject}"
+      resolved: "[%{reference}] تم حل التذكرة: %{subject}"
+    validation:
+      name_required: "الاسم مطلوب."
+      email_required: "البريد الإلكتروني مطلوب."
+      subject_required: "الموضوع مطلوب."
+      description_required: "الوصف مطلوب."
+    commands:
+      install:
+        installing: "تثبيت نظام تذاكر الدعم Escalated"
+        create_initializer: "config/initializers/escalated.rb"
+        copy_migrations: "تم نسخ عمليات الترحيل. قم بتشغيل `rails db:migrate` لتطبيقها."
+        inject_user_model: "app/models/user.rb (طرق أدوار Escalated)"
+        inject_skip: "تعذّر الحقن في نموذج المستخدم: %{error}"
+        inject_manual: "أضف هذه الطرق إلى نموذج المستخدم يدويًا:"
+        inject_agent: "escalated_agent? - تُرجع true لوكلاء الدعم"
+        inject_admin: "escalated_admin? - تُرجع true لمسؤولي الدعم"
+        inject_agents_scope: "self.escalated_agents - نطاق يُرجع جميع الوكلاء"
+        success: "تم تثبيت Escalated بنجاح!"
+        next_steps: "الخطوات التالية:"
+        step1: "1. قم بتشغيل `rails db:migrate`"
+        step2: "2. قم بتهيئة config/initializers/escalated.rb"
+        step3: "3. أضف طرق escalated_agent? و escalated_admin? إلى نموذج المستخدم"
+        step4: "4. ثبّت مكونات Vue: انسخ من vendor/escalated/resources/js/"
+        step5: "5. قم بإعداد محلل صفحات Inertia ليشمل صفحات Escalated"
+      guest_not_enabled: "تذاكر الضيوف غير مفعّلة."
+      ticket_not_found: "التذكرة غير موجودة."

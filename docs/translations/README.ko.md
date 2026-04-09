@@ -30,28 +30,28 @@ A full-featured, embeddable support ticket system for Rails. Drop it into any ap
 
 ## 기능
 
-- **Ticket lifecycle** — Create, assign, reply, resolve, close, reopen with configurable status transitions
-- **SLA engine** — Per-priority response and resolution targets, business hours calculation, automatic breach detection
-- **Escalation rules** — Condition-based rules that auto-escalate, reprioritize, reassign, or notify
-- **Agent dashboard** — Ticket queue with filters, bulk actions, internal notes, canned responses
-- **Customer portal** — Self-service ticket creation, replies, and status tracking
-- **Admin panel** — Manage departments, SLA policies, escalation rules, tags, and view reports
-- **File attachments** — Drag-and-drop uploads with configurable storage and size limits
-- **Activity timeline** — Full audit log of every action on every ticket
-- **Email notifications** — Configurable per-event notifications with webhook support
-- **Department routing** — Organize agents into departments with auto-assignment (round-robin)
-- **Tagging system** — Categorize tickets with colored tags
-- **Guest tickets** — Anonymous ticket submission with magic-link access via guest token
-- **Inbound email** — Create and reply to tickets via email (Mailgun, Postmark, AWS SES, IMAP)
+- **티켓 라이프사이클** — 구성 가능한 상태 전환으로 생성, 할당, 답변, 해결, 닫기, 재개
+- **SLA 엔진** — 우선순위별 응답 및 해결 목표, 업무 시간 계산, 자동 위반 감지
+- **에스컬레이션 규칙** — 자동으로 에스컬레이트, 우선순위 변경, 재할당 또는 알림하는 조건 기반 규칙
+- **에이전트 대시보드** — 필터, 대량 작업, 내부 메모, 정형 응답이 포함된 티켓 큐
+- **고객 포털** — 셀프서비스 티켓 생성, 답변, 상태 추적
+- **관리자 패널** — 부서, SLA 정책, 에스컬레이션 규칙, 태그 관리 및 보고서 보기
+- **파일 첨부** — 드래그 앤 드롭 업로드, 구성 가능한 스토리지 및 크기 제한
+- **활동 타임라인** — 모든 티켓의 모든 작업에 대한 전체 감사 로그
+- **이메일 알림** — 웹훅 지원을 포함한 이벤트별 구성 가능한 알림
+- **부서 라우팅** — 에이전트를 부서별로 조직하고 자동 할당 (라운드 로빈)
+- **태그 시스템** — 색상 태그로 티켓 분류
+- **게스트 티켓** — 게스트 토큰을 통한 매직 링크 접근으로 익명 티켓 제출
+- **수신 이메일** — 이메일로 티켓 생성 및 답변 (Mailgun, Postmark, AWS SES, IMAP)
 - **Inertia.js + Vue 3 UI** — Shared frontend via [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated)
-- **Ticket splitting** — Split a reply into a new standalone ticket while preserving the original context
+- **티켓 분할** — 원래 컨텍스트를 보존하면서 답변을 새로운 독립 티켓으로 분할
 - **Ticket snooze** — Snooze tickets with presets (1h, 4h, tomorrow, next week); `rake escalated:wake_snoozed_tickets` auto-wakes them on schedule
-- **Saved views / custom queues** — Save, name, and share filter presets as reusable ticket views
-- **Embeddable support widget** — Lightweight `<script>` widget with KB search, ticket form, and status check
-- **Email threading** — Outbound emails include proper `In-Reply-To` and `References` headers for correct threading in mail clients
-- **Branded email templates** — Configurable logo, primary color, and footer text for all outbound emails
+- **저장된 뷰 / 커스텀 큐** — 필터 프리셋을 재사용 가능한 티켓 뷰로 저장, 명명 및 공유
+- **임베드 가능한 지원 위젯** — KB 검색, 티켓 폼, 상태 확인이 포함된 경량 `<script>` 위젯
+- **이메일 스레딩** — 발신 이메일에 적절한 `In-Reply-To` 및 `References` 헤더를 포함하여 메일 클라이언트에서 올바른 스레딩 지원
+- **브랜드 이메일 템플릿** — 모든 발신 이메일에 대해 로고, 기본 색상, 바닥글 텍스트 구성 가능
 - **Real-time broadcasting** — Opt-in broadcasting via ActionCable with automatic polling fallback
-- **Knowledge base toggle** — Enable or disable the public knowledge base from admin settings
+- **지식 베이스 토글** — 관리자 설정에서 공개 지식 베이스 활성화 또는 비활성화
 
 ## 요구 사항
 
@@ -88,11 +88,11 @@ end
 
 Visit `/support` — you're live.
 
-## Frontend Setup
+## 프론트엔드 설정
 
 Escalated uses Inertia.js with Vue 3. The frontend components are provided by the [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated) npm package.
 
-### Tailwind Content
+### Tailwind 콘텐츠
 
 Add the Escalated package to your Tailwind `content` config so its classes aren't purged:
 
@@ -104,7 +104,7 @@ content: [
 ],
 ```
 
-### Page Resolver
+### 페이지 리졸버
 
 Add the Escalated pages to your Inertia page resolver:
 
@@ -135,7 +135,7 @@ createInertiaApp({
 })
 ```
 
-### Theming (Optional)
+### 테마 설정 (선택사항)
 
 Register the `EscalatedPlugin` to render Escalated pages inside your app's layout — no page duplication needed:
 
@@ -165,7 +165,7 @@ See the [`@escalated-dev/escalated` README](https://github.com/escalated-dev/esc
 
 ## 호스팅 모드
 
-### Self-Hosted (default)
+### Self-Hosted (기본값)
 
 Everything stays in your database. No external calls. Full autonomy.
 
@@ -175,7 +175,7 @@ Escalated.configure do |config|
 end
 ```
 
-### Synced
+### 동기화
 
 Local database + automatic sync to `cloud.escalated.dev` for unified inbox across multiple apps. If the cloud is unreachable, your app keeps working — events queue and retry.
 
@@ -187,7 +187,7 @@ Escalated.configure do |config|
 end
 ```
 
-### Cloud
+### 클라우드
 
 All ticket data proxied to the cloud API. Your app handles auth and renders UI, but storage lives in the cloud.
 
@@ -306,7 +306,7 @@ end
 
 Create and reply to tickets from incoming emails. Supports **Mailgun**, **Postmark**, **AWS SES** webhooks, and **IMAP** polling.
 
-### Enable
+### 활성화
 
 ```ruby
 # config/initializers/escalated.rb
@@ -335,7 +335,7 @@ Escalated.configure do |config|
 end
 ```
 
-### Webhook URLs
+### Webhook URL
 
 | Provider | URL |
 |----------|-----|
@@ -343,7 +343,7 @@ end
 | Postmark | `POST /support/inbound/postmark` |
 | AWS SES | `POST /support/inbound/ses` |
 
-### IMAP Polling
+### IMAP 폴링
 
 Schedule `Escalated::PollImapJob` with Solid Queue, Sidekiq, or whenever:
 
@@ -354,7 +354,7 @@ poll_imap:
   schedule: every minute
 ```
 
-### Features
+### 기능
 
 - Thread detection via subject reference and `In-Reply-To` / `References` headers
 - Guest tickets for unknown senders with auto-derived display names
@@ -368,12 +368,12 @@ poll_imap:
 
 Escalated supports framework-agnostic plugins built with the [Plugin SDK](https://github.com/escalated-dev/escalated-plugin-sdk). Plugins are written once in TypeScript and work across all Escalated backends.
 
-### Requirements
+### 요구 사항
 
 - Node.js 20+
 - `@escalated-dev/plugin-runtime` installed in your project
 
-### Installing Plugins
+### 플러그인 설치
 
 ```bash
 npm install @escalated-dev/plugin-runtime
@@ -381,7 +381,7 @@ npm install @escalated-dev/plugin-slack
 npm install @escalated-dev/plugin-jira
 ```
 
-### Enabling SDK Plugins
+### SDK 플러그인 활성화
 
 ```ruby
 # config/initializers/escalated.rb
@@ -391,11 +391,11 @@ Escalated.configure do |config|
 end
 ```
 
-### How It Works
+### 작동 방식
 
 SDK plugins run as a long-lived Node.js subprocess managed by `@escalated-dev/plugin-runtime`, communicating with Rails over JSON-RPC 2.0 via stdio. The subprocess is spawned lazily on first use and automatically restarted with exponential backoff if it crashes. Every ticket lifecycle event is dual-dispatched to both Rails event handlers and the plugin runtime.
 
-### Building Your Own Plugin
+### 자체 플러그인 만들기
 
 ```typescript
 import { definePlugin } from '@escalated-dev/plugin-sdk'
@@ -411,13 +411,13 @@ export default definePlugin({
 })
 ```
 
-### Resources
+### 리소스
 
 - [Plugin SDK](https://github.com/escalated-dev/escalated-plugin-sdk) — TypeScript SDK for building plugins
 - [Plugin Runtime](https://github.com/escalated-dev/escalated-plugin-runtime) — Runtime host for plugins
 - [Plugin Development Guide](https://github.com/escalated-dev/escalated-docs) — Full documentation
 
-## 다른 프레임워크에서도 사용 가능
+## 다른 프레임워크에서도 이용 가능
 
 - **[Escalated for Laravel](https://github.com/escalated-dev/escalated-laravel)** — Laravel Composer package
 - **[Escalated for Rails](https://github.com/escalated-dev/escalated-rails)** — Ruby on Rails engine (you are here)

@@ -30,28 +30,28 @@ A full-featured, embeddable support ticket system for Rails. Drop it into any ap
 
 ## Возможности
 
-- **Ticket lifecycle** — Create, assign, reply, resolve, close, reopen with configurable status transitions
-- **SLA engine** — Per-priority response and resolution targets, business hours calculation, automatic breach detection
-- **Escalation rules** — Condition-based rules that auto-escalate, reprioritize, reassign, or notify
-- **Agent dashboard** — Ticket queue with filters, bulk actions, internal notes, canned responses
-- **Customer portal** — Self-service ticket creation, replies, and status tracking
-- **Admin panel** — Manage departments, SLA policies, escalation rules, tags, and view reports
-- **File attachments** — Drag-and-drop uploads with configurable storage and size limits
-- **Activity timeline** — Full audit log of every action on every ticket
-- **Email notifications** — Configurable per-event notifications with webhook support
-- **Department routing** — Organize agents into departments with auto-assignment (round-robin)
-- **Tagging system** — Categorize tickets with colored tags
-- **Guest tickets** — Anonymous ticket submission with magic-link access via guest token
-- **Inbound email** — Create and reply to tickets via email (Mailgun, Postmark, AWS SES, IMAP)
+- **Жизненный цикл тикета** — Создание, назначение, ответ, решение, закрытие, повторное открытие с настраиваемыми переходами статусов
+- **Движок SLA** — Цели ответа и решения по приоритетам, расчёт рабочих часов, автоматическое обнаружение нарушений
+- **Правила эскалации** — Правила на основе условий для автоматической эскалации, смены приоритета, переназначения или уведомления
+- **Панель агента** — Очередь тикетов с фильтрами, массовые действия, внутренние заметки, шаблонные ответы
+- **Клиентский портал** — Самостоятельное создание тикетов, ответы и отслеживание статуса
+- **Панель администратора** — Управление отделами, политиками SLA, правилами эскалации, тегами и просмотр отчётов
+- **Вложения файлов** — Загрузка перетаскиванием с настраиваемым хранилищем и ограничениями размера
+- **Хронология активности** — Полный журнал аудита каждого действия по каждому тикету
+- **Уведомления по email** — Настраиваемые уведомления по событиям с поддержкой вебхуков
+- **Маршрутизация по отделам** — Организация агентов по отделам с автоназначением (round-robin)
+- **Система тегов** — Категоризация тикетов с помощью цветных тегов
+- **Гостевые тикеты** — Анонимная подача тикетов с доступом по магической ссылке через гостевой токен
+- **Входящая почта** — Создание и ответ на тикеты по email (Mailgun, Postmark, AWS SES, IMAP)
 - **Inertia.js + Vue 3 UI** — Shared frontend via [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated)
-- **Ticket splitting** — Split a reply into a new standalone ticket while preserving the original context
+- **Разделение тикетов** — Выделение ответа в новый самостоятельный тикет с сохранением исходного контекста
 - **Ticket snooze** — Snooze tickets with presets (1h, 4h, tomorrow, next week); `rake escalated:wake_snoozed_tickets` auto-wakes them on schedule
-- **Saved views / custom queues** — Save, name, and share filter presets as reusable ticket views
-- **Embeddable support widget** — Lightweight `<script>` widget with KB search, ticket form, and status check
-- **Email threading** — Outbound emails include proper `In-Reply-To` and `References` headers for correct threading in mail clients
-- **Branded email templates** — Configurable logo, primary color, and footer text for all outbound emails
+- **Сохранённые представления / пользовательские очереди** — Сохранение, именование и обмен пресетами фильтров как повторно используемыми представлениями тикетов
+- **Встраиваемый виджет поддержки** — Лёгкий `<script>` виджет с поиском по KB, формой тикета и проверкой статуса
+- **Потоки электронной почты** — Исходящие письма включают корректные заголовки `In-Reply-To` и `References` для правильной группировки в почтовых клиентах
+- **Брендированные шаблоны писем** — Настраиваемый логотип, основной цвет и текст нижнего колонтитула для всех исходящих писем
 - **Real-time broadcasting** — Opt-in broadcasting via ActionCable with automatic polling fallback
-- **Knowledge base toggle** — Enable or disable the public knowledge base from admin settings
+- **Переключатель базы знаний** — Включение или отключение публичной базы знаний из настроек администратора
 
 ## Требования
 
@@ -59,7 +59,7 @@ A full-featured, embeddable support ticket system for Rails. Drop it into any ap
 - Rails 7.1+
 - Node.js 18+ (for frontend assets)
 
-## Быстрый старт
+## Быстрый Старт
 
 ```bash
 bundle add escalated
@@ -88,11 +88,11 @@ end
 
 Visit `/support` — you're live.
 
-## Frontend Setup
+## Настройка Фронтенда
 
 Escalated uses Inertia.js with Vue 3. The frontend components are provided by the [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated) npm package.
 
-### Tailwind Content
+### Контент Tailwind
 
 Add the Escalated package to your Tailwind `content` config so its classes aren't purged:
 
@@ -104,7 +104,7 @@ content: [
 ],
 ```
 
-### Page Resolver
+### Резолвер Страниц
 
 Add the Escalated pages to your Inertia page resolver:
 
@@ -135,7 +135,7 @@ createInertiaApp({
 })
 ```
 
-### Theming (Optional)
+### Темизация (Опционально)
 
 Register the `EscalatedPlugin` to render Escalated pages inside your app's layout — no page duplication needed:
 
@@ -163,9 +163,9 @@ Your layout component must accept a `#header` slot and a default slot. Escalated
 
 See the [`@escalated-dev/escalated` README](https://github.com/escalated-dev/escalated) for full theming documentation and CSS custom properties.
 
-## Режимы хостинга
+## Режимы Размещения
 
-### Self-Hosted (default)
+### Self-Hosted (по умолчанию)
 
 Everything stays in your database. No external calls. Full autonomy.
 
@@ -175,7 +175,7 @@ Escalated.configure do |config|
 end
 ```
 
-### Synced
+### Синхронизированный
 
 Local database + automatic sync to `cloud.escalated.dev` for unified inbox across multiple apps. If the cloud is unreachable, your app keeps working — events queue and retry.
 
@@ -187,7 +187,7 @@ Escalated.configure do |config|
 end
 ```
 
-### Cloud
+### Облако
 
 All ticket data proxied to the cloud API. Your app handles auth and renders UI, but storage lives in the cloud.
 
@@ -302,11 +302,11 @@ ActiveSupport::Notifications.subscribe("escalated.ticket_created") do |event|
 end
 ```
 
-## Входящая почта
+## Входящая Электронная Почта
 
 Create and reply to tickets from incoming emails. Supports **Mailgun**, **Postmark**, **AWS SES** webhooks, and **IMAP** polling.
 
-### Enable
+### Включить
 
 ```ruby
 # config/initializers/escalated.rb
@@ -335,7 +335,7 @@ Escalated.configure do |config|
 end
 ```
 
-### Webhook URLs
+### URL-адреса Webhooks
 
 | Provider | URL |
 |----------|-----|
@@ -343,7 +343,7 @@ end
 | Postmark | `POST /support/inbound/postmark` |
 | AWS SES | `POST /support/inbound/ses` |
 
-### IMAP Polling
+### Опрос IMAP
 
 Schedule `Escalated::PollImapJob` with Solid Queue, Sidekiq, or whenever:
 
@@ -354,7 +354,7 @@ poll_imap:
   schedule: every minute
 ```
 
-### Features
+### Возможности
 
 - Thread detection via subject reference and `In-Reply-To` / `References` headers
 - Guest tickets for unknown senders with auto-derived display names
@@ -364,16 +364,16 @@ poll_imap:
 - Audit logging of every inbound email
 - All settings configurable from admin panel with env fallback
 
-## Plugin SDK
+## SDK Плагинов
 
 Escalated supports framework-agnostic plugins built with the [Plugin SDK](https://github.com/escalated-dev/escalated-plugin-sdk). Plugins are written once in TypeScript and work across all Escalated backends.
 
-### Requirements
+### Требования
 
 - Node.js 20+
 - `@escalated-dev/plugin-runtime` installed in your project
 
-### Installing Plugins
+### Установка Плагинов
 
 ```bash
 npm install @escalated-dev/plugin-runtime
@@ -381,7 +381,7 @@ npm install @escalated-dev/plugin-slack
 npm install @escalated-dev/plugin-jira
 ```
 
-### Enabling SDK Plugins
+### Включение SDK Плагинов
 
 ```ruby
 # config/initializers/escalated.rb
@@ -391,11 +391,11 @@ Escalated.configure do |config|
 end
 ```
 
-### How It Works
+### Как Это Работает
 
 SDK plugins run as a long-lived Node.js subprocess managed by `@escalated-dev/plugin-runtime`, communicating with Rails over JSON-RPC 2.0 via stdio. The subprocess is spawned lazily on first use and automatically restarted with exponential backoff if it crashes. Every ticket lifecycle event is dual-dispatched to both Rails event handlers and the plugin runtime.
 
-### Building Your Own Plugin
+### Создание Собственного Плагина
 
 ```typescript
 import { definePlugin } from '@escalated-dev/plugin-sdk'
@@ -411,13 +411,13 @@ export default definePlugin({
 })
 ```
 
-### Resources
+### Ресурсы
 
 - [Plugin SDK](https://github.com/escalated-dev/escalated-plugin-sdk) — TypeScript SDK for building plugins
 - [Plugin Runtime](https://github.com/escalated-dev/escalated-plugin-runtime) — Runtime host for plugins
 - [Plugin Development Guide](https://github.com/escalated-dev/escalated-docs) — Full documentation
 
-## Также доступно для
+## Также Доступно Для
 
 - **[Escalated for Laravel](https://github.com/escalated-dev/escalated-laravel)** — Laravel Composer package
 - **[Escalated for Rails](https://github.com/escalated-dev/escalated-rails)** — Ruby on Rails engine (you are here)

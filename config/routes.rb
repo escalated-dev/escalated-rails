@@ -56,6 +56,13 @@ Escalated::Engine.routes.draw do
         post 'replies/:reply_id/pin', action: :pin, as: :reply_pin
       end
     end
+
+    # Mentions
+    scope 'mentions', controller: :mentions do
+      get '/', action: :index, as: :mentions
+      post :mark_read, as: :mentions_mark_read
+      get :search_agents, as: :mentions_search_agents
+    end
   end
 
   # Admin routes

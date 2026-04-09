@@ -51,7 +51,7 @@ module Escalated
     def frt_by_agent
       tickets = @tickets.where.not(first_response_at: nil, assigned_to: nil)
       grouped = tickets.pluck(:assigned_to, :first_response_at, :created_at).group_by(&:first)
-      grouped.filter_map do |agent_id, rows|
+      results = grouped.filter_map do |agent_id, rows|
         frts = rows.map { |_, fr, cr| (fr - cr) / 3600.0 }
         agent = Escalated.configuration.user_model.find_by(id: agent_id)
         next unless agent
@@ -63,7 +63,8 @@ module Escalated
           count: frts.size,
           percentiles: percentiles(frts)
         }
-      end.sort_by { |a| a[:avg_hours] }
+      end
+      results.sort_by { |a| a[:avg_hours] }
     end
 
     # Resolution time distribution

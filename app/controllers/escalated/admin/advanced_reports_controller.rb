@@ -58,7 +58,11 @@ module Escalated
         export_service = Escalated::ExportService.new(from: @period_start, to: @period_end)
 
         content = if params[:dimension].present?
-                    format == 'json' ? export_service.export_cohort_json(params[:dimension]) : export_service.export_cohort_csv(params[:dimension])
+                    if format == 'json'
+                      export_service.export_cohort_json(params[:dimension])
+                    else
+                      export_service.export_cohort_csv(params[:dimension])
+                    end
                   else
                     format == 'json' ? export_service.export_json(report_type) : export_service.export_csv(report_type)
                   end

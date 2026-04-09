@@ -30,30 +30,30 @@ A full-featured, embeddable support ticket system for Rails. Drop it into any ap
 
 ## 功能特性
 
-- **Ticket lifecycle** — Create, assign, reply, resolve, close, reopen with configurable status transitions
-- **SLA engine** — Per-priority response and resolution targets, business hours calculation, automatic breach detection
-- **Escalation rules** — Condition-based rules that auto-escalate, reprioritize, reassign, or notify
-- **Agent dashboard** — Ticket queue with filters, bulk actions, internal notes, canned responses
-- **Customer portal** — Self-service ticket creation, replies, and status tracking
-- **Admin panel** — Manage departments, SLA policies, escalation rules, tags, and view reports
-- **File attachments** — Drag-and-drop uploads with configurable storage and size limits
-- **Activity timeline** — Full audit log of every action on every ticket
-- **Email notifications** — Configurable per-event notifications with webhook support
-- **Department routing** — Organize agents into departments with auto-assignment (round-robin)
-- **Tagging system** — Categorize tickets with colored tags
-- **Guest tickets** — Anonymous ticket submission with magic-link access via guest token
-- **Inbound email** — Create and reply to tickets via email (Mailgun, Postmark, AWS SES, IMAP)
+- **工单生命周期** — 创建、分配、回复、解决、关闭、重新打开，支持可配置的状态转换
+- **SLA 引擎** — 按优先级的响应和解决目标、工作时间计算、自动违规检测
+- **升级规则** — 基于条件的规则，自动升级、重新排列优先级、重新分配或通知
+- **客服面板** — 带过滤器、批量操作、内部备注、预设回复的工单队列
+- **客户门户** — 自助工单创建、回复和状态跟踪
+- **管理面板** — 管理部门、SLA 策略、升级规则、标签和查看报告
+- **文件附件** — 拖拽上传，可配置存储和大小限制
+- **活动时间线** — 每个工单上每个操作的完整审计日志
+- **邮件通知** — 可按事件配置的通知，支持 webhook
+- **部门路由** — 将客服组织到部门，支持自动分配（轮询）
+- **标签系统** — 使用彩色标签分类工单
+- **访客工单** — 通过访客令牌的魔法链接访问进行匿名工单提交
+- **入站邮件** — 通过邮件创建和回复工单 (Mailgun, Postmark, AWS SES, IMAP)
 - **Inertia.js + Vue 3 UI** — Shared frontend via [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated)
-- **Ticket splitting** — Split a reply into a new standalone ticket while preserving the original context
+- **工单拆分** — 将回复拆分为新的独立工单，同时保留原始上下文
 - **Ticket snooze** — Snooze tickets with presets (1h, 4h, tomorrow, next week); `rake escalated:wake_snoozed_tickets` auto-wakes them on schedule
-- **Saved views / custom queues** — Save, name, and share filter presets as reusable ticket views
-- **Embeddable support widget** — Lightweight `<script>` widget with KB search, ticket form, and status check
-- **Email threading** — Outbound emails include proper `In-Reply-To` and `References` headers for correct threading in mail clients
-- **Branded email templates** — Configurable logo, primary color, and footer text for all outbound emails
+- **保存的视图 / 自定义队列** — 将过滤器预设保存、命名并共享为可重用的工单视图
+- **可嵌入支持小部件** — 包含知识库搜索、工单表单和状态查询的轻量级 `<script>` 小部件
+- **邮件线程** — 发送的邮件包含正确的 `In-Reply-To` 和 `References` 头部，以在邮件客户端中实现正确的线程化
+- **品牌邮件模板** — 所有发送邮件的可配置 logo、主色和页脚文本
 - **Real-time broadcasting** — Opt-in broadcasting via ActionCable with automatic polling fallback
-- **Knowledge base toggle** — Enable or disable the public knowledge base from admin settings
+- **知识库开关** — 从管理设置中启用或禁用公共知识库
 
-## 系统要求
+## 环境要求
 
 - Ruby 3.1+
 - Rails 7.1+
@@ -88,11 +88,11 @@ end
 
 Visit `/support` — you're live.
 
-## Frontend Setup
+## 前端设置
 
 Escalated uses Inertia.js with Vue 3. The frontend components are provided by the [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated) npm package.
 
-### Tailwind Content
+### Tailwind 内容
 
 Add the Escalated package to your Tailwind `content` config so its classes aren't purged:
 
@@ -104,7 +104,7 @@ content: [
 ],
 ```
 
-### Page Resolver
+### 页面解析器
 
 Add the Escalated pages to your Inertia page resolver:
 
@@ -135,7 +135,7 @@ createInertiaApp({
 })
 ```
 
-### Theming (Optional)
+### 主题（可选）
 
 Register the `EscalatedPlugin` to render Escalated pages inside your app's layout — no page duplication needed:
 
@@ -165,7 +165,7 @@ See the [`@escalated-dev/escalated` README](https://github.com/escalated-dev/esc
 
 ## 托管模式
 
-### Self-Hosted (default)
+### Self-Hosted（默认）
 
 Everything stays in your database. No external calls. Full autonomy.
 
@@ -175,7 +175,7 @@ Escalated.configure do |config|
 end
 ```
 
-### Synced
+### 同步模式
 
 Local database + automatic sync to `cloud.escalated.dev` for unified inbox across multiple apps. If the cloud is unreachable, your app keeps working — events queue and retry.
 
@@ -187,7 +187,7 @@ Escalated.configure do |config|
 end
 ```
 
-### Cloud
+### 云端
 
 All ticket data proxied to the cloud API. Your app handles auth and renders UI, but storage lives in the cloud.
 
@@ -306,7 +306,7 @@ end
 
 Create and reply to tickets from incoming emails. Supports **Mailgun**, **Postmark**, **AWS SES** webhooks, and **IMAP** polling.
 
-### Enable
+### 启用
 
 ```ruby
 # config/initializers/escalated.rb
@@ -335,7 +335,7 @@ Escalated.configure do |config|
 end
 ```
 
-### Webhook URLs
+### Webhook URL
 
 | Provider | URL |
 |----------|-----|
@@ -343,7 +343,7 @@ end
 | Postmark | `POST /support/inbound/postmark` |
 | AWS SES | `POST /support/inbound/ses` |
 
-### IMAP Polling
+### IMAP 轮询
 
 Schedule `Escalated::PollImapJob` with Solid Queue, Sidekiq, or whenever:
 
@@ -354,7 +354,7 @@ poll_imap:
   schedule: every minute
 ```
 
-### Features
+### 功能特性
 
 - Thread detection via subject reference and `In-Reply-To` / `References` headers
 - Guest tickets for unknown senders with auto-derived display names
@@ -368,12 +368,12 @@ poll_imap:
 
 Escalated supports framework-agnostic plugins built with the [Plugin SDK](https://github.com/escalated-dev/escalated-plugin-sdk). Plugins are written once in TypeScript and work across all Escalated backends.
 
-### Requirements
+### 环境要求
 
 - Node.js 20+
 - `@escalated-dev/plugin-runtime` installed in your project
 
-### Installing Plugins
+### 安装插件
 
 ```bash
 npm install @escalated-dev/plugin-runtime
@@ -381,7 +381,7 @@ npm install @escalated-dev/plugin-slack
 npm install @escalated-dev/plugin-jira
 ```
 
-### Enabling SDK Plugins
+### 启用 SDK 插件
 
 ```ruby
 # config/initializers/escalated.rb
@@ -391,11 +391,11 @@ Escalated.configure do |config|
 end
 ```
 
-### How It Works
+### 工作原理
 
 SDK plugins run as a long-lived Node.js subprocess managed by `@escalated-dev/plugin-runtime`, communicating with Rails over JSON-RPC 2.0 via stdio. The subprocess is spawned lazily on first use and automatically restarted with exponential backoff if it crashes. Every ticket lifecycle event is dual-dispatched to both Rails event handlers and the plugin runtime.
 
-### Building Your Own Plugin
+### 构建自己的插件
 
 ```typescript
 import { definePlugin } from '@escalated-dev/plugin-sdk'
@@ -411,7 +411,7 @@ export default definePlugin({
 })
 ```
 
-### Resources
+### 资源
 
 - [Plugin SDK](https://github.com/escalated-dev/escalated-plugin-sdk) — TypeScript SDK for building plugins
 - [Plugin Runtime](https://github.com/escalated-dev/escalated-plugin-runtime) — Runtime host for plugins

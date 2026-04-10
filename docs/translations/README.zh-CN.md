@@ -22,11 +22,11 @@
 [![Rails](https://img.shields.io/badge/rails-7.0+-D30001?logo=rubyonrails&logoColor=white)](https://rubyonrails.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A full-featured, embeddable support ticket system for Rails. Drop it into any app — get a complete helpdesk with SLA tracking, escalation rules, agent workflows, and a customer portal. No external services required.
+一个功能完整、可嵌入的 Rails 支持工单系统。将其添加到任何应用中 — 即可获得完整的帮助台，包含 SLA 跟踪、升级规则、客服工作流和客户门户。无需外部服务。
 
-> **[escalated.dev](https://escalated.dev)** — Learn more, view demos, and compare Cloud vs Self-Hosted options.
+> **[escalated.dev](https://escalated.dev)** — 了解更多、查看演示，并比较云端与自托管选项。
 
-**Three hosting modes.** Run entirely self-hosted, sync to a central cloud for multi-app visibility, or proxy everything to the cloud. Switch modes with a single config change.
+**三种托管模式。** 完全自托管运行，同步到中央云以获得多应用可见性，或将所有内容代理到云端。只需更改一个配置即可切换模式。
 
 ## 功能特性
 
@@ -43,21 +43,21 @@ A full-featured, embeddable support ticket system for Rails. Drop it into any ap
 - **标签系统** — 使用彩色标签分类工单
 - **访客工单** — 通过访客令牌的魔法链接访问进行匿名工单提交
 - **入站邮件** — 通过邮件创建和回复工单 (Mailgun, Postmark, AWS SES, IMAP)
-- **Inertia.js + Vue 3 UI** — Shared frontend via [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated)
+- **Inertia.js + Vue 3 UI** — 通过 [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated) 共享前端
 - **工单拆分** — 将回复拆分为新的独立工单，同时保留原始上下文
-- **Ticket snooze** — Snooze tickets with presets (1h, 4h, tomorrow, next week); `rake escalated:wake_snoozed_tickets` auto-wakes them on schedule
+- **Ticket snooze** — 使用预设延迟工单（1小时、4小时、明天、下周）；`rake escalated:wake_snoozed_tickets` 按计划自动唤醒
 - **保存的视图 / 自定义队列** — 将过滤器预设保存、命名并共享为可重用的工单视图
 - **可嵌入支持小部件** — 包含知识库搜索、工单表单和状态查询的轻量级 `<script>` 小部件
 - **邮件线程** — 发送的邮件包含正确的 `In-Reply-To` 和 `References` 头部，以在邮件客户端中实现正确的线程化
 - **品牌邮件模板** — 所有发送邮件的可配置 logo、主色和页脚文本
-- **Real-time broadcasting** — Opt-in broadcasting via ActionCable with automatic polling fallback
+- **Real-time broadcasting** — 通过 ActionCable 进行可选广播，带有自动轮询回退
 - **知识库开关** — 从管理设置中启用或禁用公共知识库
 
 ## 环境要求
 
 - Ruby 3.1+
 - Rails 7.1+
-- Node.js 18+ (for frontend assets)
+- Node.js 18+ (用于前端资源)
 
 ## 快速开始
 
@@ -90,11 +90,11 @@ Visit `/support` — you're live.
 
 ## 前端设置
 
-Escalated uses Inertia.js with Vue 3. The frontend components are provided by the [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated) npm package.
+Escalated 使用 Inertia.js 和 Vue 3。前端组件由 npm 包 [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated) 提供。
 
 ### Tailwind 内容
 
-Add the Escalated package to your Tailwind `content` config so its classes aren't purged:
+将 Escalated 包添加到 Tailwind 的 `content` 配置中，以确保其类不会被清除：
 
 ```js
 // tailwind.config.js
@@ -106,7 +106,7 @@ content: [
 
 ### 页面解析器
 
-Add the Escalated pages to your Inertia page resolver:
+将 Escalated 页面添加到您的 Inertia 页面解析器：
 
 ```javascript
 // app/javascript/entrypoints/application.js
@@ -137,7 +137,7 @@ createInertiaApp({
 
 ### 主题（可选）
 
-Register the `EscalatedPlugin` to render Escalated pages inside your app's layout — no page duplication needed:
+注册 `EscalatedPlugin` 以在您的应用布局内渲染 Escalated 页面 — 无需页面复制：
 
 ```javascript
 import { EscalatedPlugin } from '@escalated-dev/escalated'
@@ -161,13 +161,13 @@ createInertiaApp({
 
 Your layout component must accept a `#header` slot and a default slot. Escalated will render its sub-navigation in the header and page content in the default slot. Without the plugin, Escalated uses its own standalone layout.
 
-See the [`@escalated-dev/escalated` README](https://github.com/escalated-dev/escalated) for full theming documentation and CSS custom properties.
+查看 [`@escalated-dev/escalated` README](https://github.com/escalated-dev/escalated) 以获取完整的主题文档和 CSS 自定义属性。
 
 ## 托管模式
 
 ### Self-Hosted（默认）
 
-Everything stays in your database. No external calls. Full autonomy.
+所有数据保留在您的数据库中。无外部调用。完全自主。
 
 ```ruby
 Escalated.configure do |config|
@@ -177,7 +177,7 @@ end
 
 ### 同步模式
 
-Local database + automatic sync to `cloud.escalated.dev` for unified inbox across multiple apps. If the cloud is unreachable, your app keeps working — events queue and retry.
+本地数据库 + 自动同步到 `cloud.escalated.dev` 以实现跨多个应用的统一收件箱。如果云端不可达，您的应用继续工作 — 事件会排队并重试。
 
 ```ruby
 Escalated.configure do |config|
@@ -189,7 +189,7 @@ end
 
 ### 云端
 
-All ticket data proxied to the cloud API. Your app handles auth and renders UI, but storage lives in the cloud.
+所有工单数据代理到云 API。您的应用处理认证和渲染 UI，但存储在云端。
 
 ```ruby
 Escalated.configure do |config|
@@ -199,7 +199,7 @@ Escalated.configure do |config|
 end
 ```
 
-All three modes share the same controllers, UI, and business logic. The driver pattern handles the rest.
+三种模式共享相同的控制器、UI 和业务逻辑。驱动模式处理其余部分。
 
 ## 配置
 
@@ -245,7 +245,7 @@ end
 
 ## 调度
 
-Add these to your scheduler for SLA and escalation automation:
+将这些添加到您的调度器以实现 SLA 和升级自动化：
 
 ```ruby
 # config/schedule.rb (whenever gem) or use solid_queue/sidekiq-cron
@@ -366,7 +366,7 @@ poll_imap:
 
 ## 插件 SDK
 
-Escalated supports framework-agnostic plugins built with the [Plugin SDK](https://github.com/escalated-dev/escalated-plugin-sdk). Plugins are written once in TypeScript and work across all Escalated backends.
+Escalated 支持使用 [Plugin SDK](https://github.com/escalated-dev/escalated-plugin-sdk) 构建的框架无关插件。插件用 TypeScript 编写一次，即可在所有 Escalated 后端上运行。
 
 ### 环境要求
 
@@ -413,20 +413,20 @@ export default definePlugin({
 
 ### 资源
 
-- [Plugin SDK](https://github.com/escalated-dev/escalated-plugin-sdk) — TypeScript SDK for building plugins
-- [Plugin Runtime](https://github.com/escalated-dev/escalated-plugin-runtime) — Runtime host for plugins
-- [Plugin Development Guide](https://github.com/escalated-dev/escalated-docs) — Full documentation
+- [Plugin SDK](https://github.com/escalated-dev/escalated-plugin-sdk) — 用于构建插件的 TypeScript SDK
+- [Plugin Runtime](https://github.com/escalated-dev/escalated-plugin-runtime) — 插件运行时宿主
+- [Plugin Development Guide](https://github.com/escalated-dev/escalated-docs) — 完整文档
 
 ## 其他框架版本
 
-- **[Escalated for Laravel](https://github.com/escalated-dev/escalated-laravel)** — Laravel Composer package
-- **[Escalated for Rails](https://github.com/escalated-dev/escalated-rails)** — Ruby on Rails engine (you are here)
-- **[Escalated for Django](https://github.com/escalated-dev/escalated-django)** — Django reusable app
-- **[Escalated for AdonisJS](https://github.com/escalated-dev/escalated-adonis)** — AdonisJS v6 package
-- **[Escalated for Filament](https://github.com/escalated-dev/escalated-filament)** — Filament v3 admin panel plugin
-- **[Shared Frontend](https://github.com/escalated-dev/escalated)** — Vue 3 + Inertia.js UI components
+- **[Escalated for Laravel](https://github.com/escalated-dev/escalated-laravel)** — Laravel Composer 包
+- **[Escalated for Rails](https://github.com/escalated-dev/escalated-rails)** — Ruby on Rails 引擎（当前页面）
+- **[Escalated for Django](https://github.com/escalated-dev/escalated-django)** — Django 可复用应用
+- **[Escalated for AdonisJS](https://github.com/escalated-dev/escalated-adonis)** — AdonisJS v6 包
+- **[Escalated for Filament](https://github.com/escalated-dev/escalated-filament)** — Filament v3 管理面板插件
+- **[Shared Frontend](https://github.com/escalated-dev/escalated)** — Vue 3 + Inertia.js UI 组件
 
-Same architecture, same Vue UI, same three hosting modes — for every major backend framework.
+相同的架构、相同的 Vue UI、相同的三种托管模式 — 适用于每个主流后端框架。
 
 ## 测试
 

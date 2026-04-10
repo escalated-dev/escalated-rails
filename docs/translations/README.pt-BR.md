@@ -22,11 +22,11 @@
 [![Rails](https://img.shields.io/badge/rails-7.0+-D30001?logo=rubyonrails&logoColor=white)](https://rubyonrails.org/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A full-featured, embeddable support ticket system for Rails. Drop it into any app — get a complete helpdesk with SLA tracking, escalation rules, agent workflows, and a customer portal. No external services required.
+Um sistema de tickets de suporte completo e integrável para Rails. Adicione-o a qualquer aplicação — obtenha um helpdesk completo com rastreamento de SLA, regras de escalonamento, fluxos de trabalho de agentes e um portal do cliente. Nenhum serviço externo necessário.
 
-> **[escalated.dev](https://escalated.dev)** — Learn more, view demos, and compare Cloud vs Self-Hosted options.
+> **[escalated.dev](https://escalated.dev)** — Saiba mais, veja demos e compare as opções Cloud vs Auto-hospedado.
 
-**Three hosting modes.** Run entirely self-hosted, sync to a central cloud for multi-app visibility, or proxy everything to the cloud. Switch modes with a single config change.
+**Três modos de hospedagem.** Execute totalmente auto-hospedado, sincronize com uma nuvem central para visibilidade multi-aplicação, ou redirecione tudo para a nuvem. Mude de modo com uma única alteração de configuração.
 
 ## Funcionalidades
 
@@ -43,21 +43,21 @@ A full-featured, embeddable support ticket system for Rails. Drop it into any ap
 - **Sistema de tags** — Categorizar tickets com tags coloridas
 - **Tickets de visitante** — Envio anônimo de tickets com acesso por link mágico via token de visitante
 - **Email de entrada** — Criar e responder tickets por email (Mailgun, Postmark, AWS SES, IMAP)
-- **Inertia.js + Vue 3 UI** — Shared frontend via [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated)
+- **Inertia.js + Vue 3 UI** — Frontend compartilhado via [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated)
 - **Divisão de tickets** — Dividir uma resposta em um novo ticket independente preservando o contexto original
-- **Ticket snooze** — Snooze tickets with presets (1h, 4h, tomorrow, next week); `rake escalated:wake_snoozed_tickets` auto-wakes them on schedule
+- **Ticket snooze** — Adiar tickets com predefinições (1h, 4h, amanhã, próxima semana); `rake escalated:wake_snoozed_tickets` os reativa automaticamente
 - **Visualizações salvas / filas personalizadas** — Salvar, nomear e compartilhar presets de filtros como visualizações de tickets reutilizáveis
 - **Widget de suporte integrável** — Widget leve `<script>` com busca na KB, formulário de tickets e verificação de status
 - **Threading de email** — Emails enviados incluem cabeçalhos `In-Reply-To` e `References` para threading correto em clientes de email
 - **Templates de email com marca** — Logo, cor primária e texto do rodapé configuráveis para todos os emails enviados
-- **Real-time broadcasting** — Opt-in broadcasting via ActionCable with automatic polling fallback
+- **Real-time broadcasting** — Broadcasting opcional via ActionCable com fallback automático de polling
 - **Toggle da base de conhecimento** — Habilitar ou desabilitar a base de conhecimento pública nas configurações de administração
 
 ## Requisitos
 
 - Ruby 3.1+
 - Rails 7.1+
-- Node.js 18+ (for frontend assets)
+- Node.js 18+ (para recursos do frontend)
 
 ## Início Rápido
 
@@ -90,11 +90,11 @@ Visit `/support` — you're live.
 
 ## Configuração do Frontend
 
-Escalated uses Inertia.js with Vue 3. The frontend components are provided by the [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated) npm package.
+O Escalated usa Inertia.js com Vue 3. Os componentes do frontend são fornecidos pelo pacote npm [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated).
 
 ### Conteúdo Tailwind
 
-Add the Escalated package to your Tailwind `content` config so its classes aren't purged:
+Adicione o pacote Escalated à configuração `content` do Tailwind para que suas classes não sejam removidas:
 
 ```js
 // tailwind.config.js
@@ -106,7 +106,7 @@ content: [
 
 ### Resolvedor de Páginas
 
-Add the Escalated pages to your Inertia page resolver:
+Adicione as páginas do Escalated ao seu resolver de páginas do Inertia:
 
 ```javascript
 // app/javascript/entrypoints/application.js
@@ -137,7 +137,7 @@ createInertiaApp({
 
 ### Temas (Opcional)
 
-Register the `EscalatedPlugin` to render Escalated pages inside your app's layout — no page duplication needed:
+Registre o `EscalatedPlugin` para renderizar as páginas do Escalated dentro do layout do seu aplicativo — sem necessidade de duplicação de páginas:
 
 ```javascript
 import { EscalatedPlugin } from '@escalated-dev/escalated'
@@ -161,13 +161,13 @@ createInertiaApp({
 
 Your layout component must accept a `#header` slot and a default slot. Escalated will render its sub-navigation in the header and page content in the default slot. Without the plugin, Escalated uses its own standalone layout.
 
-See the [`@escalated-dev/escalated` README](https://github.com/escalated-dev/escalated) for full theming documentation and CSS custom properties.
+Consulte o [README do `@escalated-dev/escalated`](https://github.com/escalated-dev/escalated) para documentação completa de temas e propriedades CSS personalizadas.
 
 ## Modos de Hospedagem
 
 ### Self-Hosted (padrão)
 
-Everything stays in your database. No external calls. Full autonomy.
+Tudo permanece no seu banco de dados. Sem chamadas externas. Autonomia total.
 
 ```ruby
 Escalated.configure do |config|
@@ -177,7 +177,7 @@ end
 
 ### Sincronizado
 
-Local database + automatic sync to `cloud.escalated.dev` for unified inbox across multiple apps. If the cloud is unreachable, your app keeps working — events queue and retry.
+Banco de dados local + sincronização automática com `cloud.escalated.dev` para caixa de entrada unificada em múltiplas aplicações. Se a nuvem estiver inacessível, seu aplicativo continua funcionando — os eventos entram na fila e são reenviados.
 
 ```ruby
 Escalated.configure do |config|
@@ -189,7 +189,7 @@ end
 
 ### Nuvem
 
-All ticket data proxied to the cloud API. Your app handles auth and renders UI, but storage lives in the cloud.
+Todos os dados de tickets são proxy para a API na nuvem. Seu aplicativo lida com autenticação e renderiza a interface, mas o armazenamento fica na nuvem.
 
 ```ruby
 Escalated.configure do |config|
@@ -199,7 +199,7 @@ Escalated.configure do |config|
 end
 ```
 
-All three modes share the same controllers, UI, and business logic. The driver pattern handles the rest.
+Os três modos compartilham os mesmos controllers, interface e lógica de negócios. O padrão de driver cuida do resto.
 
 ## Configuração
 
@@ -245,7 +245,7 @@ end
 
 ## Agendamento
 
-Add these to your scheduler for SLA and escalation automation:
+Adicione estes ao seu agendador para automação de SLA e escalonamento:
 
 ```ruby
 # config/schedule.rb (whenever gem) or use solid_queue/sidekiq-cron
@@ -366,7 +366,7 @@ poll_imap:
 
 ## SDK de Plugins
 
-Escalated supports framework-agnostic plugins built with the [Plugin SDK](https://github.com/escalated-dev/escalated-plugin-sdk). Plugins are written once in TypeScript and work across all Escalated backends.
+O Escalated suporta plugins agnósticos de framework construídos com o [Plugin SDK](https://github.com/escalated-dev/escalated-plugin-sdk). Os plugins são escritos uma vez em TypeScript e funcionam em todos os backends do Escalated.
 
 ### Requisitos
 
@@ -413,20 +413,20 @@ export default definePlugin({
 
 ### Recursos
 
-- [Plugin SDK](https://github.com/escalated-dev/escalated-plugin-sdk) — TypeScript SDK for building plugins
-- [Plugin Runtime](https://github.com/escalated-dev/escalated-plugin-runtime) — Runtime host for plugins
-- [Plugin Development Guide](https://github.com/escalated-dev/escalated-docs) — Full documentation
+- [Plugin SDK](https://github.com/escalated-dev/escalated-plugin-sdk) — SDK TypeScript para criar plugins
+- [Plugin Runtime](https://github.com/escalated-dev/escalated-plugin-runtime) — Host de runtime para plugins
+- [Plugin Development Guide](https://github.com/escalated-dev/escalated-docs) — Documentação completa
 
 ## Também Disponível Para
 
-- **[Escalated for Laravel](https://github.com/escalated-dev/escalated-laravel)** — Laravel Composer package
-- **[Escalated for Rails](https://github.com/escalated-dev/escalated-rails)** — Ruby on Rails engine (you are here)
-- **[Escalated for Django](https://github.com/escalated-dev/escalated-django)** — Django reusable app
-- **[Escalated for AdonisJS](https://github.com/escalated-dev/escalated-adonis)** — AdonisJS v6 package
-- **[Escalated for Filament](https://github.com/escalated-dev/escalated-filament)** — Filament v3 admin panel plugin
-- **[Shared Frontend](https://github.com/escalated-dev/escalated)** — Vue 3 + Inertia.js UI components
+- **[Escalated for Laravel](https://github.com/escalated-dev/escalated-laravel)** — Pacote Laravel Composer
+- **[Escalated for Rails](https://github.com/escalated-dev/escalated-rails)** — Motor Ruby on Rails (você está aqui)
+- **[Escalated for Django](https://github.com/escalated-dev/escalated-django)** — Aplicativo Django reutilizável
+- **[Escalated for AdonisJS](https://github.com/escalated-dev/escalated-adonis)** — Pacote AdonisJS v6
+- **[Escalated for Filament](https://github.com/escalated-dev/escalated-filament)** — Plugin de painel administrativo Filament v3
+- **[Shared Frontend](https://github.com/escalated-dev/escalated)** — Componentes de UI Vue 3 + Inertia.js
 
-Same architecture, same Vue UI, same three hosting modes — for every major backend framework.
+Mesma arquitetura, mesma interface Vue, mesmos três modos de hospedagem — para cada framework backend importante.
 
 ## Testes
 

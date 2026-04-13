@@ -300,7 +300,7 @@ module Escalated
       end
 
       def ticket_detail_json(ticket)
-        ticket_list_json(ticket).merge(
+        base = ticket_list_json(ticket).merge(
           description: ticket.description,
           metadata: ticket.metadata,
           sla_policy: ticket.sla_policy ? { id: ticket.sla_policy.id, name: ticket.sla_policy.name } : nil,
@@ -323,8 +323,22 @@ module Escalated
                                    created_at: ticket.satisfaction_rating.created_at&.iso8601
                                  }
                                end,
-          pinned_notes: ticket.pinned_notes.includes(:author).map { |n| reply_json(n) }
+          pinned_notes: ticket.pinned_notes.includes(:author).map { |n| reply_json(n) },
+          requester_ticket_count: ticket.requester ? Escalated::Ticket.where(requester: ticket.requester).count : 0,
+          related_tickets: related_tickets_json(ticket)
         )
+
+        if ticket.chat?
+          session = ticket.active_chat_session || ticket.chat_sessions.order(created_at: :desc).first
+          base.merge!(
+            chat_session_id: session&.id,
+            chat_started_at: session&.started_at&.iso8601,
+            chat_messages: ticket.replies.chronological.includes(:author).map { |r| chat_message_json(r) },
+            chat_metadata: session&.metadata
+          )
+        end
+
+        base
       end
 
       def reply_json(reply)
@@ -363,8 +377,34 @@ module Escalated
                     }
                   end,
           details: activity.details,
-          created_at: activity.created_at&.iso8601
+          created_at: activity.created_at&.iso8601,
+          created_at_human: helpers.time_ago_in_words(activity.created_at) + ' ago'
         }
+      end
+
+      def chat_message_json(reply)
+        {
+          id: reply.id,
+          body: reply.body,
+          is_internal_note: reply.is_internal,
+          is_agent: reply.author.respond_to?(:escalated_agent?) ? reply.author.escalated_agent? : false,
+          author: if reply.author
+                    { id: reply.author.id,
+                      name: reply.author.respond_to?(:name) ? reply.author.name : reply.author.email }
+                  else
+                    { name: 'System' }
+                  end,
+          created_at: reply.created_at&.iso8601
+        }
+      end
+
+      def related_tickets_json(ticket)
+        links = ticket.links_as_parent.includes(:child_ticket) +
+                ticket.links_as_child.includes(:parent_ticket)
+        links.map do |link|
+          related = link.parent_ticket_id == ticket.id ? link.child_ticket : link.parent_ticket
+          { reference: related.reference, subject: related.subject, status: related.status }
+        end
       end
     end
   end

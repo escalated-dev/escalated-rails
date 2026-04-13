@@ -33,8 +33,10 @@ module Escalated
                          .chronological
                          .includes(:author, :attachments)
 
+        ticket_data = ticket_detail_json(@ticket)
+
         render_page 'Escalated/Customer/Show', {
-          ticket: ticket_json(@ticket),
+          ticket: ticket_data,
           replies: replies.map { |r| reply_json(r) },
           can_close: Escalated.configuration.allow_customer_close && @ticket.open?,
           can_reopen: %w[resolved closed].include?(@ticket.status)
@@ -148,6 +150,38 @@ module Escalated
                                    created_at: ticket.satisfaction_rating.created_at&.iso8601
                                  }
                                end
+        }
+      end
+
+      def ticket_detail_json(ticket)
+        base = ticket_json(ticket)
+
+        if ticket.chat?
+          session = ticket.active_chat_session || ticket.chat_sessions.order(created_at: :desc).first
+          base.merge!(
+            chat_session_id: session&.id,
+            chat_started_at: session&.started_at&.iso8601,
+            chat_messages: ticket.replies.public_replies.chronological.includes(:author).map { |r| chat_message_json(r) },
+            chat_metadata: session&.metadata
+          )
+        end
+
+        base
+      end
+
+      def chat_message_json(reply)
+        {
+          id: reply.id,
+          body: reply.body,
+          is_internal_note: false,
+          is_agent: reply.author.respond_to?(:escalated_agent?) ? reply.author.escalated_agent? : false,
+          author: if reply.author
+                    { id: reply.author.id,
+                      name: reply.author.respond_to?(:name) ? reply.author.name : reply.author.email }
+                  else
+                    { name: 'System' }
+                  end,
+          created_at: reply.created_at&.iso8601
         }
       end
 

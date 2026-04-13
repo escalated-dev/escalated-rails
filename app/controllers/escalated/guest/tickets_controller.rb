@@ -199,6 +199,10 @@ module Escalated
           department: ticket.department ? { id: ticket.department.id, name: ticket.department.name } : nil,
           created_at: ticket.created_at&.iso8601,
           updated_at: ticket.updated_at&.iso8601,
+          attachments: ticket.attachments.map do |a|
+            { id: a.id, filename: a.filename, size: a.human_size, content_type: a.content_type,
+              url: Services::AttachmentService.url_for(a) }
+          end,
           satisfaction_rating: if ticket.satisfaction_rating
                                  {
                                    id: ticket.satisfaction_rating.id,
@@ -225,7 +229,8 @@ module Escalated
             is_agent: reply.author.respond_to?(:escalated_agent?) ? reply.author.escalated_agent? : false
           },
           attachments: reply.attachments.map do |a|
-            { id: a.id, filename: a.filename, size: a.human_size }
+            { id: a.id, filename: a.filename, size: a.human_size, content_type: a.content_type,
+              url: Services::AttachmentService.url_for(a) }
           end,
           created_at: reply.created_at&.iso8601,
           is_system: reply.is_system

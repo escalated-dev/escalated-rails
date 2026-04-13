@@ -227,7 +227,7 @@ module Escalated
             chat_session_id: session&.id,
             chat_started_at: session&.started_at&.iso8601,
             chat_messages: ticket.replies.where(is_internal: false, is_system: false)
-                                .order(created_at: :asc).includes(:author).map { |r| guest_chat_message_json(r) },
+                           .order(created_at: :asc).includes(:author).map { |r| guest_chat_message_json(r) },
             chat_metadata: session&.metadata
           )
         end

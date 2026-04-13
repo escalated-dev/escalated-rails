@@ -314,7 +314,7 @@ module Escalated
                     end,
             details: activity.details,
             created_at: activity.created_at&.iso8601,
-            created_at_human: ActionController::Base.helpers.time_ago_in_words(activity.created_at) + ' ago'
+            created_at_human: "#{ActionController::Base.helpers.time_ago_in_words(activity.created_at)} ago"
           }
         end
 

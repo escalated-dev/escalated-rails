@@ -161,7 +161,8 @@ module Escalated
           base.merge!(
             chat_session_id: session&.id,
             chat_started_at: session&.started_at&.iso8601,
-            chat_messages: ticket.replies.public_replies.chronological.includes(:author).map { |r| chat_message_json(r) },
+            chat_messages: ticket.replies.public_replies.chronological.includes(:author)
+                           .map { |r| chat_message_json(r) },
             chat_metadata: session&.metadata
           )
         end

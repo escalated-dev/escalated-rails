@@ -18,7 +18,7 @@ module Escalated
                          .includes(:author, :attachments)
 
         render_page 'Escalated/Guest/Show', {
-          ticket: guest_ticket_json(@ticket),
+          ticket: guest_ticket_detail_json(@ticket),
           replies: replies.map { |r| guest_reply_json(r) },
           token: params[:token],
           can_reply: @ticket.open?
@@ -215,6 +215,40 @@ module Escalated
                                    created_at: ticket.satisfaction_rating.created_at&.iso8601
                                  }
                                end
+        }
+      end
+
+      def guest_ticket_detail_json(ticket)
+        base = guest_ticket_json(ticket)
+
+        if ticket.chat?
+          session = ticket.active_chat_session || ticket.chat_sessions.order(created_at: :desc).first
+          base.merge!(
+            chat_session_id: session&.id,
+            chat_started_at: session&.started_at&.iso8601,
+            chat_messages: ticket.replies.where(is_internal: false, is_system: false)
+                           .order(created_at: :asc).includes(:author).map { |r| guest_chat_message_json(r) },
+            chat_metadata: session&.metadata
+          )
+        end
+
+        base
+      end
+
+      def guest_chat_message_json(reply)
+        author_name = if reply.author
+                        reply.author.respond_to?(:name) ? reply.author.name : reply.author&.email
+                      else
+                        @ticket.guest_name || 'Guest'
+                      end
+
+        {
+          id: reply.id,
+          body: reply.body,
+          is_internal_note: false,
+          is_agent: reply.author.respond_to?(:escalated_agent?) ? reply.author.escalated_agent? : false,
+          author: { name: author_name },
+          created_at: reply.created_at&.iso8601
         }
       end
 

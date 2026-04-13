@@ -184,6 +184,29 @@ module Escalated
       requester.respond_to?(:email) ? requester.email : ''
     end
 
+    def last_reply_at
+      replies.maximum(:created_at)
+    end
+
+    def last_reply_author
+      latest = replies.order(created_at: :desc).first
+      return nil unless latest
+
+      if latest.author
+        latest.author.respond_to?(:name) ? latest.author.name : latest.author.email
+      else
+        guest? ? (guest_name || 'Guest') : 'System'
+      end
+    end
+
+    def is_live_chat
+      channel == 'chat' && %w[open in_progress].include?(status)
+    end
+
+    def is_snoozed
+      snoozed?
+    end
+
     # Follower helpers
 
     def followed_by?(user_id)

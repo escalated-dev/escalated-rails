@@ -25,6 +25,11 @@ module Escalated
     scope :for_event, ->(event) { active.where(trigger_event: event) }
     scope :ordered, -> { order(position: :asc, name: :asc) }
 
+    # Alias for frontend compatibility: the frontend uses `trigger` instead of `trigger_event`
+    def trigger
+      trigger_event
+    end
+
     TRIGGER_EVENTS = %w[
       ticket.created ticket.updated ticket.status_changed ticket.assigned
       ticket.priority_changed ticket.tagged ticket.department_changed

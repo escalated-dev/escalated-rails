@@ -75,7 +75,7 @@ module Escalated
       end
 
       def logs
-        logs = @workflow.workflow_logs.recent.limit(100)
+        logs = @workflow.workflow_logs.includes(:workflow, :ticket).recent.limit(100)
         render_page 'Escalated/Admin/Workflows/Logs', {
           workflow: workflow_json(@workflow),
           logs: logs.map { |l| log_json(l) }
@@ -105,7 +105,8 @@ module Escalated
 
       def workflow_json(workflow)
         {
-          id: workflow.id, name: workflow.name, trigger_event: workflow.trigger_event,
+          id: workflow.id, name: workflow.name,
+          trigger_event: workflow.trigger_event, trigger: workflow.trigger,
           conditions: workflow.conditions, actions: workflow.actions,
           is_active: workflow.is_active, position: workflow.position,
           created_at: workflow.created_at&.iso8601, updated_at: workflow.updated_at&.iso8601
@@ -115,8 +116,16 @@ module Escalated
       def log_json(log)
         {
           id: log.id, workflow_id: log.workflow_id, ticket_id: log.ticket_id,
-          trigger_event: log.trigger_event, status: log.status,
-          actions_executed: log.actions_executed, error_message: log.error_message,
+          trigger_event: log.trigger_event,
+          event: log.event,
+          workflow_name: log.workflow_name,
+          ticket_reference: log.ticket_reference,
+          matched: log.matched,
+          actions_executed: log.actions_executed_count,
+          action_details: log.action_details,
+          duration_ms: log.duration_ms,
+          status: log.computed_status,
+          error_message: log.error_message,
           created_at: log.created_at&.iso8601
         }
       end

@@ -200,6 +200,8 @@ module Escalated
             subject: ticket.subject,
             status: ticket.status,
             priority: ticket.priority,
+            requester_name: ticket.requester_name,
+            requester_email: ticket.requester_email,
             requester: {
               name: ticket.requester_name
             },
@@ -217,6 +219,10 @@ module Escalated
                         end,
             tags: ticket.tags.map { |t| { id: t.id, name: t.name, color: t.color } },
             sla_breached: ticket.sla_breached,
+            last_reply_at: ticket.last_reply_at&.iso8601,
+            last_reply_author: ticket.last_reply_author,
+            is_live_chat: ticket.is_live_chat,
+            is_snoozed: ticket.is_snoozed,
             created_at: ticket.created_at&.iso8601,
             updated_at: ticket.updated_at&.iso8601
           }

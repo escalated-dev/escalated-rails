@@ -58,6 +58,11 @@ module Escalated
             status: ticket.status,
             priority: ticket.priority,
             requester_name: ticket.requester_name,
+            requester_email: ticket.requester_email,
+            last_reply_at: ticket.last_reply_at&.iso8601,
+            last_reply_author: ticket.last_reply_author,
+            is_live_chat: ticket.is_live_chat,
+            is_snoozed: ticket.is_snoozed,
             assignee_name: ticket.assignee.respond_to?(:name) ? ticket.assignee.name : ticket.assignee&.email,
             created_at: ticket.created_at&.iso8601
           }
@@ -68,7 +73,12 @@ module Escalated
             reference: ticket.reference,
             subject: ticket.subject,
             priority: ticket.priority,
-            requester_name: ticket.requester_name
+            requester_name: ticket.requester_name,
+            requester_email: ticket.requester_email,
+            last_reply_at: ticket.last_reply_at&.iso8601,
+            last_reply_author: ticket.last_reply_author,
+            is_live_chat: ticket.is_live_chat,
+            is_snoozed: ticket.is_snoozed
           }
         end
       end

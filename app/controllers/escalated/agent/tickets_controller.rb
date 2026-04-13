@@ -278,6 +278,8 @@ module Escalated
           status: ticket.status,
           priority: ticket.priority,
           ticket_type: ticket.ticket_type,
+          requester_name: ticket.requester_name,
+          requester_email: ticket.requester_email,
           requester: {
             name: ticket.requester.respond_to?(:name) ? ticket.requester.name : ticket.requester&.email
           },
@@ -290,6 +292,10 @@ module Escalated
           department: ticket.department ? { id: ticket.department.id, name: ticket.department.name } : nil,
           tags: ticket.tags.map { |t| { id: t.id, name: t.name, color: t.color } },
           sla_breached: ticket.sla_breached,
+          last_reply_at: ticket.last_reply_at&.iso8601,
+          last_reply_author: ticket.last_reply_author,
+          is_live_chat: ticket.is_live_chat,
+          is_snoozed: ticket.is_snoozed,
           created_at: ticket.created_at&.iso8601,
           updated_at: ticket.updated_at&.iso8601
         }

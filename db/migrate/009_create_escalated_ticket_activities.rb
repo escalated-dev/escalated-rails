@@ -13,7 +13,9 @@ class CreateEscalatedTicketActivities < ActiveRecord::Migration[7.0]
       t.timestamps
     end
 
-    add_index Escalated.table_name("ticket_activities"), [:causer_type, :causer_id]
+    add_index Escalated.table_name("ticket_activities"),
+              [:causer_type, :causer_id],
+              name: "idx_escalated_ticket_activities_causer"
     add_index Escalated.table_name("ticket_activities"), :action
     add_index Escalated.table_name("ticket_activities"), :created_at
   end

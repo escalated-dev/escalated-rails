@@ -16,7 +16,9 @@ class CreateEscalatedApiTokens < ActiveRecord::Migration[7.0]
     end
 
     add_index Escalated.table_name("api_tokens"), :token, unique: true
-    add_index Escalated.table_name("api_tokens"), [:tokenable_type, :tokenable_id]
+    add_index Escalated.table_name("api_tokens"),
+              [:tokenable_type, :tokenable_id],
+              name: "idx_escalated_api_tokens_tokenable"
     add_index Escalated.table_name("api_tokens"), :expires_at
   end
 end

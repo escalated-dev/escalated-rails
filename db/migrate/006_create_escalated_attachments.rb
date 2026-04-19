@@ -12,6 +12,8 @@ class CreateEscalatedAttachments < ActiveRecord::Migration[7.0]
       t.timestamps
     end
 
-    add_index Escalated.table_name("attachments"), [:attachable_type, :attachable_id]
+    add_index Escalated.table_name("attachments"),
+              [:attachable_type, :attachable_id],
+              name: "idx_escalated_attachments_attachable"
   end
 end

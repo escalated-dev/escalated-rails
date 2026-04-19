@@ -32,7 +32,9 @@ class CreateEscalatedCustomFields < ActiveRecord::Migration[7.0]
     end
 
     add_index Escalated.table_name("custom_field_values"), :custom_field_id
-    add_index Escalated.table_name("custom_field_values"), [:entity_type, :entity_id]
+    add_index Escalated.table_name("custom_field_values"),
+              [:entity_type, :entity_id],
+              name: "idx_escalated_custom_field_values_entity"
     add_foreign_key Escalated.table_name("custom_field_values"),
                     Escalated.table_name("custom_fields"),
                     column: :custom_field_id

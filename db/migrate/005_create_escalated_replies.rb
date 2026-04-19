@@ -14,7 +14,9 @@ class CreateEscalatedReplies < ActiveRecord::Migration[7.0]
       t.timestamps
     end
 
-    add_index Escalated.table_name("replies"), [:author_type, :author_id]
+    add_index Escalated.table_name("replies"),
+              [:author_type, :author_id],
+              name: "idx_escalated_replies_author"
     add_index Escalated.table_name("replies"), :is_internal
     add_index Escalated.table_name("replies"), :created_at
   end

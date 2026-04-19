@@ -37,7 +37,9 @@ class CreateEscalatedTickets < ActiveRecord::Migration[7.0]
     add_index Escalated.table_name("tickets"), :reference, unique: true
     add_index Escalated.table_name("tickets"), :status
     add_index Escalated.table_name("tickets"), :priority
-    add_index Escalated.table_name("tickets"), [:requester_type, :requester_id]
+    add_index Escalated.table_name("tickets"),
+              [:requester_type, :requester_id],
+              name: "idx_escalated_tickets_requester"
     add_index Escalated.table_name("tickets"), :assigned_to
     add_index Escalated.table_name("tickets"), :sla_breached
     add_index Escalated.table_name("tickets"), :sla_first_response_due_at

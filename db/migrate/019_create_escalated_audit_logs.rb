@@ -13,7 +13,9 @@ class CreateEscalatedAuditLogs < ActiveRecord::Migration[7.0]
       t.timestamps
     end
 
-    add_index Escalated.table_name("audit_logs"), [:auditable_type, :auditable_id]
+    add_index Escalated.table_name("audit_logs"),
+              [:auditable_type, :auditable_id],
+              name: "idx_escalated_audit_logs_auditable"
     add_index Escalated.table_name("audit_logs"), :user_id
     add_index Escalated.table_name("audit_logs"), :action
     add_index Escalated.table_name("audit_logs"), :created_at

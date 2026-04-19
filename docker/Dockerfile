@@ -29,6 +29,8 @@ COPY docker/host-app/config/initializers/escalated.rb /host/config/initializers/
 COPY docker/host-app/config/environments/demo.rb /host/config/environments/demo.rb
 COPY docker/host-app/app/models/user.rb /host/app/models/user.rb
 COPY docker/host-app/app/controllers/demo_controller.rb /host/app/controllers/demo_controller.rb
+COPY docker/host-app/app/controllers/concerns/demo_auth.rb /host/app/controllers/concerns/demo_auth.rb
+COPY docker/host-app/app/views/layouts/application.html.erb /host/app/views/layouts/application.html.erb
 COPY docker/host-app/db/migrate/20260418000001_create_users.rb /host/db/migrate/20260418000001_create_users.rb
 COPY docker/host-app/db/seeds.rb /host/db/seeds.rb
 

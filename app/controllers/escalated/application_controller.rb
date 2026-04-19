@@ -48,7 +48,7 @@ module Escalated
       # Share plugin UI data when plugin system is enabled
       shared[:plugin_ui] = Escalated.plugin_ui.to_shared_data if Escalated.configuration.plugins_enabled?
 
-      inertia_share(shared)
+      inertia_share(**shared)
     end
 
     def current_user_data

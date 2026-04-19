@@ -9,7 +9,8 @@ gem 'bootsnap', require: false
 gem 'tzinfo-data', platforms: %i[mingw mswin x64_mingw jruby]
 
 gem 'escalated', path: '/package'
-gem 'inertia_rails'
+gem 'inertia_rails', '~> 3.0'
+gem 'pundit'
 
 group :development do
   gem 'web-console'

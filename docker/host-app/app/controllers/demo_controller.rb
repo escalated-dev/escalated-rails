@@ -13,7 +13,7 @@ class DemoController < ApplicationController
     session[:demo_user_id] = user.id
     cookies[:demo_user_id] = { value: user.id.to_s, httponly: true, same_site: :lax }
     if user.is_admin? || user.is_agent?
-      redirect_to '/support/agent/dashboard'
+      redirect_to '/support/agent'
     else
       redirect_to '/support/customer/tickets'
     end

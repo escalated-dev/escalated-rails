@@ -17,6 +17,7 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'inertia_rails', '>= 3.0'
   spec.add_dependency 'pundit', '>= 2.0'
   spec.add_dependency 'rails', '>= 7.0'
+  spec.add_dependency 'rexml', '>= 3.2'
 
   spec.add_development_dependency 'factory_bot_rails'
   spec.add_development_dependency 'faker'

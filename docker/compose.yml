@@ -8,7 +8,8 @@ services:
     ports:
       - "${APP_PORT:-3000}:3000"
     environment:
-      RAILS_ENV: development
+      RAILS_ENV: demo
+      APP_ENV: demo
       DATABASE_URL: "postgresql://escalated:escalated@db:5432/escalated"
       SECRET_KEY_BASE: demo-only-secret-not-production
       RAILS_LOG_TO_STDOUT: "1"

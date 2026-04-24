@@ -50,6 +50,11 @@ module Escalated
           return
         end
 
+        # Apply the admin-configured guest policy (same logic as
+        # WidgetController#create_ticket — see that method for the mode
+        # reference). Always assign a guest_token so the guest-view
+        # redirect below works regardless of whether the ticket is
+        # ALSO attributed to a host user (guest_user mode).
         guest_token = SecureRandom.hex(32) # 64-character hex string
 
         # Dedupe repeat guests by email (Pattern B). Inline guest_*
@@ -60,17 +65,32 @@ module Escalated
           guest_ticket_params[:name]
         )
 
-        ticket = Escalated::Ticket.create!(
-          requester: nil,
-          guest_name: guest_ticket_params[:name],
-          guest_email: guest_ticket_params[:email],
-          guest_token: guest_token,
-          contact_id: contact.id,
+        attrs = {
           subject: guest_ticket_params[:subject],
           description: guest_ticket_params[:description],
           priority: guest_ticket_params[:priority] || Escalated.configuration.default_priority,
-          department_id: guest_ticket_params[:department_id].presence
-        )
+          department_id: guest_ticket_params[:department_id].presence,
+          guest_name: guest_ticket_params[:name],
+          guest_email: guest_ticket_params[:email],
+          guest_token: guest_token,
+          contact_id: contact.id
+        }
+
+        mode = Escalated::EscalatedSetting.get('guest_policy_mode').presence || 'unassigned'
+        if mode == 'guest_user'
+          guest_user_id = Escalated::EscalatedSetting.get('guest_policy_user_id').to_i
+          if guest_user_id.positive?
+            attrs[:requester_type] = Escalated.configuration.user_class
+            attrs[:requester_id] = guest_user_id
+          else
+            # Misconfigured guest_user mode: fall through to unassigned.
+            attrs[:requester] = nil
+          end
+        else
+          attrs[:requester] = nil
+        end
+
+        ticket = Escalated::Ticket.create!(attrs)
 
         if guest_ticket_params[:attachments].present?
           Services::AttachmentService.attach(ticket, guest_ticket_params[:attachments])

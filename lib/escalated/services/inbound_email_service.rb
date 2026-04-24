@@ -168,11 +168,13 @@ module Escalated
               metadata: { channel: 'email', original_message_id: message.message_id }
             )
           else
-            # Guest ticket (follows guest/tickets_controller.rb pattern)
+            # Guest ticket — apply the admin-configured guest policy
+            # (same branching as WidgetController#create_ticket). See
+            # app/controllers/escalated/widget_controller.rb for the
+            # reference impl.
             guest_token = SecureRandom.hex(32)
 
-            ticket = Escalated::Ticket.create!(
-              requester: nil,
+            attrs = {
               guest_name: message.from_name || message.from_email,
               guest_email: message.from_email,
               guest_token: guest_token,
@@ -180,7 +182,22 @@ module Escalated
               description: description,
               priority: Escalated.configuration.default_priority,
               metadata: { channel: 'email', original_message_id: message.message_id }
-            )
+            }
+
+            mode = Escalated::EscalatedSetting.get('guest_policy_mode').presence || 'unassigned'
+            if mode == 'guest_user'
+              guest_user_id = Escalated::EscalatedSetting.get('guest_policy_user_id').to_i
+              if guest_user_id.positive?
+                attrs[:requester_type] = Escalated.configuration.user_class
+                attrs[:requester_id] = guest_user_id
+              else
+                attrs[:requester] = nil
+              end
+            else
+              attrs[:requester] = nil
+            end
+
+            ticket = Escalated::Ticket.create!(attrs)
 
             # Dispatch notifications manually since we bypassed TicketService.create
             Services::NotificationService.dispatch(:ticket_created, ticket: ticket)

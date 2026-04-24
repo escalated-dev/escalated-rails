@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'escalated/mail/message_id_util'
+
 module Escalated
   class TicketMailer < ApplicationMailer
     def new_ticket(ticket)
@@ -7,7 +9,8 @@ module Escalated
       @requester = ticket.requester
       load_branding
 
-      headers['Message-ID'] = message_id_for(ticket)
+      headers['Message-ID'] = ticket_message_id(ticket)
+      apply_signed_reply_to(ticket)
 
       mail(
         to: @requester.email,
@@ -29,7 +32,11 @@ module Escalated
 
       return unless recipient
 
+      # Own Message-ID includes the reply id so clients can deduplicate
+      # across send/receive legs.
+      headers['Message-ID'] = reply_message_id(ticket, reply)
       set_threading_headers(ticket)
+      apply_signed_reply_to(ticket)
 
       mail(
         to: recipient,
@@ -45,6 +52,7 @@ module Escalated
       return unless @assignee&.email
 
       set_threading_headers(ticket)
+      apply_signed_reply_to(ticket)
 
       mail(
         to: @assignee.email,
@@ -57,6 +65,7 @@ module Escalated
       load_branding
 
       set_threading_headers(ticket)
+      apply_signed_reply_to(ticket)
 
       mail(
         to: ticket.requester.email,
@@ -75,6 +84,7 @@ module Escalated
       return if recipients.empty?
 
       set_threading_headers(ticket)
+      apply_signed_reply_to(ticket)
 
       mail(
         to: recipients.compact.uniq,
@@ -94,6 +104,7 @@ module Escalated
       return if recipients.compact.empty?
 
       set_threading_headers(ticket)
+      apply_signed_reply_to(ticket)
 
       mail(
         to: recipients.compact.uniq,
@@ -106,6 +117,7 @@ module Escalated
       load_branding
 
       set_threading_headers(ticket)
+      apply_signed_reply_to(ticket)
 
       mail(
         to: ticket.requester.email,
@@ -115,18 +127,36 @@ module Escalated
 
     private
 
-    def message_id_for(ticket)
-      domain = mail_domain
-      "<ticket-#{ticket.id}@#{domain}>"
+    # RFC 5322 Message-ID for the ticket root (the thread anchor).
+    def ticket_message_id(ticket)
+      Escalated::Mail::MessageIdUtil.build_message_id(ticket.id, nil, mail_domain)
+    end
+
+    # RFC 5322 Message-ID for a specific reply, referencing the root.
+    def reply_message_id(ticket, reply)
+      Escalated::Mail::MessageIdUtil.build_message_id(ticket.id, reply.id, mail_domain)
     end
 
     def set_threading_headers(ticket)
-      original_message_id = message_id_for(ticket)
+      original_message_id = ticket_message_id(ticket)
       headers['In-Reply-To'] = original_message_id
       headers['References'] = original_message_id
     end
 
+    # Signed Reply-To so the inbound provider webhook can verify
+    # ticket identity even when clients strip the Message-ID chain.
+    # Skipped when email_inbound_secret is blank.
+    def apply_signed_reply_to(ticket)
+      secret = Escalated.configuration.email_inbound_secret.to_s
+      return if secret.empty?
+
+      headers['Reply-To'] = Escalated::Mail::MessageIdUtil.build_reply_to(ticket.id, secret, mail_domain)
+    end
+
     def mail_domain
+      configured = Escalated.configuration.email_domain.to_s
+      return configured unless configured.empty?
+
       from_address = Escalated.configuration.respond_to?(:mailer_from) ? Escalated.configuration.mailer_from : nil
       if from_address.present? && from_address.include?('@')
         from_address.split('@').last

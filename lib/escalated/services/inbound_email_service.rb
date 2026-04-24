@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'escalated/mail/message_id_util'
+
 module Escalated
   module Services
     class InboundEmailService
@@ -93,34 +95,64 @@ module Escalated
           end
         end
 
-        # Search for an existing ticket using:
-        # 1. Subject line reference tag (e.g., [ESC-2602-ABC123])
-        # 2. In-Reply-To / References headers matching previous message IDs
+        # Search for an existing ticket in priority order:
+        #
+        # 1. In-Reply-To parsed via MessageIdUtil — the reply is
+        #    threading off a Message-ID we issued (cold-start path,
+        #    no DB lookup required).
+        # 2. References parsed via MessageIdUtil, each id in order.
+        # 3. Signed Reply-To on the recipient address
+        #    (reply+{id}.{hmac8}@...) verified via
+        #    MessageIdUtil.verify_reply_to. Survives through clients
+        #    that strip our threading headers; forged signatures are
+        #    rejected.
+        # 4. Subject line reference tag (e.g., [ESC-2602-ABC123]).
+        # 5. Legacy: InboundEmail.message_id lookup.
         #
         # @return [Escalated::Ticket, nil]
         def find_existing_ticket(message)
-          # Strategy 1: Look for ticket reference in subject
+          # Strategies 1 + 2: parse our own Message-IDs.
+          candidate_header_message_ids(message).each do |raw|
+            ticket_id = Escalated::Mail::MessageIdUtil.parse_ticket_id_from_message_id(raw)
+            next if ticket_id.nil?
+
+            ticket = Escalated::Ticket.find_by(id: ticket_id)
+            return ticket if ticket
+          end
+
+          # Strategy 3: signed Reply-To on recipient address.
+          secret = Escalated.configuration.email_inbound_secret.to_s
+          if !secret.empty? && message.to_email.present?
+            verified = Escalated::Mail::MessageIdUtil.verify_reply_to(message.to_email, secret)
+            if verified
+              ticket = Escalated::Ticket.find_by(id: verified)
+              return ticket if ticket
+            end
+          end
+
+          # Strategy 4: subject reference tag.
           reference = message.ticket_reference
           if reference.present?
             ticket = Escalated::Ticket.find_by(reference: reference)
             return ticket if ticket
           end
 
-          # Strategy 2: Look up by In-Reply-To matching a previous inbound email
-          if message.in_reply_to.present?
-            previous = Escalated::InboundEmail.find_by(message_id: message.in_reply_to)
+          # Strategy 5: legacy InboundEmail lookup.
+          candidate_header_message_ids(message).each do |raw|
+            previous = Escalated::InboundEmail.find_by(message_id: raw)
             return previous.ticket if previous&.ticket
           end
 
-          # Strategy 3: Look up by References header
-          if message.references.present?
-            message.references.reverse_each do |ref|
-              previous = Escalated::InboundEmail.find_by(message_id: ref)
-              return previous.ticket if previous&.ticket
-            end
-          end
-
           nil
+        end
+
+        # @return [Array<String>] every candidate Message-ID in the
+        #   inbound headers, in the order the mail client sent them.
+        def candidate_header_message_ids(message)
+          ids = []
+          ids << message.in_reply_to if message.in_reply_to.present?
+          ids.concat(Array(message.references).reverse) if message.references.present?
+          ids
         end
 
         # Add a reply to an existing ticket.

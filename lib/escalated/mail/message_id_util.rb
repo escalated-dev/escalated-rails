@@ -35,7 +35,7 @@ module Escalated
       # header value with or without angle brackets. Returns `nil` when
       # the input doesn't match our shape.
       def parse_ticket_id_from_message_id(raw)
-        return nil if raw.nil? || raw.empty?
+        return nil if raw.blank?
 
         if (m = raw.match(/ticket-(\d+)(?:-reply-\d+)?@/i))
           Integer(m[1])
@@ -54,7 +54,7 @@ module Escalated
       # part). Returns the ticket id on match, `nil` otherwise. Uses
       # `secure_compare` for timing-safe verification.
       def verify_reply_to(address, secret)
-        return nil if address.nil? || address.empty?
+        return nil if address.blank?
 
         local = address.include?('@') ? address.split('@', 2).first : address
         return nil unless (m = local.match(/\Areply\+(\d+)\.([a-f0-9]{8})\z/i))

@@ -82,7 +82,7 @@ RSpec.describe Escalated::Mail::MessageIdUtil do
     it 'rejects a tampered signature' do
       address = described_class.build_reply_to(42, secret, domain)
       at = address.index('@')
-      local = address[0..at - 1]
+      local = address[0..(at - 1)]
       last = local[-1]
       tampered = local[0..-2] + (last == '0' ? '1' : '0') + address[at..]
       expect(described_class.verify_reply_to(tampered, secret)).to be_nil

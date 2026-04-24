@@ -11,7 +11,7 @@ module Escalated
   class Contact < ApplicationRecord
     self.table_name = Escalated.table_name('contacts')
 
-    has_many :tickets, class_name: 'Escalated::Ticket', foreign_key: :contact_id,
+    has_many :tickets, class_name: 'Escalated::Ticket',
                        dependent: :nullify
 
     validates :email, presence: true, uniqueness: { case_sensitive: false }
@@ -23,9 +23,7 @@ module Escalated
         normalized = email.to_s.strip.downcase
         existing = find_by(email: normalized)
         if existing
-          if existing.name.blank? && name.present?
-            existing.update!(name: name)
-          end
+          existing.update!(name: name) if existing.name.blank? && name.present?
           return existing
         end
         create!(email: normalized, name: name, user_id: nil, metadata: {})
@@ -42,7 +40,7 @@ module Escalated
     def promote_to_user!(user_id, user_type = 'User')
       link_to_user!(user_id)
       Escalated::Ticket.where(contact_id: id)
-                      .update_all(requester_id: user_id, requester_type: user_type)
+                       .update_all(requester_id: user_id, requester_type: user_type)
       self
     end
 

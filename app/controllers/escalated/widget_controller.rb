@@ -74,14 +74,14 @@ module Escalated
       #     signup invite is a separate follow-up.
       mode = Escalated::EscalatedSetting.get('guest_policy_mode').presence || 'unassigned'
 
+      # Misconfigured guest_user (zero / missing id) falls through to
+      # unassigned behavior so bad admin input doesn't 500 the public
+      # endpoint.
       if mode == 'guest_user'
         guest_user_id = Escalated::EscalatedSetting.get('guest_policy_user_id').to_i
         if guest_user_id.positive?
           attrs[:requester_type] = Escalated.configuration.user_class
           attrs[:requester_id] = guest_user_id
-        else
-          # Misconfigured guest_user mode: fall through to unassigned
-          # behavior so bad admin input doesn't 500 the public endpoint.
         end
       end
       attrs[:guest_name] = params[:name]

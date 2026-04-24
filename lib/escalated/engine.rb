@@ -89,6 +89,15 @@ module Escalated
       end
     end
 
+    # Wire the WorkflowEngine to the NotificationService's event stream
+    # (via ActiveSupport::Notifications). Without this subscription the
+    # engine is defined but never invoked — matching the fix pattern
+    # applied in escalated-nestjs and the ProcessWorkflows listener in
+    # escalated-laravel.
+    config.after_initialize do
+      Escalated::Services::WorkflowSubscriber.subscribe!
+    end
+
     # Load active plugins after the host app has finished booting so all
     # models, routes, and services are available to plugin code.
     config.after_initialize do

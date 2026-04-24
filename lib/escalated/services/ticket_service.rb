@@ -5,6 +5,7 @@ module Escalated
     class TicketService
       class << self
         def create(params)
+          params = resolve_contact_params(params)
           ticket = driver.create_ticket(params)
 
           if Escalated.configuration.notification_channels.include?(:email)
@@ -189,6 +190,23 @@ module Escalated
 
         def driver
           Escalated.driver
+        end
+
+        # Resolve/create a Contact when inline guest_email is provided
+        # and no contact_id is set. Mutates a local copy of the hash
+        # so callers passing symbol keys or string keys both work.
+        def resolve_contact_params(params)
+          params = params.dup
+          # Already linked to a Contact — nothing to do.
+          return params if params[:contact_id].present? || params['contact_id'].present?
+
+          guest_email = params[:guest_email] || params['guest_email']
+          return params if guest_email.blank?
+
+          guest_name = params[:guest_name] || params['guest_name']
+          contact = Escalated::Contact.find_or_create_by_email(guest_email, guest_name)
+          params[:contact_id] = contact.id
+          params
         end
       end
     end

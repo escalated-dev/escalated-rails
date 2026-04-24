@@ -74,4 +74,28 @@ RSpec.describe Escalated::Contact, type: :model do
       expect(t2.reload.requester_id).to eq(555)
     end
   end
+
+  describe 'tickets association' do
+    it 'has_many tickets via contact_id' do
+      contact = create(:escalated_contact)
+      t1 = create(:escalated_ticket, contact: contact, requester: nil)
+      t2 = create(:escalated_ticket, contact: contact, requester: nil)
+      # Unrelated ticket
+      create(:escalated_ticket, requester: nil)
+
+      expect(contact.tickets.map(&:id)).to contain_exactly(t1.id, t2.id)
+    end
+  end
+
+  describe 'repeat-submission dedupe (Pattern B)' do
+    it 'yields one Contact row even when find_or_create_by_email is called with different casing / whitespace' do
+      c1 = described_class.find_or_create_by_email('alice@example.com', 'Alice')
+      c2 = described_class.find_or_create_by_email('  ALICE@Example.COM  ', 'Alice')
+      c3 = described_class.find_or_create_by_email('alice@example.com', 'Different')
+
+      expect(c1.id).to eq(c2.id)
+      expect(c2.id).to eq(c3.id)
+      expect(described_class.where(email: 'alice@example.com').count).to eq(1)
+    end
+  end
 end

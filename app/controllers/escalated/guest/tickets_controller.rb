@@ -52,11 +52,20 @@ module Escalated
 
         guest_token = SecureRandom.hex(32) # 64-character hex string
 
+        # Dedupe repeat guests by email (Pattern B). Inline guest_*
+        # fields remain populated for the backwards-compat dual-read
+        # period.
+        contact = Escalated::Contact.find_or_create_by_email(
+          guest_ticket_params[:email],
+          guest_ticket_params[:name]
+        )
+
         ticket = Escalated::Ticket.create!(
           requester: nil,
           guest_name: guest_ticket_params[:name],
           guest_email: guest_ticket_params[:email],
           guest_token: guest_token,
+          contact_id: contact.id,
           subject: guest_ticket_params[:subject],
           description: guest_ticket_params[:description],
           priority: guest_ticket_params[:priority] || Escalated.configuration.default_priority,

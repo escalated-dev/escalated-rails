@@ -3,7 +3,6 @@
 require 'rails_helper'
 
 # Ensure the app/services autoloader has warmed up the constant.
-Escalated::WorkflowEngine
 
 RSpec.describe Escalated::Services::WorkflowSubscriber do
   let(:ticket) { create(:escalated_ticket) }
@@ -47,9 +46,9 @@ RSpec.describe Escalated::Services::WorkflowSubscriber do
     allow(engine).to receive(:process_event).and_raise(StandardError, 'boom')
     allow(Rails.logger).to receive(:warn)
 
-    expect {
+    expect do
       instrument(:ticket_created, ticket: ticket)
-    }.not_to raise_error
+    end.not_to raise_error
     expect(Rails.logger).to have_received(:warn).with(/ticket\.created failed.*boom/)
   end
 

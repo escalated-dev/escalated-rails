@@ -25,14 +25,14 @@ module Escalated
     # check inside the callback for safety.
     class WorkflowSubscriber
       EVENT_MAP = {
-        'escalated.notification.ticket_created'   => 'ticket.created',
-        'escalated.notification.status_changed'   => 'ticket.status_changed',
-        'escalated.notification.ticket_assigned'  => 'ticket.assigned',
+        'escalated.notification.ticket_created' => 'ticket.created',
+        'escalated.notification.status_changed' => 'ticket.status_changed',
+        'escalated.notification.ticket_assigned' => 'ticket.assigned',
         'escalated.notification.priority_changed' => 'ticket.priority_changed',
-        'escalated.notification.reply_added'      => 'ticket.replied',
+        'escalated.notification.reply_added' => 'ticket.replied',
         'escalated.notification.ticket_escalated' => 'ticket.escalated',
-        'escalated.notification.sla_breached'     => 'sla.breached',
-        'escalated.notification.sla_warning'      => 'sla.warning'
+        'escalated.notification.sla_breached' => 'sla.breached',
+        'escalated.notification.sla_warning' => 'sla.warning'
       }.freeze
 
       class << self

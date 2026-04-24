@@ -26,6 +26,9 @@ module Escalated
                   :sdk_plugins_enabled,
                   :plugin_runtime_command,
                   :plugin_runtime_cwd,
+                  # Email (outbound + inbound threading)
+                  :email_domain,
+                  :email_inbound_secret,
                   # Inbound email settings
                   :inbound_email_enabled,
                   :inbound_email_adapter,
@@ -88,6 +91,9 @@ module Escalated
       @sdk_plugins_enabled    = false
       @plugin_runtime_command = nil  # defaults to "node node_modules/@escalated-dev/plugin-runtime/dist/index.js"
       @plugin_runtime_cwd     = nil  # defaults to Rails.root
+
+      # Email threading — domain for Message-IDs, secret for Reply-To HMAC.
+      @email_domain = @email_inbound_secret = nil
 
       # Inbound email defaults
       @inbound_email_enabled = false

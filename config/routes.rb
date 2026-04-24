@@ -191,6 +191,8 @@ Escalated::Engine.routes.draw do
     post 'settings/sso', to: 'settings#update_sso', as: :settings_update_sso
     get 'settings/csat', to: 'settings#csat', as: :settings_csat
     post 'settings/csat', to: 'settings#update_csat', as: :settings_update_csat
+    get 'settings/public_tickets', to: 'settings#public_tickets', as: :settings_public_tickets
+    put 'settings/public_tickets', to: 'settings#update_public_tickets', as: :settings_update_public_tickets
     resources :custom_objects, only: %i[index create update destroy] do
       member do
         get :records

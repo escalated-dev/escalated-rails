@@ -102,6 +102,46 @@ module Escalated
         redirect_to escalated.admin_settings_csat_path, notice: I18n.t('escalated.admin.settings.updated')
       end
 
+      def public_tickets
+        user_id_raw = Escalated::EscalatedSetting.get('guest_policy_user_id').to_s
+        render_page 'Escalated/Admin/Settings/PublicTickets', {
+          settings: {
+            guest_policy_mode: Escalated::EscalatedSetting.get('guest_policy_mode').presence || 'unassigned',
+            guest_policy_user_id: user_id_raw.presence&.to_i,
+            guest_policy_signup_url_template: Escalated::EscalatedSetting.get('guest_policy_signup_url_template').to_s
+          }
+        }
+      end
+
+      def update_public_tickets
+        mode = params[:guest_policy_mode].to_s
+        unless %w[unassigned guest_user prompt_signup].include?(mode)
+          return redirect_to escalated.admin_settings_public_tickets_path,
+                             alert: I18n.t('escalated.admin.settings.updated')
+        end
+
+        Escalated::EscalatedSetting.set('guest_policy_mode', mode)
+
+        if mode == 'guest_user'
+          user_id = params[:guest_policy_user_id].to_i
+          Escalated::EscalatedSetting.set('guest_policy_user_id', user_id.positive? ? user_id.to_s : '')
+        else
+          Escalated::EscalatedSetting.set('guest_policy_user_id', '')
+        end
+
+        if mode == 'prompt_signup'
+          Escalated::EscalatedSetting.set(
+            'guest_policy_signup_url_template',
+            params[:guest_policy_signup_url_template].to_s.strip
+          )
+        else
+          Escalated::EscalatedSetting.set('guest_policy_signup_url_template', '')
+        end
+
+        redirect_to escalated.admin_settings_public_tickets_path,
+                    notice: I18n.t('escalated.admin.settings.updated')
+      end
+
       def update
         # Boolean settings
         %w[guest_tickets_enabled allow_customer_close inbound_email_enabled show_powered_by

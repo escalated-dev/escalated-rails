@@ -5,6 +5,7 @@ module Escalated
     self.table_name = Escalated.table_name('tickets')
 
     belongs_to :requester, polymorphic: true, optional: true
+    belongs_to :contact, class_name: 'Escalated::Contact', optional: true
     belongs_to :assignee,
                class_name: Escalated.configuration.user_class,
                optional: true,

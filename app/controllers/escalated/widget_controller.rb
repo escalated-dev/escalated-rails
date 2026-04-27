@@ -55,14 +55,39 @@ module Escalated
 
     # POST /support/widget/tickets
     def create_ticket
-      ticket = Escalated::Services::TicketService.create(
+      attrs = {
         subject: params[:subject],
         description: params[:description],
-        guest_name: params[:name],
-        guest_email: params[:email],
         priority: Escalated.configuration.default_priority,
         metadata: { 'source' => 'widget' }
-      )
+      }
+
+      # Apply the admin-configured guest policy. Persisted by
+      # Admin::SettingsController under three keys in
+      # escalated_escalated_settings. Modes:
+      #   - unassigned (default): guest_name / guest_email set,
+      #     requester_type / requester_id left nil.
+      #   - guest_user: route to a pre-created host-app user via
+      #     requester_type + requester_id. Still records the guest
+      #     email so agents see who submitted.
+      #   - prompt_signup: same ticket-create path as unassigned;
+      #     signup invite is a separate follow-up.
+      mode = Escalated::EscalatedSetting.get('guest_policy_mode').presence || 'unassigned'
+
+      # Misconfigured guest_user (zero / missing id) falls through to
+      # unassigned behavior so bad admin input doesn't 500 the public
+      # endpoint.
+      if mode == 'guest_user'
+        guest_user_id = Escalated::EscalatedSetting.get('guest_policy_user_id').to_i
+        if guest_user_id.positive?
+          attrs[:requester_type] = Escalated.configuration.user_class
+          attrs[:requester_id] = guest_user_id
+        end
+      end
+      attrs[:guest_name] = params[:name]
+      attrs[:guest_email] = params[:email]
+
+      ticket = Escalated::Services::TicketService.create(attrs)
 
       render json: {
         reference: ticket.reference,

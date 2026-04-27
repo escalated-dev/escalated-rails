@@ -29,3 +29,7 @@ log/
 
 # Node modules (for Vue assets)
 node_modules/
+
+# RSpec local artifacts
+spec/examples.txt
+spec/dummy/tmp/

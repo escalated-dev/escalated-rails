@@ -23,10 +23,8 @@ module Escalated
       begin
         central_spec = Gem::Specification.find_by_name('escalated-locale')
         central_path = File.join(central_spec.gem_dir, 'locales')
-        if File.directory?(central_path)
-          config.i18n.load_path += Dir[File.join(central_path, '*.yml')]
-        end
-      rescue Gem::MissingSpecError, Gem::LoadError
+        config.i18n.load_path += Dir[File.join(central_path, '*.yml')] if File.directory?(central_path)
+      rescue Gem::LoadError
         # The central gem is optional at boot — if it's not yet installed
         # (e.g. during early CI before publish) fall back to plugin-local
         # translations only. A warning is logged so this isn't silent.

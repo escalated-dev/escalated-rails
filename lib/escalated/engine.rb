@@ -9,7 +9,32 @@ module Escalated
     end
 
     initializer 'escalated.i18n' do
+      # Load translations in priority order so the *last* path wins per
+      # Rails I18n's load semantics:
+      #
+      #   1. Central translations from the escalated-locale gem
+      #      (canonical source of truth for the whole portfolio).
+      #   2. Plugin-local config/locales/*.yml — these override central
+      #      keys, allowing per-host customization without forking the
+      #      shared gem.
+      #
+      # Host applications can still place their own files in
+      # config/locales/ to override either source.
+      begin
+        central_spec = Gem::Specification.find_by_name('escalated-locale')
+        central_path = File.join(central_spec.gem_dir, 'locales')
+        config.i18n.load_path += Dir[File.join(central_path, '*.yml')] if File.directory?(central_path)
+      rescue Gem::LoadError
+        # The central gem is optional at boot — if it's not yet installed
+        # (e.g. during early CI before publish) fall back to plugin-local
+        # translations only. A warning is logged so this isn't silent.
+        warn '[Escalated::Engine] escalated-locale gem not found; ' \
+             'using plugin-local translations only.'
+      end
+
       config.i18n.load_path += Dir[root.join('config', 'locales', '*.yml')]
+      config.i18n.load_path += Dir[root.join('config', 'locales', 'overrides', '*.yml')]
+      config.i18n.fallbacks = true
     end
 
     initializer 'escalated.assets' do |app|

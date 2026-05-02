@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- Consume central translations from the `escalated-locale` gem; plugin-local `config/locales/*.yml` and a new `config/locales/overrides/` directory still override central keys (last-loaded wins)
 - SAML and JWT validation in SSO service
 - Full automation system matching Laravel AutomationRunner
 - Ticket type validation, scope, and controller filtering

@@ -418,6 +418,25 @@ export default definePlugin({
 - [Plugin Runtime](https://github.com/escalated-dev/escalated-plugin-runtime) — Runtime host for plugins
 - [Plugin Development Guide](https://github.com/escalated-dev/escalated-docs) — Full documentation
 
+## Internationalization
+
+Translations are sourced from the central [`escalated-locale`](https://github.com/escalated-dev/escalated-locale)
+RubyGem, which is the canonical source of truth for every Escalated
+plugin in the portfolio. The engine appends the gem's `locales/*.yml`
+files to `I18n.load_path` automatically — you do not need to require
+anything in your host app.
+
+Override order (last wins):
+
+1. `escalated-locale` gem — central, portfolio-wide
+2. `config/locales/*.yml` inside this engine — plugin-local overrides
+3. `config/locales/overrides/*.yml` inside this engine — host-specific
+   tweaks that should not be upstreamed
+4. The host application's own `config/locales/*.yml`
+
+Missing keys in the lower layers fall through to the central gem via
+`I18n.fallbacks`.
+
 ## Also Available For
 
 - **[Escalated for Laravel](https://github.com/escalated-dev/escalated-laravel)** — Laravel Composer package

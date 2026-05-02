@@ -14,6 +14,7 @@ Gem::Specification.new do |spec|
   spec.files = Dir['lib/**/*', 'app/**/*', 'config/**/*', 'db/**/*', 'resources/**/*', 'stubs/**/*', 'LICENSE',
                    'README.md']
 
+  spec.add_dependency 'escalated-locale', '~> 0.1'
   spec.add_dependency 'inertia_rails', '>= 3.0'
   spec.add_dependency 'pundit', '>= 2.0'
   spec.add_dependency 'rails', '>= 7.0'

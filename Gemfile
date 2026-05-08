@@ -7,7 +7,7 @@ gemspec
 gem 'escalated-locale',
     git: 'https://github.com/escalated-dev/escalated-locale.git',
     glob: 'packages/rubygems/escalated-locale.gemspec',
-    tag: 'v0.1.1'
+    tag: 'v0.1.8'
 
 gem 'rexml'
 gem 'tzinfo-data'

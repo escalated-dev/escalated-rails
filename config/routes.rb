@@ -127,6 +127,10 @@ Escalated::Engine.routes.draw do
     resources :roles, only: %i[index create update destroy]
     resources :audit_logs, only: [:index]
 
+    # Users (host User model: list + grant/revoke admin/agent flags)
+    get 'users', to: 'users#index', as: :users
+    patch 'users/:user_id/role', to: 'users#update_role', as: :user_role
+
     # Phase 2
     resources :custom_fields, only: %i[index create update destroy] do
       collection do

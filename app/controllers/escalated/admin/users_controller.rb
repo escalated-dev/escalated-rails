@@ -51,7 +51,7 @@ module Escalated
           return
         end
 
-        target = user_class.find(params[:user_id])
+        target = user_class.find(params.expect(:user_id))
 
         # Don't let an admin demote themselves and lock themselves out of
         # the admin panel they're trying to use.

@@ -15,11 +15,20 @@ class User < ApplicationRecord
   validates :email, presence: true, uniqueness: true
 
   def escalated_agent?
+    return true if respond_to?(:is_agent) && is_agent
+    return true if respond_to?(:is_admin) && is_admin
+
     %w[agent admin].include?(role)
   end
 
-  def admin?
+  def escalated_admin?
+    return true if respond_to?(:is_admin) && is_admin
+
     role == 'admin'
+  end
+
+  def admin?
+    escalated_admin?
   end
 
   def to_s

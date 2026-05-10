@@ -8,10 +8,13 @@ FactoryBot.define do
 
     trait :agent do
       role { 'agent' }
+      is_agent { true }
     end
 
     trait :admin do
       role { 'admin' }
+      is_admin { true }
+      is_agent { true }
     end
   end
 end

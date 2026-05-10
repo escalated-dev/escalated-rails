@@ -11,9 +11,10 @@ module Escalated
       before_action :require_admin!
 
       def index
-        scope = user_class.all
+        search = filter_params[:search].to_s.strip
+        scope  = user_class.all
 
-        if (search = params[:search].to_s.strip).present?
+        if search.present?
           term = "%#{search}%"
           conditions = ['email LIKE ?']
           values     = [term]
@@ -33,14 +34,15 @@ module Escalated
             data: result[:data].map { |u| user_json(u) },
             meta: result[:meta]
           },
-          filters: { search: params[:search].to_s },
+          filters: { search: search },
           currentUserId: current_user&.id
         }
       end
 
       def update_role
-        role  = params[:role].to_s
-        value = ActiveModel::Type::Boolean.new.cast(params[:value])
+        attrs = role_params
+        role  = attrs[:role].to_s
+        value = ActiveModel::Type::Boolean.new.cast(attrs[:value])
 
         unless %w[admin agent].include?(role)
           redirect_back_or_to(escalated.admin_users_path,
@@ -82,6 +84,14 @@ module Escalated
       end
 
       private
+
+      def filter_params
+        params.permit(:search)
+      end
+
+      def role_params
+        params.permit(:role, :value)
+      end
 
       def user_class
         Escalated.configuration.user_model

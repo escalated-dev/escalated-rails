@@ -4,13 +4,13 @@ require 'rails_helper'
 
 RSpec.describe Escalated::Services::TicketService, '.split' do
   let(:user) { create(:user) }
-  let(:ticket) do
+  let!(:ticket) do
     t = create(:escalated_ticket, :with_department, priority: :high, requester: user, department: department)
     t.tags << tag1
     t.tags << tag2
     t
   end
-  let(:reply) do
+  let!(:reply) do
     create(:escalated_reply, ticket: ticket, author: user, body: 'I have a separate issue with billing.')
   end
   let(:agent) { create(:user, :agent) }

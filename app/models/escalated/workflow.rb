@@ -4,9 +4,6 @@ module Escalated
   class Workflow < ApplicationRecord
     self.table_name = Escalated.table_name('workflows')
 
-    serialize :conditions, coder: JSON
-    serialize :actions, coder: JSON
-
     has_many :workflow_logs, dependent: :destroy
     has_many :delayed_actions, dependent: :destroy
 
@@ -16,8 +13,8 @@ module Escalated
              ticket.priority_changed ticket.tagged ticket.department_changed
              reply.created reply.agent_reply sla.warning sla.breached ticket.reopened]
     }
-    validates :conditions, presence: true
-    validates :actions, presence: true
+    validate :conditions_must_be_present
+    validate :actions_must_be_present
     validate :conditions_must_be_valid
     validate :actions_must_be_array
 
@@ -37,6 +34,14 @@ module Escalated
     ].freeze
 
     private
+
+    def conditions_must_be_present
+      errors.add(:conditions, :blank) if conditions.nil?
+    end
+
+    def actions_must_be_present
+      errors.add(:actions, :blank) if actions.nil?
+    end
 
     def conditions_must_be_valid
       return if conditions.is_a?(Hash) && (conditions.key?('all') || conditions.key?('any'))

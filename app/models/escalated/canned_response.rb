@@ -17,8 +17,15 @@ module Escalated
     scope :for_user, ->(user_id) { where(is_shared: true).or(where(created_by: user_id)) }
     scope :by_category, ->(category) { where(category: category) }
     scope :search, lambda { |term|
-      where('title LIKE :term OR body LIKE :term OR shortcode LIKE :term',
-            term: "%#{sanitize_sql_like(term)}%")
+      return all if term.blank?
+
+      sanitized = sanitize_sql_like(term.to_s)
+      pattern = "%#{sanitized}%"
+      where(
+        'title LIKE :pattern ESCAPE :escape OR body LIKE :pattern ESCAPE :escape OR ' \
+        'shortcode LIKE :pattern ESCAPE :escape',
+        pattern: pattern, escape: '\\'
+      )
     }
     scope :ordered, -> { order(:title) }
 

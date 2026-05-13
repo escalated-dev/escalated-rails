@@ -967,6 +967,13 @@ RSpec.describe Escalated::AgentSkill, type: :model do
   # Validations
   # ------------------------------------------------------------------ #
   describe 'validations' do
+    it 'requires proficiency between 1 and 5' do
+      user = create(:user)
+      skill = create(:escalated_skill)
+      bad = described_class.new(user_id: user.id, skill_id: skill.id, proficiency: 99)
+      expect(bad).not_to be_valid
+    end
+
     context 'uniqueness' do
       let(:user) { create(:user) }
       let(:skill) { create(:escalated_skill) }
@@ -995,6 +1002,8 @@ RSpec.describe Escalated::Skill, type: :model do
   # Associations
   # ------------------------------------------------------------------ #
   describe 'associations' do
+    it { is_expected.to have_many(:routing_tags).class_name('Escalated::SkillRoutingTag').dependent(:destroy) }
+    it { is_expected.to have_many(:routing_departments).class_name('Escalated::SkillRoutingDepartment').dependent(:destroy) }
     it { is_expected.to have_many(:agent_skills).class_name('Escalated::AgentSkill').dependent(:destroy) }
 
     it 'has many agents through agent_skills' do
@@ -1261,9 +1270,15 @@ RSpec.describe Escalated::Automation, type: :model do
   describe 'scopes' do
     describe '.active' do
       it 'returns only active automations ordered by position' do
-        active_second = described_class.create!(name: 'Rule B', active: true, position: 2)
-        active_first = described_class.create!(name: 'Rule A', active: true, position: 1)
-        _inactive = described_class.create!(name: 'Rule C', active: false, position: 0)
+        active_second = described_class.create!(
+          name: 'Rule B', active: true, position: 2, conditions: [], actions: []
+        )
+        active_first = described_class.create!(
+          name: 'Rule A', active: true, position: 1, conditions: [], actions: []
+        )
+        _inactive = described_class.create!(
+          name: 'Rule C', active: false, position: 0, conditions: [], actions: []
+        )
 
         result = described_class.active
         expect(result).to include(active_first, active_second)

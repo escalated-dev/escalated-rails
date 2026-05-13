@@ -7,8 +7,6 @@ module Escalated
     belongs_to :workflow
     belongs_to :ticket
 
-    serialize :actions_executed, coder: JSON
-
     validates :trigger_event, presence: true
     validates :status, presence: true, inclusion: { in: %w[success failure skipped] }
 

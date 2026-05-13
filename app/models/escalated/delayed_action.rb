@@ -7,8 +7,6 @@ module Escalated
     belongs_to :workflow
     belongs_to :ticket
 
-    serialize :action_data, coder: JSON
-
     validates :action_data, presence: true
     validates :execute_at, presence: true
 

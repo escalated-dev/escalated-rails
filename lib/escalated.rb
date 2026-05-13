@@ -50,11 +50,11 @@ module Escalated
       yield(configuration)
     end
 
-    # Note: cannot use `delegate :driver, to: :Manager` — that resolves `:Manager` as a
-    # method name on the singleton class, not the Escalated::Manager constant.
+    # rubocop:disable Rails/Delegate -- `delegate :driver, to: :Manager` calls #Manager on the singleton class, not Escalated::Manager.
     def driver
       Manager.driver
     end
+    # rubocop:enable Rails/Delegate
 
     # Global UI renderer instance.
     #

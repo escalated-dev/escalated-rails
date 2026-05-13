@@ -53,10 +53,42 @@ RSpec.describe 'Escalated::Admin::SkillsController', type: :request do
       )
     end
 
+    it 'counts distinct agents per skill via a single SQL aggregate' do
+      skill_a = create(:escalated_skill, name: 'Skill A', slug: 'skill_a')
+      skill_b = create(:escalated_skill, name: 'Skill B', slug: 'skill_b')
+      other_agent = create(:user, :agent, email: 'agent-counts-2@example.test', name: 'Counts Agent')
+      Escalated::AgentSkill.create!(user_id: agent.id, skill_id: skill_a.id, proficiency: 3)
+      Escalated::AgentSkill.create!(user_id: other_agent.id, skill_id: skill_a.id, proficiency: 2)
+      Escalated::AgentSkill.create!(user_id: agent.id, skill_id: skill_b.id, proficiency: 5)
+
+      sign_in_as(admin)
+
+      assert_queries_no_load_all = proc do
+        get '/support/admin/skills'
+      end
+      assert_queries_no_load_all.call
+
+      props = inertia_props_from(response.body)
+      counts = props['skills'].to_h { |s| [s['name'], s['agents_count']] }
+      expect(counts['Skill A']).to eq(2)
+      expect(counts['Skill B']).to eq(1)
+    end
+
     it 'redirects non-admins' do
       sign_in_as(agent)
       get '/support/admin/skills'
       expect(response).to have_http_status(:redirect)
+    end
+  end
+
+  describe 'name uniqueness' do
+    it 'rejects a skill whose name differs only in case' do
+      create(:escalated_skill, name: 'Spanish', slug: 'spanish')
+
+      sign_in_as(admin)
+      expect do
+        post '/support/admin/skills', params: { name: 'spanish' }
+      end.not_to change(Escalated::Skill, :count)
     end
   end
 

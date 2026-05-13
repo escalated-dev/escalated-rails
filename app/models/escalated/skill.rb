@@ -18,7 +18,7 @@ module Escalated
              source: :user,
              class_name: Escalated.configuration.user_class
 
-    validates :name, presence: true, length: { maximum: 100 }, uniqueness: true
+    validates :name, presence: true, length: { maximum: 100 }, uniqueness: { case_sensitive: false }
     validates :slug, presence: true, uniqueness: true
 
     before_validation :generate_slug, if: -> { slug.blank? }

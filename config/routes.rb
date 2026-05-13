@@ -160,7 +160,7 @@ Escalated::Engine.routes.draw do
     resources :kb_categories, only: %i[index create update destroy]
 
     # Phase 3
-    resources :skills, only: %i[index create update destroy]
+    resources :skills, only: %i[index new create edit update destroy]
     resources :capacity, only: %i[index update]
 
     # Phase 4

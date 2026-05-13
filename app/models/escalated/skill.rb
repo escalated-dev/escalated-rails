@@ -4,13 +4,21 @@ module Escalated
   class Skill < ApplicationRecord
     self.table_name = Escalated.table_name('skills')
 
+    scope :ordered, -> { order(:name) }
+
+    has_many :routing_tags, class_name: 'Escalated::SkillRoutingTag', dependent: :destroy
+    has_many :tags, through: :routing_tags, class_name: 'Escalated::Tag'
+
+    has_many :routing_departments, class_name: 'Escalated::SkillRoutingDepartment', dependent: :destroy
+    has_many :departments, through: :routing_departments, class_name: 'Escalated::Department'
+
     has_many :agent_skills, class_name: 'Escalated::AgentSkill', dependent: :destroy
     has_many :agents,
              through: :agent_skills,
              source: :user,
              class_name: Escalated.configuration.user_class
 
-    validates :name, presence: true
+    validates :name, presence: true, length: { maximum: 100 }, uniqueness: true
     validates :slug, presence: true, uniqueness: true
 
     before_validation :generate_slug, if: -> { slug.blank? }

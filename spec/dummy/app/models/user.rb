@@ -1,6 +1,10 @@
 # frozen_string_literal: true
 
 class User < ApplicationRecord
+  scope :escalated_agents, lambda {
+    where(is_agent: true).or(where(role: %w[agent admin]))
+  }
+
   has_many :escalated_tickets,
            class_name: 'Escalated::Ticket',
            as: :requester,

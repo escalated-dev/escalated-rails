@@ -23,8 +23,12 @@ module Escalated
     end
 
     def set_inertia_shared_data
+      user_data = current_user_data
       shared = {
-        current_user: current_user_data,
+        auth: {
+          user: user_data
+        },
+        current_user: user_data,
         escalated: {
           route_prefix: Escalated.configuration.route_prefix,
           allow_customer_close: Escalated.configuration.allow_customer_close,

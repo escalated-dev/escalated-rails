@@ -299,7 +299,7 @@ RSpec.describe Escalated::Services::SkillRoutingService do
   # #find_matching_agents
   # ------------------------------------------------------------------ #
   describe '#find_matching_agents' do
-    context 'when ticket has no tags' do
+    context 'when ticket has no tags and no department' do
       it 'returns an empty relation' do
         ticket = create(:escalated_ticket)
 
@@ -309,39 +309,42 @@ RSpec.describe Escalated::Services::SkillRoutingService do
       end
     end
 
-    context 'when no skills match the ticket tags' do
+    context 'when ticket tags are not mapped to any skill routing rule' do
       it 'returns an empty relation' do
         tag = create(:escalated_tag, name: 'billing')
         ticket = create(:escalated_ticket)
         ticket.tags << tag
+        skill = create(:escalated_skill, name: 'Orphan Skill')
+        expect(skill.tags).to be_empty
 
-        # No skill named "billing" exists
         result = service.find_matching_agents(ticket)
 
         expect(result).to be_empty
       end
     end
 
-    context 'when skills exist but no agents have them' do
+    context 'when skills match via explicit tag mapping but no agents have them' do
       it 'returns an empty relation' do
         tag = create(:escalated_tag, name: 'networking')
-        create(:escalated_skill, name: 'networking')
+        skill = create(:escalated_skill, name: 'Networking Support')
+        Escalated::SkillRoutingTag.create!(skill: skill, tag: tag)
+
         ticket = create(:escalated_ticket)
         ticket.tags << tag
 
-        # Skill exists but no AgentSkill records
         result = service.find_matching_agents(ticket)
 
         expect(result).to be_empty
       end
     end
 
-    context 'when matching agents exist' do
+    context 'when skills match via explicit tag mapping and agents qualify' do
       it 'returns agents with matching skills' do
         agent = create(:user, :agent)
         tag = create(:escalated_tag, name: 'ruby')
-        skill = create(:escalated_skill, name: 'ruby')
-        Escalated::AgentSkill.create!(user_id: agent.id, skill_id: skill.id)
+        skill = create(:escalated_skill, name: 'Ruby Expert')
+        Escalated::SkillRoutingTag.create!(skill: skill, tag: tag)
+        Escalated::AgentSkill.create!(user_id: agent.id, skill_id: skill.id, proficiency: 3)
 
         ticket = create(:escalated_ticket)
         ticket.tags << tag
@@ -350,6 +353,87 @@ RSpec.describe Escalated::Services::SkillRoutingService do
 
         expect(result.map(&:id)).to include(agent.id)
       end
+    end
+
+    context 'when skill name matches tag name but there is no routing row' do
+      it 'does not treat the name collision as a routing rule' do
+        agent = create(:user, :agent)
+        tag = create(:escalated_tag, name: 'rust')
+        skill = create(:escalated_skill, name: 'rust')
+        Escalated::AgentSkill.create!(user_id: agent.id, skill_id: skill.id, proficiency: 3)
+
+        ticket = create(:escalated_ticket)
+        ticket.tags << tag
+
+        result = service.find_matching_agents(ticket)
+
+        expect(result).to be_empty
+      end
+    end
+
+    context 'when multiple skills are required (tag + department), agents need all of them' do
+      it 'excludes agents missing any required skill' do
+        dept = create(:escalated_department)
+        tag = create(:escalated_tag, name: 'priority')
+        skill_tag = create(:escalated_skill, name: 'Tag Skill')
+        skill_dept = create(:escalated_skill, name: 'Dept Skill')
+        Escalated::SkillRoutingTag.create!(skill: skill_tag, tag: tag)
+        Escalated::SkillRoutingDepartment.create!(skill: skill_dept, department: dept)
+
+        full_agent = create(:user, :agent)
+        partial_agent = create(:user, :agent)
+        Escalated::AgentSkill.create!(user_id: full_agent.id, skill_id: skill_tag.id, proficiency: 4)
+        Escalated::AgentSkill.create!(user_id: full_agent.id, skill_id: skill_dept.id, proficiency: 2)
+        Escalated::AgentSkill.create!(user_id: partial_agent.id, skill_id: skill_tag.id, proficiency: 5)
+
+        ticket = create(:escalated_ticket, department: dept)
+        ticket.tags << tag
+
+        result = service.find_matching_agents(ticket)
+
+        expect(result.map(&:id)).to contain_exactly(full_agent.id)
+      end
+    end
+
+    context 'when multiple eligible agents exist' do
+      # rubocop:disable RSpec/ExampleLength -- setup-heavy ordering scenario
+      it 'orders by sum of proficiency on required skills, then open ticket load' do
+        dept = create(:escalated_department)
+        skill = create(:escalated_skill, name: 'Dept Routed')
+        Escalated::SkillRoutingDepartment.create!(skill: skill, department: dept)
+
+        stronger = create(:user, :agent, email: 'stronger@example.test')
+        weaker = create(:user, :agent, email: 'weaker@example.test')
+        Escalated::AgentSkill.create!(user_id: stronger.id, skill_id: skill.id, proficiency: 5)
+        Escalated::AgentSkill.create!(user_id: weaker.id, skill_id: skill.id, proficiency: 2)
+
+        create(
+          :escalated_ticket,
+          department: dept,
+          assigned_to: weaker.id,
+          status: :open,
+          subject: 'Open load',
+          description: 'Body',
+          requester: create(:user)
+        )
+        create(
+          :escalated_ticket,
+          department: dept,
+          assigned_to: stronger.id,
+          status: :resolved,
+          subject: 'Resolved load',
+          description: 'Body',
+          requester: create(:user)
+        )
+
+        ticket = create(:escalated_ticket, department: dept)
+
+        result = service.find_matching_agents(ticket).to_a
+
+        expect(result.first.id).to eq(stronger.id)
+        expect(result.second.id).to eq(weaker.id)
+      end
+      # rubocop:enable RSpec/ExampleLength
     end
   end
 end

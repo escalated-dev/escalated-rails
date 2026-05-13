@@ -113,8 +113,9 @@ module Escalated
 
         Escalated::AgentSkill
           .where(skill_id: skill_ids)
-          .group_by(&:skill_id)
-          .transform_values { |rows| rows.map(&:user_id).uniq.size }
+          .group(:skill_id)
+          .distinct
+          .count(:user_id)
       end
 
       def form_context_props

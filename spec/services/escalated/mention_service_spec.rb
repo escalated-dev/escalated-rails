@@ -4,7 +4,7 @@ require 'rails_helper'
 
 RSpec.describe Escalated::MentionService do
   let(:service) { described_class.new }
-  let(:agent) { create(:user) }
+  let(:agent) { create(:user, name: 'Mention Agent', email: 'mention.agent@example.com') }
   let(:ticket) { create(:escalated_ticket) }
 
   describe '#extract_mentions' do
@@ -41,7 +41,7 @@ RSpec.describe Escalated::MentionService do
     before { agent }
 
     it 'returns matching agents' do
-      results = service.search_agents(agent.email[0..3])
+      results = service.search_agents('mention')
       expect(results).to be_an(Array)
       expect(results.first).to have_key(:id)
       expect(results.first).to have_key(:name)
@@ -75,7 +75,7 @@ RSpec.describe Escalated::MentionService do
     it 'creates activity records for notifications' do
       service.process_mentions(reply)
       # Verify activity was created if user was found
-      activities = Escalated::TicketActivity.where(ticket: ticket, activity_type: 'mention')
+      activities = Escalated::TicketActivity.where(ticket: ticket, action: 'mention')
       # May or may not find user depending on email pattern matching
       expect(activities.count).to be >= 0
     end

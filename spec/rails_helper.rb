@@ -7,6 +7,16 @@ ENV['RAILS_ENV'] ||= 'test'
 # Load the dummy Rails application for testing
 require File.expand_path('dummy/config/environment', __dir__)
 
+# The dummy app does not include Devise (or similar); request specs stub #current_user on instances.
+Escalated::ApplicationController.class_eval do
+  def current_user
+    nil
+  end
+end
+
+require 'faker'
+Faker::Config.locale = :en
+
 abort('The Rails environment is running in production mode!') if Rails.env.production?
 
 require 'rspec/rails'
@@ -35,12 +45,24 @@ RSpec.configure do |config|
 
   # Run migrations in memory before the suite
   config.before(:suite) do
+    if defined?(I18n) && I18n.load_path
+      # Keep only English-ish locale files from escalated-locale; some locale YAML files
+      # break Psych on Windows + Ruby 3.4 during Faker-backed factory resolution.
+      I18n.load_path.delete_if do |path|
+        path.include?('escalated-locale') && !File.basename(path).start_with?('en')
+      end
+    end
+
     # Run all migrations against the in-memory SQLite database
     ActiveRecord::Migration.verbose = false
 
     # Run the dummy app's user migration
     dummy_migrations_path = File.expand_path('dummy/db/migrate', __dir__)
     ActiveRecord::MigrationContext.new(dummy_migrations_path).migrate if File.directory?(dummy_migrations_path)
+
+    # Active Storage (required for Escalated::Attachment#has_one_attached in specs)
+    astorage_migrations = ActiveStorage::Engine.root.join('db/migrate')
+    ActiveRecord::MigrationContext.new(astorage_migrations).migrate if astorage_migrations.exist?
 
     # Run the engine's migrations
     engine_migrations_path = File.expand_path('../db/migrate', __dir__)
@@ -54,6 +76,10 @@ RSpec.configure do |config|
     DatabaseCleaner.cleaning do
       example.run
     end
+  end
+
+  config.after do
+    Faker::UniqueGenerator.clear
   end
 
   # Reset Escalated driver between tests to avoid stale state

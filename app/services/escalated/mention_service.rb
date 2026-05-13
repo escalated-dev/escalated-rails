@@ -89,9 +89,9 @@ module Escalated
         notification_body = "You were mentioned in ticket ##{ticket.reference}"
 
         # Create an activity record for the mention notification
-        Escalated::TicketActivity.create(
+        Escalated::TicketActivity.create!(
           ticket: ticket,
-          activity_type: 'mention',
+          action: 'mention',
           details: {
             mentioned_user_id: mention.user_id,
             reply_id: reply.id,

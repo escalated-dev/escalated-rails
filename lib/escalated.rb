@@ -50,7 +50,11 @@ module Escalated
       yield(configuration)
     end
 
-    delegate :driver, to: :Manager
+    # Note: cannot use `delegate :driver, to: :Manager` — that resolves `:Manager` as a
+    # method name on the singleton class, not the Escalated::Manager constant.
+    def driver
+      Manager.driver
+    end
 
     # Global UI renderer instance.
     #

@@ -10,11 +10,6 @@ module Escalated
 
     encrypts :credentials
 
-    serialize :credentials, coder: JSON
-    serialize :field_mappings, coder: JSON
-    serialize :progress, coder: JSON
-    serialize :error_log, coder: JSON
-
     VALID_TRANSITIONS = {
       'pending' => %w[authenticating],
       'authenticating' => %w[mapping failed],

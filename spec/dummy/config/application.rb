@@ -5,12 +5,20 @@ require_relative 'boot'
 require 'rails'
 require 'active_model/railtie'
 require 'active_record/railtie'
+require 'active_storage/engine'
 require 'action_controller/railtie'
 require 'action_mailer/railtie'
 require 'action_view/railtie'
+require 'action_cable/engine'
 require 'rails/test_unit/railtie'
 
 Bundler.require(*Rails.groups)
+
+# Ensure Inertia helpers (e.g. inertia_share) are mixed into ActionController::Base in the dummy app.
+require 'inertia_rails'
+
+# Runtime dependencies of the engine are not always auto-required by this minimal dummy app.
+require 'pundit'
 
 require 'escalated'
 
@@ -19,6 +27,8 @@ module Dummy
     config.root = File.expand_path('..', __dir__)
     config.load_defaults Rails::VERSION::STRING.to_f
     config.eager_load = false
+
+    config.action_controller.allow_forgery_protection = false if Rails.env.test?
 
     # Minimal configuration for testing
     config.active_record.maintain_test_schema = false

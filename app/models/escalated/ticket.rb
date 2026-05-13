@@ -13,7 +13,7 @@ module Escalated
     belongs_to :department, optional: true
     belongs_to :sla_policy, optional: true
     has_many :replies, dependent: :destroy
-    has_many :attachments, as: :attachable, dependent: :destroy
+    has_many :attachments, as: :attachable, dependent: :destroy, class_name: 'Escalated::Attachment'
     has_many :activities, class_name: 'Escalated::TicketActivity', dependent: :destroy
     has_and_belongs_to_many :tags,
                             join_table: Escalated.table_name('ticket_tags'),

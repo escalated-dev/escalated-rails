@@ -6,11 +6,10 @@ module Escalated
 
     STATUSES = %w[draft scheduled sending sent paused failed].freeze
 
-    belongs_to :target_list, class_name: 'Escalated::NewsletterList', foreign_key: :target_list_id
-    belongs_to :template, class_name: 'Escalated::NewsletterTemplate', foreign_key: :template_id,
+    belongs_to :target_list, class_name: 'Escalated::NewsletterList'
+    belongs_to :template, class_name: 'Escalated::NewsletterTemplate',
                           optional: true
-    has_many :deliveries, class_name: 'Escalated::NewsletterDelivery',
-                          foreign_key: :newsletter_id, dependent: :destroy
+    has_many :deliveries, class_name: 'Escalated::NewsletterDelivery', dependent: :destroy
 
     validates :subject, presence: true
     validates :from_email, presence: true

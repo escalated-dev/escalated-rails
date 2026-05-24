@@ -38,7 +38,7 @@ module Escalated
             tracking_token: SecureRandom.hex(20),
             attempt_count: 0,
             is_test: false,
-            created_at: Time.current,
+            created_at: Time.current
           }
         end
 

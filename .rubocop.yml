@@ -85,6 +85,9 @@ Rails/HasManyOrHasOneDependent:
 Rails/WhereNotWithMultipleConditions:
   Enabled: false
 
+Rails/StrongParametersExpect:
+  Enabled: false
+
 Lint/UnderscorePrefixedVariableName:
   Enabled: false
 

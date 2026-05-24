@@ -29,12 +29,12 @@ module Escalated
         html = resolve_merge_fields(html, contact, delivery)
 
         themed = render_theme(theme_slug, {
-          subject: newsletter.subject,
-          body: html,
-          unsubscribe_url: unsubscribe_url(delivery),
-          view_in_browser_url: view_in_browser_url(delivery),
-          brand: brand,
-        })
+                                subject: newsletter.subject,
+                                body: html,
+                                unsubscribe_url: unsubscribe_url(delivery),
+                                view_in_browser_url: view_in_browser_url(delivery),
+                                brand: brand
+                              })
 
         return themed unless Escalated.configuration.newsletter_tracking_enabled?
 
@@ -65,7 +65,7 @@ module Escalated
           name: Escalated.configuration.app_name || 'Support',
           accent: Escalated.configuration.newsletter_brand_accent || '#2563eb',
           logo_url: Escalated.configuration.newsletter_brand_logo_url,
-          physical_address: Escalated.configuration.newsletter_brand_physical_address,
+          physical_address: Escalated.configuration.newsletter_brand_physical_address
         }
       end
 
@@ -113,11 +113,12 @@ module Escalated
       def theme_path(slug)
         roots = [
           Escalated.configuration.newsletter_themes_dir,
-          File.expand_path('../../../views/escalated/newsletter_themes', __dir__),
+          File.expand_path('../../../views/escalated/newsletter_themes', __dir__)
         ].compact
         roots.each do |root|
           candidate = File.join(root, "#{slug}.html.erb")
           return candidate if File.exist?(candidate)
+
           default = File.join(root, 'default.html.erb')
           return default if File.exist?(default)
         end

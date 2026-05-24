@@ -27,7 +27,7 @@ module Escalated
           if rows.any?
             Escalated::NewsletterDelivery.where(id: rows).update_all(
               status: 'queued',
-              claimed_at: Time.current,
+              claimed_at: Time.current
             )
           end
           rows
@@ -57,7 +57,7 @@ module Escalated
           'List-Unsubscribe' => "<#{unsub}>",
           'List-Unsubscribe-Post' => 'List-Unsubscribe=One-Click',
           'X-Escalated-Newsletter-Id' => delivery_full.newsletter_id.to_s,
-          'Message-ID' => "<n-#{delivery_full.newsletter_id}-#{delivery_full.tracking_token}@#{host}>",
+          'Message-ID' => "<n-#{delivery_full.newsletter_id}-#{delivery_full.tracking_token}@#{host}>"
         )
 
         mailer.mail(
@@ -66,7 +66,7 @@ module Escalated
           reply_to: delivery_full.newsletter.reply_to.presence,
           subject: delivery_full.newsletter.subject,
           body: html,
-          content_type: 'text/html',
+          content_type: 'text/html'
         ).deliver_now
 
         delivery.update!(status: 'sent', sent_at: Time.current, claimed_at: nil)
@@ -105,9 +105,7 @@ module Escalated
       def finalize_completed_newsletters
         Escalated::Newsletter.where(status: 'sending').find_each do |n|
           remaining = Escalated::NewsletterDelivery.where(newsletter_id: n.id, status: %w[pending queued]).exists?
-          unless remaining
-            n.update!(status: 'sent', sent_at: n.sent_at || Time.current)
-          end
+          n.update!(status: 'sent', sent_at: n.sent_at || Time.current) unless remaining
         end
       end
 
@@ -115,7 +113,10 @@ module Escalated
         threshold = Escalated.configuration.newsletter_auto_pause_threshold
         rate = Escalated.configuration.newsletter_auto_pause_bounce_rate
         Escalated::Newsletter.where(status: 'sending').find_each do |n|
-          total = Escalated::NewsletterDelivery.where(newsletter_id: n.id, status: %w[sent bounced complained failed]).count
+          total = Escalated::NewsletterDelivery.where(newsletter_id: n.id,
+                                                      status: %w[
+                                                        sent bounced complained failed
+                                                      ]).count
           next if total < threshold
 
           bounced = Escalated::NewsletterDelivery.where(newsletter_id: n.id, status: 'bounced').count

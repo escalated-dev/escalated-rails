@@ -33,10 +33,10 @@ module Escalated
           Escalated::Newsletter.where(id: delivery.newsletter_id)
                                .update_all('summary_opened = summary_opened + 1')
         end
-        if first_click
-          Escalated::Newsletter.where(id: delivery.newsletter_id)
-                               .update_all('summary_clicked = summary_clicked + 1')
-        end
+        return unless first_click
+
+        Escalated::Newsletter.where(id: delivery.newsletter_id)
+                             .update_all('summary_clicked = summary_clicked + 1')
       end
 
       def record_bounce(token, type, reason = nil)

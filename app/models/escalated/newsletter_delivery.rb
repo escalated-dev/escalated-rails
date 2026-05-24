@@ -10,8 +10,8 @@ module Escalated
 
     STATUSES = %w[pending queued sent bounced complained suppressed failed].freeze
 
-    belongs_to :newsletter, class_name: 'Escalated::Newsletter', foreign_key: :newsletter_id
-    belongs_to :contact, class_name: 'Escalated::Contact', foreign_key: :contact_id
+    belongs_to :newsletter, class_name: 'Escalated::Newsletter'
+    belongs_to :contact, class_name: 'Escalated::Contact'
 
     validates :tracking_token, presence: true, uniqueness: true
     validates :email_at_send, presence: true

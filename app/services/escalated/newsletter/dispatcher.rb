@@ -98,13 +98,13 @@ module Escalated
         cutoff = Escalated.configuration.newsletter_claim_timeout_minutes.minutes.ago
         Escalated::NewsletterDelivery
           .queued
-          .where('claimed_at < ?', cutoff)
+          .where(claimed_at: ...cutoff)
           .update_all(status: 'pending', claimed_at: nil)
       end
 
       def finalize_completed_newsletters
         Escalated::Newsletter.where(status: 'sending').find_each do |n|
-          remaining = Escalated::NewsletterDelivery.where(newsletter_id: n.id, status: %w[pending queued]).exists?
+          remaining = Escalated::NewsletterDelivery.exists?(newsletter_id: n.id, status: %w[pending queued])
           n.update!(status: 'sent', sent_at: n.sent_at || Time.current) unless remaining
         end
       end

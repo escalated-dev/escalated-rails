@@ -77,7 +77,7 @@ module Escalated
         # should register a real renderer (CommonMarker, Redcarpet, etc.) via
         # Escalated.configuration.newsletter_markdown_renderer = ->(md) { ... }.
         escaped = CGI.escapeHTML(markdown.to_s)
-        '<p>' + escaped.split(/\n{2,}/).join('</p><p>') + '</p>'
+        "<p>#{escaped.split(/\n{2,}/).join('</p><p>')}</p>"
       end
 
       def resolve_merge_fields(html, contact, delivery)
@@ -90,7 +90,7 @@ module Escalated
       def resolve_path(path, contact, delivery)
         case path
         when 'contact.name' then contact.name.to_s
-        when 'contact.first_name' then contact.name.to_s.split(' ').first.to_s
+        when 'contact.first_name' then contact.name.to_s.split.first.to_s
         when 'contact.email' then contact.email.to_s
         when 'unsubscribe_url' then unsubscribe_url(delivery)
         when 'view_in_browser_url' then view_in_browser_url(delivery)
@@ -132,7 +132,7 @@ module Escalated
           attr_prefix = Regexp.last_match(1)
           quote = Regexp.last_match(2)
           href = Regexp.last_match(3)
-          next match if href.nil? || href.empty? || href.start_with?('#')
+          next match if href.blank? || href.start_with?('#')
 
           scheme = (href.split(':', 2).first || '').downcase
           next "#{attr_prefix}#{quote}##{quote}" unless ALLOWED_SCHEMES.include?(scheme)

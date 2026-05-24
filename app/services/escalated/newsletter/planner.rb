@@ -24,7 +24,7 @@ module Escalated
         end
 
         contacts = Escalated::Contact.where(id: contact_ids).select(:id, :email).to_a
-        sendable_set = @bounces.filter_sendable(contacts.map(&:email)).map(&:downcase).to_set
+        sendable_set = @bounces.filter_sendable(contacts.map(&:email)).to_set(&:downcase)
 
         rows = []
         contacts.each do |contact|

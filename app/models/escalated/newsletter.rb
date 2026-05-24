@@ -15,6 +15,6 @@ module Escalated
     validates :from_email, presence: true
     validates :status, presence: true, inclusion: { in: STATUSES }
 
-    scope :due, -> { where(status: 'scheduled').where('scheduled_at <= ?', Time.current) }
+    scope :due, -> { where(status: 'scheduled').where(scheduled_at: ..Time.current) }
   end
 end

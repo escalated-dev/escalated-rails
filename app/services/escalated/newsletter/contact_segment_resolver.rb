@@ -37,7 +37,7 @@ module Escalated
           field = rule['field']
           op = rule['op'] || '='
           value = rule['value']
-          next if field.nil? || field.empty?
+          next if field.blank?
 
           if field.start_with?('metadata.')
             key = field.sub(/\Ametadata\./, '')

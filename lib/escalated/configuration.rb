@@ -74,7 +74,7 @@ module Escalated
                   :newsletter_brand_logo_url,
                   :newsletter_brand_physical_address
 
-    def initialize # rubocop:disable Metrics/MethodLength,Metrics/AbcSize
+    def initialize # rubocop:disable Metrics/MethodLength
       @mode = :self_hosted
       @user_class = 'User'
       @table_prefix = 'escalated_'

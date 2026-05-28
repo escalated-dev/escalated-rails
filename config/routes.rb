@@ -51,6 +51,7 @@ Escalated::Engine.routes.draw do
         post :tags
         post :department
         post :macro, action: :apply_macro
+        post 'actions/:action_key', action: :custom_action, as: :custom_action
         post :follow
         post :presence
         post 'replies/:reply_id/pin', action: :pin, as: :reply_pin

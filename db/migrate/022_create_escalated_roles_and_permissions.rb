@@ -35,7 +35,7 @@ class CreateEscalatedRolesAndPermissions < ActiveRecord::Migration[7.0]
 
     create_table Escalated.table_name("role_users"), id: false do |t|
       t.bigint :role_id, null: false
-      t.bigint :user_id, null: false
+      t.column :user_id, Escalated.user_id_type, null: false
     end
 
     add_index Escalated.table_name("role_users"),

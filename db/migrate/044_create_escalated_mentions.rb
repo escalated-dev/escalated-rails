@@ -4,7 +4,7 @@ class CreateEscalatedMentions < ActiveRecord::Migration[7.0]
   def change
     create_table Escalated.table_name('mentions') do |t|
       t.references :reply, null: false, foreign_key: { to_table: Escalated.table_name('replies') }
-      t.bigint :user_id, null: false
+      t.column :user_id, Escalated.user_id_type, null: false
       t.datetime :read_at
 
       t.timestamps

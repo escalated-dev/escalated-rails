@@ -4,6 +4,7 @@ module Escalated
   class Configuration
     attr_accessor :mode,
                   :user_class,
+                  :user_id_type,
                   :table_prefix,
                   :route_prefix,
                   :middleware,
@@ -60,6 +61,7 @@ module Escalated
     def initialize
       @mode = :self_hosted
       @user_class = 'User'
+      @user_id_type = :auto
       @table_prefix = 'escalated_'
       @route_prefix = 'support'
       @middleware = [:authenticate_user!]

@@ -2,7 +2,7 @@ class CreateEscalatedTicketFollowers < ActiveRecord::Migration[7.0]
   def change
     create_table Escalated.table_name("ticket_followers"), id: false do |t|
       t.bigint :ticket_id, null: false
-      t.bigint :user_id, null: false
+      t.column :user_id, Escalated.user_id_type, null: false
 
       t.timestamps
     end

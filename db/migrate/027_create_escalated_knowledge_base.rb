@@ -20,7 +20,7 @@ class CreateEscalatedKnowledgeBase < ActiveRecord::Migration[7.0]
       t.string :slug, null: false
       t.text :body
       t.string :status, default: "draft", null: false
-      t.bigint :author_id
+      t.column :author_id, Escalated.user_id_type
       t.integer :view_count, default: 0, null: false
       t.integer :helpful_count, default: 0, null: false
       t.integer :not_helpful_count, default: 0, null: false

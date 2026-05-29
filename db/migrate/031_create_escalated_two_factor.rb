@@ -1,7 +1,7 @@
 class CreateEscalatedTwoFactor < ActiveRecord::Migration[7.0]
   def change
     create_table Escalated.table_name("two_factors") do |t|
-      t.bigint :user_id, null: false
+      t.column :user_id, Escalated.user_id_type, null: false
       t.text :secret
       t.json :recovery_codes
       t.datetime :confirmed_at

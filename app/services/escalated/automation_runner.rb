@@ -84,7 +84,7 @@ module Escalated
             ticket.update!(status: value)
 
           when 'assign'
-            ticket.update!(assigned_to: value.to_i)
+            ticket.update!(assigned_to: value)
 
           when 'add_tag'
             tag = Escalated::Tag.find_by(name: value)

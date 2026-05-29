@@ -16,8 +16,8 @@ class CreateEscalatedContacts < ActiveRecord::Migration[7.0]
     create_table contacts_table do |t|
       t.string :email, null: false, limit: 320
       t.string :name, null: true
-      t.bigint :user_id, null: true,
-                         comment: 'Linked host-app user id once the contact creates an account'
+      t.column :user_id, Escalated.user_id_type, null: true,
+                                                 comment: 'Linked host-app user id once the contact creates an account'
       t.json :metadata, default: {}
       t.timestamps
     end

@@ -107,7 +107,7 @@ module Escalated
         render_page 'Escalated/Admin/Settings/PublicTickets', {
           settings: {
             guest_policy_mode: Escalated::EscalatedSetting.get('guest_policy_mode').presence || 'unassigned',
-            guest_policy_user_id: user_id_raw.presence&.to_i,
+            guest_policy_user_id: user_id_raw.presence,
             guest_policy_signup_url_template: Escalated::EscalatedSetting.get('guest_policy_signup_url_template').to_s
           }
         }
@@ -123,8 +123,8 @@ module Escalated
         Escalated::EscalatedSetting.set('guest_policy_mode', mode)
 
         if mode == 'guest_user'
-          user_id = params[:guest_policy_user_id].to_i
-          Escalated::EscalatedSetting.set('guest_policy_user_id', user_id.positive? ? user_id.to_s : '')
+          user_id = params[:guest_policy_user_id].presence
+          Escalated::EscalatedSetting.set('guest_policy_user_id', user_id.to_s)
         else
           Escalated::EscalatedSetting.set('guest_policy_user_id', '')
         end

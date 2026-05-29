@@ -3,10 +3,12 @@
 module Escalated
   module Agent
     class TicketsController < Escalated::ApplicationController
+      include Escalated::Agent::TicketCustomActions
+
       before_action :require_agent!
       before_action :set_ticket,
-                    only: %i[show update reply note assign status priority tags department apply_macro follow presence
-                             pin]
+                    only: %i[show update reply note assign status priority tags department apply_macro
+                             follow presence pin]
 
       def index
         scope = Escalated::Ticket.all.recent
@@ -79,6 +81,7 @@ module Escalated
           end,
           is_following: @ticket.followed_by?(escalated_current_user.id),
           followers_count: @ticket.followers.count,
+          customActions: custom_actions_for(@ticket),
           statuses: Escalated::Ticket.statuses.keys,
           priorities: Escalated::Ticket.priorities.keys
         }

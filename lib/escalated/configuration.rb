@@ -53,7 +53,9 @@ module Escalated
                   :api_enabled,
                   :api_rate_limit,
                   :api_token_expiry_days,
-                  :api_prefix
+                  :api_prefix,
+                  # Host-defined custom ticket actions
+                  :ticket_actions
 
     def initialize
       @mode = :self_hosted
@@ -101,8 +103,7 @@ module Escalated
       @inbound_email_address = nil  # e.g., "support@yourdomain.com"
       @mailgun_signing_key = nil
       @postmark_inbound_token = nil
-      @ses_region = nil
-      @ses_topic_arn = nil
+      @ses_region = @ses_topic_arn = nil
       @imap_host = nil
       @imap_port = 993
       @imap_encryption = :ssl
@@ -118,6 +119,7 @@ module Escalated
       @api_rate_limit = 60
       @api_token_expiry_days = nil
       @api_prefix = 'support/api/v1'
+      @ticket_actions = []
     end
 
     def self_hosted?

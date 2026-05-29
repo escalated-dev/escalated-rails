@@ -82,6 +82,7 @@ module Escalated
                 post :assign
                 post :follow
                 post :apply_macro
+                post 'actions/:action_key', action: :custom_action
                 post :tags
               end
             end
@@ -121,6 +122,7 @@ module Escalated
     # escalated-laravel.
     config.after_initialize do
       Escalated::Services::WorkflowSubscriber.subscribe!
+      Escalated::Services::CustomActionSubscriber.subscribe!
     end
 
     # Load active plugins after the host app has finished booting so all

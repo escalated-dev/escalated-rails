@@ -303,6 +303,44 @@ ActiveSupport::Notifications.subscribe("escalated.ticket_created") do |event|
 end
 ```
 
+## Custom Ticket Actions
+
+Host applications can add custom buttons to the agent ticket screen and handle
+clicks with a normal notification subscriber. Register actions in the initializer:
+
+```ruby
+Escalated.configure do |config|
+  config.ticket_actions = [
+    {
+      key: 'sync-crm',
+      label: 'Sync CRM',
+      variant: 'primary',                       # primary | secondary | danger
+      confirmation: 'Sync this ticket to the CRM?',
+      metadata: { icon: 'refresh-cw' },
+      # visible / enabled may be a value or a ->(ticket, user) callable
+      enabled: ->(ticket, _user) { !ticket.metadata['crm_synced'] }
+    }
+  ]
+end
+```
+
+Visible actions are exposed on the agent ticket show page as `customActions` and
+on the API ticket detail response as `custom_actions` (each with a `url` and
+`method`). Triggering one (`POST /support/agent/tickets/:id/actions/:action_key`
+or the API equivalent) validates the action is visible (404) and enabled (403),
+then dispatches the `custom_action_triggered` notification:
+
+```ruby
+ActiveSupport::Notifications.subscribe('escalated.notification.custom_action_triggered') do |event|
+  payload = event.payload
+  next unless payload[:action_key] == 'sync-crm'
+  # payload[:ticket], payload[:user], payload[:payload], payload[:metadata]
+end
+```
+
+Escalated also records an internal note on the ticket whenever an action fires,
+for auditability.
+
 ## Inbound Email
 
 Create and reply to tickets from incoming emails. Supports **Mailgun**, **Postmark**, **AWS SES** webhooks, and **IMAP** polling.

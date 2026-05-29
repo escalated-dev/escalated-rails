@@ -9,10 +9,10 @@ class CreateEscalatedTickets < ActiveRecord::Migration[7.0]
 
       # Polymorphic requester
       t.string :requester_type, null: false
-      t.bigint :requester_id, null: false
+      t.column :requester_id, Escalated.user_id_type, null: false
 
       # Assignee (agent user)
-      t.bigint :assigned_to
+      t.column :assigned_to, Escalated.user_id_type
 
       # Department
       t.references :department, foreign_key: { to_table: Escalated.table_name("departments") }, null: true

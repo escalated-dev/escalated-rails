@@ -214,6 +214,13 @@ Escalated.configure do |config|
   config.route_prefix = "support"
   config.default_priority = :medium
 
+  # Host user key type for the engine's user-referencing FK columns.
+  # :auto (default) introspects your `user_class` primary key; override with
+  # :bigint | :uuid | :string if your User model uses a UUID/string PK. Run
+  # `escalated:install:migrations` AFTER setting this so the generated
+  # migrations emit matching column types.
+  config.user_id_type = :auto
+
   # Middleware
   config.middleware = [:authenticate_user!]
   config.admin_middleware = nil

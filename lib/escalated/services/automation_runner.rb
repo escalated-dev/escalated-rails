@@ -53,7 +53,7 @@ module Escalated
           begin
             case type
             when 'change_status' then ticket.update!(status: value)
-            when 'assign' then ticket.update!(assigned_to: value.to_i)
+            when 'assign' then ticket.update!(assigned_to: value)
             when 'add_tag'
               tag = Escalated::Tag.find_by(name: value)
               ticket.tags << tag if tag && ticket.tags.exclude?(tag)

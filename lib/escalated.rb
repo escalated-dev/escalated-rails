@@ -3,6 +3,7 @@
 require 'escalated/broadcasting'
 require 'escalated/engine'
 require 'escalated/configuration'
+require 'escalated/user_key'
 require 'escalated/ticket_action_registry'
 require 'escalated/manager'
 require 'escalated/support/hook_manager'

@@ -6,7 +6,7 @@ class CreateEscalatedTicketActivities < ActiveRecord::Migration[7.0]
 
       # Polymorphic causer (user or system)
       t.string :causer_type
-      t.bigint :causer_id
+      t.column :causer_id, Escalated.user_id_type
 
       t.json :details, default: {}
 

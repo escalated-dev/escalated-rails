@@ -134,7 +134,7 @@ module Escalated
       when 'change_status'
         ticket.update!(status: value)
       when 'assign_agent'
-        ticket.update!(assigned_to: value.to_i)
+        ticket.update!(assigned_to: value)
       when 'change_priority'
         ticket.update!(priority: value)
       when 'add_tag'

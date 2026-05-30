@@ -300,7 +300,8 @@ module Escalated
             activities: activities.map { |a| activity_json(a) },
             requester_ticket_count: ticket.requester ? Escalated::Ticket.where(requester: ticket.requester).count : 0,
             related_tickets: related_tickets_json(ticket),
-            custom_actions: custom_actions_for(ticket)
+            custom_actions: custom_actions_for(ticket),
+            subjects: Escalated::TicketSerializer.subjects_for(ticket)
           )
 
           if ticket.chat?

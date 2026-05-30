@@ -55,6 +55,8 @@ Escalated::Engine.routes.draw do
         post :follow
         post :presence
         post 'replies/:reply_id/pin', action: :pin, as: :reply_pin
+        post :subjects, to: 'ticket_subjects#create'
+        delete 'subjects/:subject_id', to: 'ticket_subjects#destroy', as: :destroy_subject
       end
     end
 
@@ -84,6 +86,8 @@ Escalated::Engine.routes.draw do
         post :unsnooze
         post :presence
         post 'replies/:reply_id/pin', action: :pin, as: :reply_pin
+        post :subjects, to: 'ticket_subjects#create'
+        delete 'subjects/:subject_id', to: 'ticket_subjects#destroy', as: :destroy_subject
       end
     end
     resources :departments

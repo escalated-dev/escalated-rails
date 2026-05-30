@@ -56,7 +56,9 @@ module Escalated
                   :api_token_expiry_days,
                   :api_prefix,
                   # Host-defined custom ticket actions
-                  :ticket_actions
+                  :ticket_actions,
+                  # Host models a ticket can be about (Project, Customer, …)
+                  :ticket_subject_types
 
     def initialize
       @mode = :self_hosted
@@ -122,6 +124,7 @@ module Escalated
       @api_token_expiry_days = nil
       @api_prefix = 'support/api/v1'
       @ticket_actions = []
+      @ticket_subject_types = []
     end
 
     def self_hosted?

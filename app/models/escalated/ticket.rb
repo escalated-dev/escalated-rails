@@ -36,6 +36,10 @@ module Escalated
     belongs_to :merged_into, class_name: 'Escalated::Ticket', optional: true
     has_many :side_conversations, class_name: 'Escalated::SideConversation', dependent: :destroy
     has_many :chat_sessions, class_name: 'Escalated::ChatSession', dependent: :destroy
+    has_many :ticket_subjects,
+             class_name: 'Escalated::TicketSubject',
+             dependent: :destroy,
+             inverse_of: :ticket
 
     enum :status, {
       open: 0,
@@ -221,6 +225,48 @@ module Escalated
 
     def unfollow(user_id)
       followers.delete(Escalated.configuration.user_model.find(user_id))
+    end
+
+    # Attach a host model as a subject of this ticket (idempotent on ticket+type+id).
+    # Rejects types outside the configured allowlist when one is set.
+    def attach_subject(subject, role: nil, position: nil)
+      type = subject.class.polymorphic_name
+
+      if Escalated::TicketSubjectTypes.allowlist_enforced? &&
+         Escalated::TicketSubjectTypes.allowed_type_names.exclude?(type)
+        raise ArgumentError, "Subject type [#{type}] is not an allowed ticket subject."
+      end
+
+      link = ticket_subjects.find_or_initialize_by(
+        subject_type: type,
+        subject_id: subject.id.to_s
+      )
+      link.role = role unless role.nil?
+      if position
+        link.position = position
+      elsif link.new_record?
+        link.position = (ticket_subjects.maximum(:position) || -1) + 1
+      end
+      link.save!
+      link
+    end
+
+    def detach_subject(subject)
+      ticket_subjects.where(
+        subject_type: subject.class.polymorphic_name,
+        subject_id: subject.id.to_s
+      ).delete_all
+    end
+
+    # Replace subjects with the given host models, preserving order.
+    # Accepts models or [model, role] pairs.
+    def sync_subjects(subjects)
+      ticket_subjects.delete_all
+
+      Array(subjects).each_with_index do |entry, index|
+        subject, role = entry.is_a?(Array) ? entry : [entry, nil]
+        attach_subject(subject, role: role, position: index)
+      end
     end
 
     private

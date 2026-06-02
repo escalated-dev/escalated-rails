@@ -16,9 +16,9 @@ module Escalated
         {
           date: date.strftime('%Y-%m-%d'),
           frt_breaches: day_tickets.where(sla_breached: true, first_response_at: nil)
-                        .where(sla_first_response_due_at: day_range).count,
+                                   .where(sla_first_response_due_at: day_range).count,
           resolution_breaches: day_tickets.where(sla_breached: true, resolved_at: nil)
-                               .where(sla_resolution_due_at: day_range).count,
+                                          .where(sla_resolution_due_at: day_range).count,
           total_breaches: day_tickets.where(sla_breached: true).where(updated_at: day_range).count
         }
       end

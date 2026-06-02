@@ -4,7 +4,7 @@ require 'cgi'
 require 'base64'
 
 module Escalated
-  module Newsletter
+  class Newsletter
     # Renders a NewsletterDelivery to themed HTML.
     #
     # Stage 1: Markdown -> canonical HTML (host integrators register a

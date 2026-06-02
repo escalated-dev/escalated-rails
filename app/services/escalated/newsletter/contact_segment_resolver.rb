@@ -1,11 +1,20 @@
 # frozen_string_literal: true
 
 module Escalated
-  module Newsletter
+  class Newsletter
     # Resolves a NewsletterList to its set of contact IDs.
     # Static lists return their explicit member contact IDs.
     # Dynamic lists evaluate the saved filter against the contacts table.
     class ContactSegmentResolver
+      # Operators allowed in a dynamic-list rule, mapped to their SQL form.
+      # Both the field and operator in a rule come from saved (admin-authored)
+      # filter JSON, so they must be allowlisted before going anywhere near a
+      # SQL fragment — they were previously interpolated raw (injection).
+      ALLOWED_OPS = {
+        '=' => '=', '==' => '=', '!=' => '!=', '<>' => '!=',
+        '>' => '>', '<' => '<', '>=' => '>=', '<=' => '<=', 'like' => 'LIKE'
+      }.freeze
+
       def resolve(list)
         if list.kind == 'static'
           list.members.pluck(:contact_id)
@@ -33,6 +42,7 @@ module Escalated
       private
 
       def apply_filter(filter, scope = Escalated::Contact.all)
+        columns = Escalated::Contact.column_names
         (filter['rules'] || []).each do |rule|
           field = rule['field']
           op = rule['op'] || '='
@@ -42,10 +52,21 @@ module Escalated
           if field.start_with?('metadata.')
             key = field.sub(/\Ametadata\./, '')
             # SQLite-friendly JSON LIKE; hosts on Postgres can swap this for jsonb_path.
+            # `key` lands inside a bound parameter value, so it can't alter the SQL.
             scope = scope.where('metadata LIKE ?', "%\"#{key}\":#{value.to_json}%")
             next
           end
-          scope = scope.where("#{field} #{op} ?", value)
+
+          # Allowlist the column and operator. `value` is already bound (?),
+          # but `field`/`op` would otherwise be interpolated into the SQL — skip
+          # any rule that doesn't reference a real column / known operator.
+          next unless columns.include?(field)
+
+          sql_op = ALLOWED_OPS[op.to_s.strip.downcase]
+          next unless sql_op
+
+          quoted = Escalated::Contact.connection.quote_column_name(field)
+          scope = scope.where("#{quoted} #{sql_op} ?", value)
         end
         scope
       end

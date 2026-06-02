@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Escalated
-  module Newsletter
+  class Newsletter
     # Applies tracking events (open, click, bounce, complaint) to delivery rows
     # idempotently. Bounces and complaints also update the suppression store.
     class Tracker

@@ -13,8 +13,10 @@ class CreateEscalatedNewsletterListMembers < ActiveRecord::Migration[7.0]
       t.bigint :added_by
     end
 
-    add_index table_name, %i[list_id contact_id], unique: true
-    add_index table_name, :contact_id
+    # Explicit short name — the auto-generated name exceeds the 64-char index
+    # name limit once the table prefix is applied.
+    add_index table_name, %i[list_id contact_id], unique: true, name: 'idx_esc_nl_list_members_uniq'
+    add_index table_name, :contact_id, name: 'idx_esc_nl_list_members_contact'
     add_foreign_key table_name, lists_table, column: :list_id, on_delete: :cascade
     add_foreign_key table_name, contacts_table, column: :contact_id, on_delete: :cascade
   end

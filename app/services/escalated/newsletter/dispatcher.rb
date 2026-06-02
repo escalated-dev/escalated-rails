@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Escalated
-  module Newsletter
+  class Newsletter
     # Pulls pending deliveries in batches, dispatches them via ActionMailer,
     # applies retry/backoff, finalizes completed newsletters, and auto-pauses
     # campaigns whose bounce rate exceeds the configured threshold.

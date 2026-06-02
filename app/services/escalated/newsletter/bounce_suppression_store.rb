@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Escalated
-  module Newsletter
+  class Newsletter
     # Suppression store backed by the escalated_settings JSON value.
     # v1 holds the list in a single row keyed by 'newsletter.suppressed_emails'.
     class BounceSuppressionStore
@@ -32,18 +32,16 @@ module Escalated
         return if list.include?(lower)
 
         list << lower
-        record = Escalated::EscalatedSettings.find_or_initialize_by(key: KEY)
-        record.value = list.to_json
-        record.type = 'json'
-        record.group = 'newsletter'
-        record.save!
+        # Model is EscalatedSetting (singular); the settings table only has
+        # key/value columns (no type/group). Use the model's set/get API.
+        Escalated::EscalatedSetting.set(KEY, list.to_json)
       end
 
       def load_list
-        record = Escalated::EscalatedSettings.find_by(key: KEY)
-        return [] unless record&.value
+        raw = Escalated::EscalatedSetting.get(KEY)
+        return [] unless raw
 
-        parsed = JSON.parse(record.value)
+        parsed = JSON.parse(raw)
         parsed.is_a?(Array) ? parsed.map { |e| e.to_s.downcase } : []
       rescue JSON::ParserError
         []

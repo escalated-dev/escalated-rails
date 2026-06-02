@@ -79,7 +79,7 @@ module Escalated
                   # Host models a ticket can be about (Project, Customer, …)
                   :ticket_subject_types
 
-    def initialize # rubocop:disable Metrics/MethodLength
+    def initialize
       @mode = :self_hosted
       @user_class = 'User'
       @user_id_type = :auto

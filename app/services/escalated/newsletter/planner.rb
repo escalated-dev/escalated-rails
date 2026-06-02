@@ -3,7 +3,7 @@
 require 'securerandom'
 
 module Escalated
-  module Newsletter
+  class Newsletter
     # Plans a Newsletter for sending: snapshots the recipient set, applies
     # opt-out and bounce-suppression filters, and inserts one delivery row
     # per surviving contact with a fresh tracking token.

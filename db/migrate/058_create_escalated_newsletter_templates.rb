@@ -10,7 +10,7 @@ class CreateEscalatedNewsletterTemplates < ActiveRecord::Migration[7.0]
       t.string :subject_template, limit: 998
       t.text :body_markdown, null: false
       t.json :merge_fields_schema
-      t.bigint :created_by
+      t.column :created_by, Escalated.user_id_type
       t.timestamps
     end
 

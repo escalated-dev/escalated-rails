@@ -18,8 +18,8 @@ class CreateEscalatedNewsletters < ActiveRecord::Migration[7.0]
       t.string :status, null: false, limit: 16, default: 'draft'
       t.datetime :scheduled_at
       t.datetime :sent_at
-      t.bigint :created_by
-      t.bigint :sent_by
+      t.column :created_by, Escalated.user_id_type
+      t.column :sent_by, Escalated.user_id_type
       t.integer :summary_total, default: 0
       t.integer :summary_sent, default: 0
       t.integer :summary_opened, default: 0

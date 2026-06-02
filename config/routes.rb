@@ -179,6 +179,40 @@ Escalated::Engine.routes.draw do
     end
     resources :automations, only: %i[index new create edit update destroy]
 
+    # Newsletters
+    scope 'newsletters', as: :newsletters do
+      get '/', to: 'newsletters#index'
+      get 'new', to: 'newsletters#create', as: :new
+      post '/', to: 'newsletters#store'
+      post 'preview', to: 'newsletters#preview', as: :preview
+      post 'test', to: 'newsletters#test', as: :test
+
+      get 'lists', to: 'newsletter_lists#index', as: :lists
+      get 'lists/new', to: 'newsletter_lists#create', as: :new_list
+      post 'lists', to: 'newsletter_lists#store'
+      get 'lists/:id', to: 'newsletter_lists#show', as: :list
+      put 'lists/:id', to: 'newsletter_lists#update'
+      delete 'lists/:id', to: 'newsletter_lists#destroy'
+      post 'lists/:id/members', to: 'newsletter_lists#add_member', as: :list_members
+      delete 'lists/:id/members/:contact_id', to: 'newsletter_lists#remove_member', as: :list_member
+      post 'lists/:id/import', to: 'newsletter_lists#import', as: :list_import
+
+      get 'templates', to: 'newsletter_templates#index', as: :templates
+      get 'templates/new', to: 'newsletter_templates#create', as: :new_template
+      post 'templates', to: 'newsletter_templates#store'
+      get 'templates/:id', to: 'newsletter_templates#show', as: :template
+      put 'templates/:id', to: 'newsletter_templates#update'
+      delete 'templates/:id', to: 'newsletter_templates#destroy'
+
+      get 'settings', to: 'newsletter_settings#show', as: :settings
+      put 'settings', to: 'newsletter_settings#update'
+
+      get ':id', to: 'newsletters#show', as: :show
+      get ':id/edit', to: 'newsletters#edit', as: :edit
+      put ':id', to: 'newsletters#update'
+      delete ':id', to: 'newsletters#destroy'
+    end
+
     # Workflow automation engine
     resources :workflows, only: %i[index show new create edit update destroy] do
       member do

@@ -98,6 +98,30 @@ module Escalated
       end
     end
 
+    initializer 'escalated.newsletter_routes' do |app|
+      app.routes.append do
+        scope 'escalated/n', module: 'escalated', as: 'escalated_newsletters_public' do
+          get 'o/:token', to: 'newsletter_tracking#open', as: :open,
+                          constraints: { token: /[A-Za-z0-9._-]+/ }
+          get 'c/:token', to: 'newsletter_tracking#click', as: :click,
+                          constraints: { token: /[A-Za-z0-9_-]+/ }
+          get 'u/:token', to: 'newsletter_unsubscribe#show', as: :unsubscribe,
+                          constraints: { token: /[A-Za-z0-9_-]+/ }
+          post 'u/:token', to: 'newsletter_unsubscribe#store', as: :unsubscribe_store,
+                           constraints: { token: /[A-Za-z0-9_-]+/ }
+          get 'v/:token', to: 'newsletter_view_in_browser#show', as: :view,
+                          constraints: { token: /[A-Za-z0-9_-]+/ }
+        end
+
+        scope 'escalated/webhooks/newsletter', module: 'escalated' do
+          post 'postmark', to: 'newsletter_esp_webhook#postmark'
+          post 'mailgun', to: 'newsletter_esp_webhook#mailgun'
+          post 'ses', to: 'newsletter_esp_webhook#ses'
+          post 'sendgrid', to: 'newsletter_esp_webhook#sendgrid'
+        end
+      end
+    end
+
     initializer 'escalated.inertia' do
       next unless Escalated.configuration.ui_enabled?
 
@@ -182,6 +206,7 @@ module Escalated
     rake_tasks do
       load 'tasks/escalated_import.rake'
       load 'tasks/escalated_chat.rake'
+      load 'tasks/escalated_newsletters.rake'
     end
   end
 end

@@ -39,7 +39,10 @@ module Escalated
           plugins_enabled: Escalated.configuration.plugins_enabled?,
           knowledge_base_enabled: Escalated::EscalatedSetting.knowledge_base_enabled?,
           knowledge_base_public: Escalated::EscalatedSetting.knowledge_base_public?,
-          knowledge_base_feedback_enabled: Escalated::EscalatedSetting.knowledge_base_feedback_enabled?
+          knowledge_base_feedback_enabled: Escalated::EscalatedSetting.knowledge_base_feedback_enabled?,
+          features: {
+            newsletters: Escalated.configuration.enable_newsletters?
+          }
         },
         flash: {
           success: flash[:success],

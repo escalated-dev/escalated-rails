@@ -10,7 +10,7 @@ class CreateEscalatedNewsletterListMembers < ActiveRecord::Migration[7.0]
       t.bigint :list_id, null: false
       t.bigint :contact_id, null: false
       t.datetime :added_at, null: false, default: -> { 'CURRENT_TIMESTAMP' }
-      t.bigint :added_by
+      t.column :added_by, Escalated.user_id_type
     end
 
     # Explicit short name — the auto-generated name exceeds the 64-char index

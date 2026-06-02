@@ -9,7 +9,7 @@ class CreateEscalatedNewsletterLists < ActiveRecord::Migration[7.0]
       t.text :description
       t.string :kind, null: false, limit: 16
       t.json :filter_json
-      t.bigint :created_by
+      t.column :created_by, Escalated.user_id_type
       t.timestamps
     end
 

@@ -78,8 +78,8 @@ module Escalated
       # unassigned behavior so bad admin input doesn't 500 the public
       # endpoint.
       if mode == 'guest_user'
-        guest_user_id = Escalated::EscalatedSetting.get('guest_policy_user_id').to_i
-        if guest_user_id.positive?
+        guest_user_id = Escalated::EscalatedSetting.get('guest_policy_user_id')
+        if guest_user_id.present?
           attrs[:requester_type] = Escalated.configuration.user_class
           attrs[:requester_id] = guest_user_id
         end

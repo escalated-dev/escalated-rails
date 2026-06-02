@@ -5,7 +5,7 @@ class CreateEscalatedSideConversations < ActiveRecord::Migration[7.0]
       t.string :subject, null: false
       t.string :channel, default: "email"
       t.string :status, default: "open", null: false
-      t.bigint :created_by_id
+      t.column :created_by_id, Escalated.user_id_type
 
       t.timestamps
     end
@@ -19,7 +19,7 @@ class CreateEscalatedSideConversations < ActiveRecord::Migration[7.0]
     create_table Escalated.table_name("side_conversation_replies") do |t|
       t.bigint :side_conversation_id, null: false
       t.text :body, null: false
-      t.bigint :author_id
+      t.column :author_id, Escalated.user_id_type
 
       t.timestamps
     end

@@ -89,6 +89,60 @@ end
 
 Visit `/support` — you're live.
 
+## Ticket subjects
+
+A ticket has a **requester** (who raised it) and a **subject line** (free text). You can also attach host-app entities the ticket is *about* — a Project, Customer, asset, and so on — so agents see context and can jump into your app.
+
+Include `Escalated::PresentsAsTicketSubject` on any attachable model and override presentation methods as needed:
+
+```ruby
+class Project < ApplicationRecord
+  include Escalated::PresentsAsTicketSubject
+
+  def ticket_subject_subtitle
+    "Project · #{customer.name}"
+  end
+
+  def ticket_subject_url
+    project_path(self)
+  end
+
+  def ticket_subject_color
+    '#2563eb'
+  end
+
+  def ticket_subject_icon
+    'folder'
+  end
+end
+```
+
+Attach, detach, or sync subjects on a ticket (several allowed):
+
+```ruby
+ticket.attach_subject(project, role: 'project')
+ticket.attach_subject(customer, role: 'account')
+ticket.sync_subjects([[project, 'primary'], customer])
+ticket.detach_subject(project)
+```
+
+Each subject is serialized on the ticket as `{ type, id, role, title, subtitle, url, color, icon, missing }`. `subject_id` is stored as a string so integer, UUID, and string host keys all work.
+
+Allow agent/admin attach endpoints by listing permitted models in configuration (empty list disables the API; programmatic attach still works when empty):
+
+```ruby
+Escalated.configure do |config|
+  config.ticket_subject_types = [
+    'Project',
+    'Customer',
+    # morph alias => class
+    # 'project' => 'Project',
+  ]
+end
+```
+
+Endpoints: `POST /support/agent/tickets/:id/subjects` and `DELETE .../subjects/:subject_id` (admin routes mirror under `/support/admin/`). Pass `type`, `subject_id`, and optional `role` in the body, or nest them under `subject` (useful when you need Laravel-style `id` without colliding with the ticket route param).
+
 ## Frontend Setup
 
 Escalated uses Inertia.js with Vue 3. The frontend components are provided by the [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated) npm package.
@@ -214,6 +268,13 @@ Escalated.configure do |config|
   config.route_prefix = "support"
   config.default_priority = :medium
 
+  # Host user key type for the engine's user-referencing FK columns.
+  # :auto (default) introspects your `user_class` primary key; override with
+  # :bigint | :uuid | :string if your User model uses a UUID/string PK. Run
+  # `escalated:install:migrations` AFTER setting this so the generated
+  # migrations emit matching column types.
+  config.user_id_type = :auto
+
   # Middleware
   config.middleware = [:authenticate_user!]
   config.admin_middleware = nil
@@ -302,6 +363,44 @@ ActiveSupport::Notifications.subscribe("escalated.ticket_created") do |event|
   # Handle new ticket
 end
 ```
+
+## Custom Ticket Actions
+
+Host applications can add custom buttons to the agent ticket screen and handle
+clicks with a normal notification subscriber. Register actions in the initializer:
+
+```ruby
+Escalated.configure do |config|
+  config.ticket_actions = [
+    {
+      key: 'sync-crm',
+      label: 'Sync CRM',
+      variant: 'primary',                       # primary | secondary | danger
+      confirmation: 'Sync this ticket to the CRM?',
+      metadata: { icon: 'refresh-cw' },
+      # visible / enabled may be a value or a ->(ticket, user) callable
+      enabled: ->(ticket, _user) { !ticket.metadata['crm_synced'] }
+    }
+  ]
+end
+```
+
+Visible actions are exposed on the agent ticket show page as `customActions` and
+on the API ticket detail response as `custom_actions` (each with a `url` and
+`method`). Triggering one (`POST /support/agent/tickets/:id/actions/:action_key`
+or the API equivalent) validates the action is visible (404) and enabled (403),
+then dispatches the `custom_action_triggered` notification:
+
+```ruby
+ActiveSupport::Notifications.subscribe('escalated.notification.custom_action_triggered') do |event|
+  payload = event.payload
+  next unless payload[:action_key] == 'sync-crm'
+  # payload[:ticket], payload[:user], payload[:payload], payload[:metadata]
+end
+```
+
+Escalated also records an internal note on the ticket whenever an action fires,
+for auditability.
 
 ## Inbound Email
 

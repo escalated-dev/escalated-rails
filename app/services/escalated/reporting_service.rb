@@ -13,12 +13,12 @@ module Escalated
       date_series.map do |date|
         day_range = date.all_day
         day_tickets = Escalated::Ticket.where(created_at: ..date.end_of_day)
-        frt_breached = day_tickets.where(sla_breached: true, first_response_at: nil)
-        res_breached = day_tickets.where(sla_breached: true, resolved_at: nil)
         {
           date: date.strftime('%Y-%m-%d'),
-          frt_breaches: frt_breached.where(sla_first_response_due_at: day_range).count,
-          resolution_breaches: res_breached.where(sla_resolution_due_at: day_range).count,
+          frt_breaches: day_tickets.where(sla_breached: true, first_response_at: nil)
+                                   .where(sla_first_response_due_at: day_range).count,
+          resolution_breaches: day_tickets.where(sla_breached: true, resolved_at: nil)
+                                          .where(sla_resolution_due_at: day_range).count,
           total_breaches: day_tickets.where(sla_breached: true).where(updated_at: day_range).count
         }
       end

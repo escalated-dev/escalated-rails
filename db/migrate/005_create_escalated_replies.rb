@@ -6,7 +6,7 @@ class CreateEscalatedReplies < ActiveRecord::Migration[7.0]
 
       # Polymorphic author
       t.string :author_type
-      t.bigint :author_id
+      t.column :author_id, Escalated.user_id_type
 
       t.boolean :is_internal, default: false, null: false
       t.boolean :is_system, default: false, null: false

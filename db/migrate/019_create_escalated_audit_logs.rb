@@ -1,7 +1,7 @@
 class CreateEscalatedAuditLogs < ActiveRecord::Migration[7.0]
   def change
     create_table Escalated.table_name("audit_logs") do |t|
-      t.bigint :user_id, null: true
+      t.column :user_id, Escalated.user_id_type, null: true
       t.string :action, null: false
       t.string :auditable_type
       t.bigint :auditable_id

@@ -3,10 +3,12 @@
 module Escalated
   module Agent
     class TicketsController < Escalated::ApplicationController
+      include Escalated::Agent::TicketCustomActions
+
       before_action :require_agent!
       before_action :set_ticket,
-                    only: %i[show update reply note assign status priority tags department apply_macro follow presence
-                             pin]
+                    only: %i[show update reply note assign status priority tags department apply_macro
+                             follow presence pin]
 
       def index
         scope = Escalated::Ticket.all.recent
@@ -63,6 +65,7 @@ module Escalated
 
         replies = @ticket.replies.chronological.includes(:author, :attachments)
         activities = @ticket.activities.reverse_chronological.limit(50)
+        @ticket.ticket_subjects.load
 
         render_page 'Escalated/Agent/TicketShow', {
           ticket: ticket_detail_json(@ticket),
@@ -79,6 +82,7 @@ module Escalated
           end,
           is_following: @ticket.followed_by?(escalated_current_user.id),
           followers_count: @ticket.followers.count,
+          customActions: custom_actions_for(@ticket),
           statuses: Escalated::Ticket.statuses.keys,
           priorities: Escalated::Ticket.priorities.keys
         }
@@ -327,7 +331,8 @@ module Escalated
                                end,
           pinned_notes: ticket.pinned_notes.includes(:author).map { |n| reply_json(n) },
           requester_ticket_count: ticket.requester ? Escalated::Ticket.where(requester: ticket.requester).count : 0,
-          related_tickets: related_tickets_json(ticket)
+          related_tickets: related_tickets_json(ticket),
+          subjects: Escalated::TicketSerializer.subjects_for(ticket)
         )
 
         if ticket.chat?

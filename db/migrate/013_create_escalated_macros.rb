@@ -4,7 +4,7 @@ class CreateEscalatedMacros < ActiveRecord::Migration[7.0]
       t.string :name, null: false
       t.string :description
       t.json :actions, null: false
-      t.bigint :created_by
+      t.column :created_by, Escalated.user_id_type
       t.boolean :is_shared, default: true, null: false
       t.integer :order, default: 0, null: false
 

@@ -3,6 +3,10 @@
 require 'escalated/broadcasting'
 require 'escalated/engine'
 require 'escalated/configuration'
+require 'escalated/user_key'
+require 'escalated/ticket_action_registry'
+require 'escalated/ticket_subject_types'
+require 'escalated/ticket_serializer'
 require 'escalated/manager'
 require 'escalated/support/hook_manager'
 require 'escalated/support/import_context'
@@ -32,6 +36,7 @@ require 'escalated/services/ticket_service'
 require 'escalated/services/two_factor_service'
 require 'escalated/services/webhook_dispatcher'
 require 'escalated/services/workflow_subscriber'
+require 'escalated/services/custom_action_subscriber'
 require 'escalated/ui_renderer'
 require 'escalated/bridge/json_rpc_client'
 require 'escalated/bridge/context_handler'
@@ -40,7 +45,7 @@ require 'escalated/bridge/plugin_bridge'
 
 module Escalated
   class << self
-    attr_writer :configuration, :ui_renderer
+    attr_writer :configuration, :ui_renderer, :ticket_action_registry
 
     def configuration
       @configuration ||= Configuration.new
@@ -85,6 +90,14 @@ module Escalated
     # @return [Escalated::Support::HookManager]
     def hooks
       @hooks ||= Support::HookManager.new
+    end
+
+    # Global custom ticket action registry, populated from
+    # configuration.ticket_actions on first access.
+    #
+    # @return [Escalated::TicketActionRegistry]
+    def ticket_action_registry
+      @ticket_action_registry ||= TicketActionRegistry.from_config(configuration.ticket_actions)
     end
 
     # Global PluginUIService instance for registering UI extensions.

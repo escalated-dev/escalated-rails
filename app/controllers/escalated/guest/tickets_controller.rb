@@ -78,8 +78,8 @@ module Escalated
 
         mode = Escalated::EscalatedSetting.get('guest_policy_mode').presence || 'unassigned'
         if mode == 'guest_user'
-          guest_user_id = Escalated::EscalatedSetting.get('guest_policy_user_id').to_i
-          if guest_user_id.positive?
+          guest_user_id = Escalated::EscalatedSetting.get('guest_policy_user_id')
+          if guest_user_id.present?
             attrs[:requester_type] = Escalated.configuration.user_class
             attrs[:requester_id] = guest_user_id
           else
@@ -252,11 +252,11 @@ module Escalated
 
         if ticket.chat?
           session = ticket.active_chat_session || ticket.chat_sessions.order(created_at: :desc).first
-          replies = ticket.replies.where(is_internal: false, is_system: false).order(created_at: :asc).includes(:author)
           base.merge!(
             chat_session_id: session&.id,
             chat_started_at: session&.started_at&.iso8601,
-            chat_messages: replies.map { |r| guest_chat_message_json(r) },
+            chat_messages: ticket.replies.where(is_internal: false, is_system: false)
+                                 .order(created_at: :asc).includes(:author).map { |r| guest_chat_message_json(r) },
             chat_metadata: session&.metadata
           )
         end

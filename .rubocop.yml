@@ -28,6 +28,7 @@ Metrics/MethodLength:
   Max: 50
   Exclude:
     - "lib/escalated/services/hook_registry.rb"
+    - "lib/escalated/configuration.rb"
 
 Metrics/AbcSize:
   Max: 100
@@ -85,6 +86,11 @@ Rails/HasManyOrHasOneDependent:
 Rails/WhereNotWithMultipleConditions:
   Enabled: false
 
+# Pending cop (rubocop-rails) that rewrites plain `params[:id]` reads to
+# `params.expect(...)`. We have not adopted Rails 8 strong-parameters `expect`,
+# and its autocorrect changes behaviour on simple lookups (raises on missing),
+# so keep it off — consistent with the other opinionated Rails cops disabled
+# above. Revisit as a deliberate migration.
 Rails/StrongParametersExpect:
   Enabled: false
 

@@ -57,6 +57,7 @@ module Escalated
       def show
         replies = @ticket.replies.chronological.includes(:author, :attachments)
         activities = @ticket.activities.reverse_chronological.limit(50)
+        @ticket.ticket_subjects.load
 
         render_page 'Escalated/Admin/Tickets/Show', {
           ticket: ticket_detail_json(@ticket),
@@ -325,7 +326,8 @@ module Escalated
                                end,
           pinned_notes: ticket.pinned_notes.includes(:author).map { |n| reply_json(n) },
           requester_ticket_count: ticket.requester ? Escalated::Ticket.where(requester: ticket.requester).count : 0,
-          related_tickets: related_tickets_json(ticket)
+          related_tickets: related_tickets_json(ticket),
+          subjects: Escalated::TicketSerializer.subjects_for(ticket)
         )
 
         if ticket.chat?

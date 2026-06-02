@@ -4,6 +4,7 @@ module Escalated
   class Configuration
     attr_accessor :mode,
                   :user_class,
+                  :user_id_type,
                   :table_prefix,
                   :route_prefix,
                   :middleware,
@@ -72,11 +73,16 @@ module Escalated
                   :newsletter_markdown_renderer,
                   :newsletter_brand_accent,
                   :newsletter_brand_logo_url,
-                  :newsletter_brand_physical_address
+                  :newsletter_brand_physical_address,
+                  # Host-defined custom ticket actions
+                  :ticket_actions,
+                  # Host models a ticket can be about (Project, Customer, …)
+                  :ticket_subject_types
 
     def initialize # rubocop:disable Metrics/MethodLength
       @mode = :self_hosted
       @user_class = 'User'
+      @user_id_type = :auto
       @table_prefix = 'escalated_'
       @route_prefix = 'support'
       @middleware = [:authenticate_user!]
@@ -120,8 +126,7 @@ module Escalated
       @inbound_email_address = nil  # e.g., "support@yourdomain.com"
       @mailgun_signing_key = nil
       @postmark_inbound_token = nil
-      @ses_region = nil
-      @ses_topic_arn = nil
+      @ses_region = @ses_topic_arn = nil
       @imap_host = nil
       @imap_port = 993
       @imap_encryption = :ssl
@@ -158,6 +163,8 @@ module Escalated
       @newsletter_brand_accent = '#2563eb'
       @newsletter_brand_logo_url = nil
       @newsletter_brand_physical_address = nil
+      @ticket_actions = []
+      @ticket_subject_types = []
     end
 
     def self_hosted?

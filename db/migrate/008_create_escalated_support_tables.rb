@@ -36,7 +36,7 @@ class CreateEscalatedSupportTables < ActiveRecord::Migration[7.0]
       t.string :shortcode
       t.string :category
       t.boolean :is_shared, default: false, null: false
-      t.bigint :created_by, null: false
+      t.column :created_by, Escalated.user_id_type, null: false
 
       t.timestamps
     end

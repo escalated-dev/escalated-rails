@@ -5,7 +5,7 @@ module Escalated
     module V1
       class TicketsController < BaseController
         before_action :set_ticket,
-                      only: %i[show reply status priority assign follow apply_macro tags destroy]
+                      only: %i[show reply status priority assign follow apply_macro custom_action tags destroy]
 
         # GET /api/v1/tickets
         def index
@@ -162,6 +162,32 @@ module Escalated
           render json: { message: "Macro \"#{macro.name}\" applied." }
         end
 
+        # POST /api/v1/tickets/:reference/actions/:action_key
+        def custom_action
+          registry = Escalated.ticket_action_registry
+          action = registry.find(params[:action_key])
+
+          if action.nil? || !registry.visible?(action, @ticket, current_user)
+            return render json: { error: 'Custom action not found.' }, status: :not_found
+          end
+          unless registry.enabled?(action, @ticket, current_user)
+            return render json: { error: 'Custom action is not enabled.' }, status: :forbidden
+          end
+
+          payload = params[:payload].respond_to?(:to_unsafe_h) ? params[:payload].to_unsafe_h : (params[:payload] || {})
+
+          Services::NotificationService.dispatch(
+            :custom_action_triggered,
+            ticket: @ticket,
+            action_key: action[:key].to_s,
+            user: current_user,
+            payload: payload,
+            metadata: registry.metadata(action, @ticket, current_user)
+          )
+
+          render json: { message: 'Custom action dispatched.', action: action[:key].to_s }
+        end
+
         # POST /api/v1/tickets/:reference/tags
         def tags
           params.require(:tag_ids)
@@ -191,6 +217,17 @@ module Escalated
           @ticket = Escalated::Ticket.find_by!(reference: params[:reference])
         rescue ActiveRecord::RecordNotFound
           @ticket = Escalated::Ticket.find(params[:reference])
+        end
+
+        # Serialize the visible custom actions for a ticket, adding url + method.
+        def custom_actions_for(ticket)
+          api_prefix = Escalated.configuration.api_prefix.to_s.sub(%r{\A/}, '')
+          Escalated.ticket_action_registry.for_ticket(ticket, current_user).map do |action|
+            action.merge(
+              url: "/#{api_prefix}/tickets/#{ticket.reference}/actions/#{action[:key]}",
+              method: 'post'
+            )
+          end
         end
 
         def ticket_list_json(ticket)
@@ -262,7 +299,9 @@ module Escalated
             replies: replies.map { |r| reply_json(r) },
             activities: activities.map { |a| activity_json(a) },
             requester_ticket_count: ticket.requester ? Escalated::Ticket.where(requester: ticket.requester).count : 0,
-            related_tickets: related_tickets_json(ticket)
+            related_tickets: related_tickets_json(ticket),
+            custom_actions: custom_actions_for(ticket),
+            subjects: Escalated::TicketSerializer.subjects_for(ticket)
           )
 
           if ticket.chat?

@@ -42,7 +42,7 @@ RSpec.describe Escalated::TicketActionRegistry do
       )
 
       actions = registry.for_ticket(ticket, user)
-      expect(actions.map { |a| a[:key] }).to eq(['locked'])
+      expect(actions.pluck(:key)).to eq(['locked'])
       expect(actions.first[:disabled]).to be(true)
     end
 

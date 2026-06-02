@@ -55,6 +55,25 @@ module Escalated
                   :api_rate_limit,
                   :api_token_expiry_days,
                   :api_prefix,
+                  # Branding (used by newsletters + emails)
+                  :app_name,
+                  :app_url,
+                  # Newsletters (optional, disabled by default)
+                  :enable_newsletters,
+                  :newsletter_default_from,
+                  :newsletter_default_reply_to,
+                  :newsletter_default_theme,
+                  :newsletter_rate_limit_per_minute,
+                  :newsletter_batch_size,
+                  :newsletter_tracking_enabled,
+                  :newsletter_auto_pause_bounce_rate,
+                  :newsletter_auto_pause_threshold,
+                  :newsletter_claim_timeout_minutes,
+                  :newsletter_themes_dir,
+                  :newsletter_markdown_renderer,
+                  :newsletter_brand_accent,
+                  :newsletter_brand_logo_url,
+                  :newsletter_brand_physical_address,
                   # Host-defined custom ticket actions
                   :ticket_actions,
                   # Host models a ticket can be about (Project, Customer, …)
@@ -123,6 +142,27 @@ module Escalated
       @api_rate_limit = 60
       @api_token_expiry_days = nil
       @api_prefix = 'support/api/v1'
+
+      # Branding defaults
+      @app_name = 'Support'
+      @app_url = nil
+
+      # Newsletter defaults (feature off by default)
+      @enable_newsletters = false
+      @newsletter_default_from = nil
+      @newsletter_default_reply_to = nil
+      @newsletter_default_theme = 'default'
+      @newsletter_rate_limit_per_minute = 60
+      @newsletter_batch_size = 50
+      @newsletter_tracking_enabled = true
+      @newsletter_auto_pause_bounce_rate = 0.05
+      @newsletter_auto_pause_threshold = 100
+      @newsletter_claim_timeout_minutes = 10
+      @newsletter_themes_dir = nil
+      @newsletter_markdown_renderer = nil
+      @newsletter_brand_accent = '#2563eb'
+      @newsletter_brand_logo_url = nil
+      @newsletter_brand_physical_address = nil
       @ticket_actions = []
       @ticket_subject_types = []
     end
@@ -149,6 +189,14 @@ module Escalated
 
     def business_hours
       sla[:business_hours] || {}
+    end
+
+    def enable_newsletters?
+      @enable_newsletters == true
+    end
+
+    def newsletter_tracking_enabled?
+      @newsletter_tracking_enabled != false
     end
 
     def ui_enabled?

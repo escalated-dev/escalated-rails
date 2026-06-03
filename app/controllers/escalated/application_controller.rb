@@ -42,7 +42,8 @@ module Escalated
           knowledge_base_feedback_enabled: Escalated::EscalatedSetting.knowledge_base_feedback_enabled?,
           features: {
             newsletters: Escalated.configuration.enable_newsletters?
-          }
+          },
+          permissions: user_permission_slugs(current_user&.id)
         },
         flash: {
           success: flash[:success],
@@ -56,6 +57,15 @@ module Escalated
       shared[:plugin_ui] = Escalated.plugin_ui.to_shared_data if Escalated.configuration.plugins_enabled?
 
       inertia_share(**shared)
+    end
+
+    def user_permission_slugs(user_id)
+      return [] if user_id.blank?
+
+      Escalated::Permission.joins(roles: :users)
+                           .where(escalated_role_users: { user_id: user_id })
+                           .distinct
+                           .pluck(:slug)
     end
 
     def current_user_data

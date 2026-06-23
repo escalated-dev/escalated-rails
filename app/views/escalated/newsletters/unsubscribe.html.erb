@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Unsubscribe</title>
+  </head>
+  <body>
+    <% if confirmed %>
+      <p>You have been unsubscribed<%= email.present? ? " from #{email}" : '' %>.</p>
+    <% else %>
+      <p>Unsubscribe<%= email.present? ? " #{email}" : '' %> from future newsletters.</p>
+      <form method="post" action="/escalated/n/u/<%= ERB::Util.url_encode(token) %>">
+        <button type="submit">Unsubscribe</button>
+      </form>
+    <% end %>
+  </body>
+</html>

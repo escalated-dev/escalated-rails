@@ -15,15 +15,18 @@ module Escalated
 
         reclaim_stuck_rows
 
-        batch_size = Escalated.configuration.newsletter_batch_size
+        remaining_capacity = rate_limit_remaining
+        return if remaining_capacity <= 0
+
+        batch_size = [Escalated.configuration.newsletter_batch_size, remaining_capacity].min
 
         ids = Escalated::NewsletterDelivery.transaction do
-          rows = Escalated::NewsletterDelivery
-                 .pending
-                 .order(:id)
-                 .lock('FOR UPDATE')
-                 .limit(batch_size)
-                 .pluck(:id)
+          scope = Escalated::NewsletterDelivery.pending
+          scope = scope.where('next_attempt_at IS NULL OR next_attempt_at <= ?', Time.current)
+          rows = scope.order(:id)
+                      .lock('FOR UPDATE')
+                      .limit(batch_size)
+                      .pluck(:id)
           if rows.any?
             Escalated::NewsletterDelivery.where(id: rows).update_all(
               status: 'queued',
@@ -38,8 +41,12 @@ module Escalated
           dispatch_one(delivery) if delivery
         end
 
-        finalize_completed_newsletters
         check_auto_pause_across_active_newsletters
+        finalize_completed_newsletters
+      end
+
+      def self.rate_counters
+        @rate_counters ||= {}
       end
 
       private
@@ -67,10 +74,11 @@ module Escalated
           subject: delivery_full.newsletter.subject,
           body: html,
           content_type: 'text/html'
-        ).deliver_now
+        ).deliver
 
         delivery.update!(status: 'sent', sent_at: Time.current, claimed_at: nil)
         Escalated::Newsletter.where(id: delivery.newsletter_id).update_all('summary_sent = summary_sent + 1')
+        increment_rate_limit_counter
       rescue StandardError => e
         Rails.logger.warn("Newsletter delivery #{delivery.id} failed: #{e.message}")
         attempts = delivery.attempt_count + 1
@@ -78,7 +86,8 @@ module Escalated
           delivery.update!(status: 'failed', failure_reason: e.message,
                            attempt_count: attempts, claimed_at: nil)
         else
-          delivery.update!(status: 'pending', attempt_count: attempts, claimed_at: nil)
+          delivery.update!(status: 'pending', attempt_count: attempts, claimed_at: nil,
+                           next_attempt_at: backoff_for(attempts).from_now)
         end
       end
 
@@ -113,18 +122,52 @@ module Escalated
         threshold = Escalated.configuration.newsletter_auto_pause_threshold
         rate = Escalated.configuration.newsletter_auto_pause_bounce_rate
         Escalated::Newsletter.where(status: 'sending').find_each do |n|
-          total = Escalated::NewsletterDelivery.where(newsletter_id: n.id,
-                                                      status: %w[
-                                                        sent bounced complained failed
-                                                      ]).count
-          next if total < threshold
+          terminal_statuses = %w[sent bounced complained failed suppressed]
+          first_terminal = Escalated::NewsletterDelivery
+                           .where(newsletter_id: n.id, status: terminal_statuses)
+                           .order(:id)
+                           .limit(threshold)
+          total = first_terminal.count
+          next unless total >= threshold
 
-          bounced = Escalated::NewsletterDelivery.where(newsletter_id: n.id, status: 'bounced').count
+          bounced = first_terminal.select { |delivery| delivery.status == 'bounced' }.count
           if total.positive? && bounced.to_f / total >= rate
             n.update!(status: 'paused')
             Rails.logger.warn("Newsletter #{n.id} auto-paused: #{bounced}/#{total} bounced")
           end
         end
+      end
+
+      def rate_limit_remaining
+        limit = Escalated.configuration.newsletter_rate_limit_per_minute.to_i
+        return Float::INFINITY if limit <= 0
+
+        [limit - rate_counter_value, 0].max
+      end
+
+      def increment_rate_limit_counter
+        self.class.rate_counters[rate_limit_key] = rate_counter_value + 1
+        Rails.cache.write(rate_limit_key, self.class.rate_counters[rate_limit_key], expires_in: 70.seconds)
+      rescue StandardError => e
+        Rails.logger.warn("Newsletter rate counter update failed: #{e.message}")
+      end
+
+      def rate_limit_key
+        "escalated.newsletters.dispatch.#{Time.current.utc.strftime('%Y%m%d%H%M')}"
+      end
+
+      def backoff_for(attempts)
+        case attempts
+        when 1 then 1.minute
+        when 2 then 5.minutes
+        else 30.minutes
+        end
+      end
+
+      def rate_counter_value
+        self.class.rate_counters[rate_limit_key] || Rails.cache.read(rate_limit_key).to_i
+      rescue StandardError
+        self.class.rate_counters[rate_limit_key].to_i
       end
     end
   end

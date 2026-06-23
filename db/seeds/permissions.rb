@@ -75,6 +75,12 @@ module Escalated
         { slug: 'automation.manage', name: 'Manage automations', group: 'Automations',
           description: 'Create, edit, delete automations' },
 
+        # Newsletters
+        { slug: 'newsletters.manage', name: 'Manage newsletters', group: 'Newsletters',
+          description: 'Create, edit, delete drafts and lists/templates; send test emails.' },
+        { slug: 'newsletters.send', name: 'Send newsletters', group: 'Newsletters',
+          description: 'Schedule or send newsletters now.' },
+
         # Escalation Rules
         { slug: 'escalation.view',   name: 'View escalation rules',   group: 'Escalation Rules',
           description: 'View escalation rules' },

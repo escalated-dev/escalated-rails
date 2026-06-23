@@ -18,8 +18,8 @@ RSpec.describe Escalated::Newsletter::Renderer do
       app_url: 'https://app.example.test',
       newsletter_markdown_renderer: lambda { |markdown|
         markdown
-          .sub(/\A# (.*)/, '<h1>\\1</h1>')
-          .gsub(/\[([^\]]+)\]\(([^)]+)\)/, '<a href="\\2">\\1</a>')
+        .sub(/\A# (.*)/, '<h1>\\1</h1>')
+        .gsub(/\[([^\]]+)\]\(([^)]+)\)/, '<a href="\\2">\\1</a>')
       },
       newsletter_tracking_enabled?: true
     )

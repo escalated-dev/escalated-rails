@@ -29,6 +29,10 @@ module Escalated
       }
     end
 
+    def self.unsubscribe_counters
+      @unsubscribe_counters ||= {}
+    end
+
     private
 
     def find_delivery
@@ -39,10 +43,6 @@ module Escalated
       key = "escalated.newsletter.unsubscribe.#{request.remote_ip}.#{Time.current.to_i / 60}"
       self.class.unsubscribe_counters[key] = self.class.unsubscribe_counters[key].to_i + 1
       self.class.unsubscribe_counters[key] <= 60
-    end
-
-    def self.unsubscribe_counters
-      @unsubscribe_counters ||= {}
     end
   end
 end

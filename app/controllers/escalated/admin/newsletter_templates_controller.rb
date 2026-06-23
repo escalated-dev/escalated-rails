@@ -16,6 +16,14 @@ module Escalated
         }
       end
 
+      def show
+        render_page 'Escalated/Admin/Newsletters/Templates/Show', {
+          template: @template,
+          themes: themes,
+          isNew: false
+        }
+      end
+
       def create
         render_page 'Escalated/Admin/Newsletters/Templates/Create', { themes: themes }
       end
@@ -26,14 +34,6 @@ module Escalated
 
         Escalated::NewsletterTemplate.create!(data.merge(created_by: escalated_current_user&.id))
         redirect_to admin_newsletters_templates_path
-      end
-
-      def show
-        render_page 'Escalated/Admin/Newsletters/Templates/Show', {
-          template: @template,
-          themes: themes,
-          isNew: false
-        }
       end
 
       def update
@@ -56,7 +56,8 @@ module Escalated
       end
 
       def template_params
-        data = params.permit(:name, :theme, :subject_template, :body_markdown, merge_fields_schema: {}).to_h.symbolize_keys
+        data = params.permit(:name, :theme, :subject_template, :body_markdown,
+                             merge_fields_schema: {}).to_h.symbolize_keys
         errors = []
         errors << 'name is required' if data[:name].blank?
         errors << 'name is too long' if data[:name].to_s.length > 255
@@ -66,7 +67,7 @@ module Escalated
         errors << 'body_markdown is required' if data[:body_markdown].blank?
         return data if errors.empty?
 
-        render plain: errors.join(', '), status: :unprocessable_entity
+        render plain: errors.join(', '), status: :unprocessable_content
         nil
       end
 

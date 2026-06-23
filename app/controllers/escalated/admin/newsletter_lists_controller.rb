@@ -15,11 +15,27 @@ module Escalated
       def index
         lists = Escalated::NewsletterList
                 .left_joins(:members)
-                .select("#{Escalated::NewsletterList.table_name}.*, COUNT(#{Escalated::NewsletterListMember.table_name}.id) AS member_count")
+                .select("#{Escalated::NewsletterList.table_name}.*, COUNT(#{Escalated::NewsletterListMember.table_name}.id) AS member_count") # rubocop:disable Layout/LineLength
                 .group("#{Escalated::NewsletterList.table_name}.id")
                 .map { |list| list_json(list) }
 
         render_page 'Escalated/Admin/Newsletters/Lists/Index', { lists: lists }
+      end
+
+      def show
+        members = paginate(@list.members.includes(:contact).order(id: :desc), per_page: 100)
+        match_count = if @list.kind == 'dynamic'
+                        Escalated::Newsletter::ContactSegmentResolver.new.count_matches(@list.filter_json || { 'rules' => [] }) # rubocop:disable Layout/LineLength
+                      else
+                        0
+                      end
+
+        render_page 'Escalated/Admin/Newsletters/Lists/Show', {
+          list: list_json(@list),
+          members: members[:data],
+          meta: members[:meta],
+          matchCount: match_count
+        }
       end
 
       def create
@@ -32,22 +48,6 @@ module Escalated
 
         list = Escalated::NewsletterList.create!(data.merge(created_by: escalated_current_user&.id))
         redirect_to admin_newsletters_list_path(list)
-      end
-
-      def show
-        members = paginate(@list.members.includes(:contact).order(id: :desc), per_page: 100)
-        match_count = if @list.kind == 'dynamic'
-                        Escalated::Newsletter::ContactSegmentResolver.new.count_matches(@list.filter_json || { 'rules' => [] })
-                      else
-                        0
-                      end
-
-        render_page 'Escalated/Admin/Newsletters/Lists/Show', {
-          list: list_json(@list),
-          members: members[:data],
-          meta: members[:meta],
-          matchCount: match_count
-        }
       end
 
       def update
@@ -68,7 +68,7 @@ module Escalated
 
         contact_id = params[:contact_id]
         unless contact_id.present? && Escalated::Contact.exists?(contact_id)
-          return render plain: 'contact_id is invalid', status: :unprocessable_entity
+          return render plain: 'contact_id is invalid', status: :unprocessable_content
         end
 
         Escalated::NewsletterListMember.find_or_create_by!(list_id: @list.id, contact_id: contact_id) do |member|
@@ -86,7 +86,7 @@ module Escalated
 
       def import
         return unless static_list!
-        return render plain: 'file is required', status: :unprocessable_entity unless params[:file].respond_to?(:path)
+        return render plain: 'file is required', status: :unprocessable_content unless params[:file].respond_to?(:path)
 
         imported = 0
         CSV.foreach(params[:file].path) do |row|
@@ -121,14 +121,14 @@ module Escalated
         end
         return data if errors.empty?
 
-        render plain: errors.join(', '), status: :unprocessable_entity
+        render plain: errors.join(', '), status: :unprocessable_content
         nil
       end
 
       def static_list!
         return true if @list.kind == 'static'
 
-        render plain: 'Dynamic lists are filter-driven', status: :unprocessable_entity
+        render plain: 'Dynamic lists are filter-driven', status: :unprocessable_content
         false
       end
 

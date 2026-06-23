@@ -19,7 +19,7 @@ module Escalated
       before_action -> { require_newsletter_permission!('newsletters.manage') }
 
       def show
-        settings = KEYS.each_key.to_h { |key| [key, setting_value(key)] }
+        settings = KEYS.each_key.index_with { |key| setting_value(key) }
 
         render_page 'Escalated/Admin/Newsletters/Settings', {
           settings: settings,
@@ -46,7 +46,9 @@ module Escalated
         data = params.permit(*KEYS.keys).to_h.symbolize_keys
         errors = []
         errors << 'default_from is invalid' if data[:default_from].present? && !valid_email?(data[:default_from])
-        errors << 'default_reply_to is invalid' if data[:default_reply_to].present? && !valid_email?(data[:default_reply_to])
+        if data[:default_reply_to].present? && !valid_email?(data[:default_reply_to])
+          errors << 'default_reply_to is invalid'
+        end
         errors << 'default_theme is required' if data[:default_theme].blank?
         errors << 'default_theme is too long' if data[:default_theme].to_s.length > 64
         rate = data[:rate_limit_per_minute].to_i
@@ -56,7 +58,7 @@ module Escalated
         errors << 'tracking_enabled is required' unless data.key?(:tracking_enabled)
         return data.merge(rate_limit_per_minute: rate, batch_size: batch) if errors.empty?
 
-        render plain: errors.join(', '), status: :unprocessable_entity
+        render plain: errors.join(', '), status: :unprocessable_content
         nil
       end
 

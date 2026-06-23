@@ -3,8 +3,8 @@
 require 'rails_helper'
 require 'rake'
 
-RSpec.describe 'escalated:newsletters:dispatch' do
-  before(:all) do
+RSpec.describe 'escalated:newsletters:dispatch' do # rubocop:disable RSpec/DescribeClass
+  before(:all) do # rubocop:disable RSpec/BeforeAfterAll
     Rails.application.load_tasks unless Rake::Task.task_defined?('escalated:newsletters:dispatch')
   end
 

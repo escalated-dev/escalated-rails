@@ -45,6 +45,10 @@ module Escalated
         finalize_completed_newsletters
       end
 
+      def self.rate_counters
+        @rate_counters ||= {}
+      end
+
       private
 
       def dispatch_one(delivery)
@@ -164,10 +168,6 @@ module Escalated
         self.class.rate_counters[rate_limit_key] || Rails.cache.read(rate_limit_key).to_i
       rescue StandardError
         self.class.rate_counters[rate_limit_key].to_i
-      end
-
-      def self.rate_counters
-        @rate_counters ||= {}
       end
     end
   end

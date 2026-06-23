@@ -30,6 +30,31 @@ module Escalated
         }
       end
 
+      def show
+        tab = params[:tab].presence || 'overview'
+        deliveries = @newsletter.deliveries
+                                .includes(:contact)
+                                .where(is_test: false)
+        deliveries = deliveries.where(status: params[:status]) if params[:status].present?
+        result = paginate(deliveries.order(id: :desc), per_page: 100)
+
+        render_page 'Escalated/Admin/Newsletters/Show', {
+          newsletter: @newsletter.tap { |n| n.association(:target_list).load_target },
+          deliveries: result[:data],
+          meta: result[:meta],
+          topClicks: [],
+          tab: tab
+        }
+      end
+
+      def edit
+        unless %w[draft scheduled].include?(@newsletter.status)
+          return render plain: 'Only drafts and scheduled newsletters can be edited', status: :unprocessable_content
+        end
+
+        render_page 'Escalated/Admin/Newsletters/Edit', compose_props.merge(newsletter: @newsletter)
+      end
+
       def create
         render_page 'Escalated/Admin/Newsletters/Compose', compose_props
       end
@@ -103,31 +128,6 @@ module Escalated
         render json: { ok: true }
       end
 
-      def show
-        tab = params[:tab].presence || 'overview'
-        deliveries = @newsletter.deliveries
-                                .includes(:contact)
-                                .where(is_test: false)
-        deliveries = deliveries.where(status: params[:status]) if params[:status].present?
-        result = paginate(deliveries.order(id: :desc), per_page: 100)
-
-        render_page 'Escalated/Admin/Newsletters/Show', {
-          newsletter: @newsletter.tap { |n| n.association(:target_list).load_target },
-          deliveries: result[:data],
-          meta: result[:meta],
-          topClicks: [],
-          tab: tab
-        }
-      end
-
-      def edit
-        unless %w[draft scheduled].include?(@newsletter.status)
-          return render plain: 'Only drafts and scheduled newsletters can be edited', status: :unprocessable_entity
-        end
-
-        render_page 'Escalated/Admin/Newsletters/Edit', compose_props.merge(newsletter: @newsletter)
-      end
-
       def update
         data = newsletter_params
         return unless data
@@ -141,7 +141,7 @@ module Escalated
 
       def destroy
         unless @newsletter.status == 'draft'
-          return render plain: 'Only drafts can be deleted', status: :unprocessable_entity
+          return render plain: 'Only drafts can be deleted', status: :unprocessable_content
         end
 
         @newsletter.destroy!
@@ -181,7 +181,7 @@ module Escalated
         errors << 'from_email is invalid' if data[:from_email].present? && !valid_email?(data[:from_email])
         return data if errors.empty?
 
-        render json: { errors: errors }, status: :unprocessable_entity
+        render json: { errors: errors }, status: :unprocessable_content
         nil
       end
 
@@ -223,16 +223,16 @@ module Escalated
       end
 
       def validation_failed(errors)
-        render plain: errors.join(', '), status: :unprocessable_entity
+        render plain: errors.join(', '), status: :unprocessable_content
         nil
       end
 
       def compose_props
         {
           lists: Escalated::NewsletterList
-            .left_joins(:members)
-            .select("#{Escalated::NewsletterList.table_name}.id, #{Escalated::NewsletterList.table_name}.name, COUNT(#{Escalated::NewsletterListMember.table_name}.id) AS member_count")
-            .group("#{Escalated::NewsletterList.table_name}.id", "#{Escalated::NewsletterList.table_name}.name"),
+                 .left_joins(:members)
+                 .select("#{Escalated::NewsletterList.table_name}.id, #{Escalated::NewsletterList.table_name}.name, COUNT(#{Escalated::NewsletterListMember.table_name}.id) AS member_count") # rubocop:disable Layout/LineLength
+                 .group("#{Escalated::NewsletterList.table_name}.id", "#{Escalated::NewsletterList.table_name}.name"),
           templates: Escalated::NewsletterTemplate.select(:id, :name),
           themes: discover_themes,
           mailConfigured: mail_configured?,

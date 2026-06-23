@@ -67,7 +67,8 @@ RSpec.describe Escalated::Newsletter::Dispatcher do
   end
 
   it 'does not claim deliveries whose next_attempt_at is in the future' do
-    create(:escalated_newsletter_delivery, newsletter: newsletter, status: 'pending', next_attempt_at: 5.minutes.from_now)
+    create(:escalated_newsletter_delivery, newsletter: newsletter, status: 'pending',
+                                           next_attempt_at: 5.minutes.from_now)
 
     dispatcher.dispatch_batch
 

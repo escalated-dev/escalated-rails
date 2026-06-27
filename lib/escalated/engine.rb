@@ -72,6 +72,12 @@ module Escalated
         if Escalated.configuration.api_enabled
           scope Escalated.configuration.api_prefix, module: 'escalated/api/v1', as: 'escalated_api_v1' do
             post 'auth/validate', to: 'auth#validate'
+            post 'auth/login', to: 'auth#login'
+            post 'auth/register', to: 'auth#register'
+            post 'auth/logout', to: 'auth#logout'
+            post 'auth/refresh', to: 'auth#refresh'
+            get 'auth/me', to: 'auth#me'
+            patch 'auth/profile', to: 'auth#profile'
             get 'dashboard', to: 'dashboard#index'
 
             resources :tickets, param: :reference, only: %i[index show create destroy] do

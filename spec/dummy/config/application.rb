@@ -48,6 +48,7 @@ Escalated.configure do |config|
   config.user_class = 'User'
   config.table_prefix = 'escalated_'
   config.route_prefix = 'support'
+  config.api_enabled = true # Mount the JSON API routes for request specs
   config.notification_channels = [] # Disable email notifications in tests
   config.sla = {
     enabled: true,

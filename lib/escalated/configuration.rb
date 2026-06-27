@@ -77,7 +77,16 @@ module Escalated
                   # Host-defined custom ticket actions
                   :ticket_actions,
                   # Host models a ticket can be about (Project, Customer, …)
-                  :ticket_subject_types
+                  :ticket_subject_types,
+                  # Host-app authentication callbacks for the general JSON API
+                  # auth endpoints (login/register/refresh/profile/logout).
+                  # Each is a callable; nil means the endpoint responds 501.
+                  # Escalated owns no credentials, so it ships no password hasher.
+                  :api_authenticator,
+                  :api_registrar,
+                  :api_token_refresher,
+                  :api_profile_updater,
+                  :api_logout
 
     def initialize
       @mode = :self_hosted
@@ -165,6 +174,13 @@ module Escalated
       @newsletter_brand_physical_address = nil
       @ticket_actions = []
       @ticket_subject_types = []
+
+      # API auth callbacks (host-provided; nil → endpoint responds 501)
+      @api_authenticator = nil
+      @api_registrar = nil
+      @api_token_refresher = nil
+      @api_profile_updater = nil
+      @api_logout = nil
     end
 
     def self_hosted?

@@ -32,5 +32,7 @@ jobs:
       - name: Install dependencies
         run: bundle install
 
+      # No `|| echo` fallback: it swallowed rspec's exit code, so a red suite
+      # reported green regardless of what the specs did.
       - name: Run RSpec
-        run: bundle exec rspec --no-color 2>&1 || echo "No spec files found — build validated"
+        run: bundle exec rspec --no-color

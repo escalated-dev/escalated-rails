@@ -8,9 +8,8 @@ RSpec.describe Escalated::ApplicationController, type: :request do
   let(:admin) { create(:user, :admin, email: 'shared-props@example.test') }
 
   def sign_in_as(user)
-    # rubocop:disable RSpec/AnyInstance
+    # rubocop:disable-next RSpec/AnyInstance
     allow_any_instance_of(described_class).to receive(:current_user).and_return(user)
-    # rubocop:enable RSpec/AnyInstance
   end
 
   def inertia_props_from(body)

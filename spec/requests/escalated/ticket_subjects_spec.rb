@@ -24,9 +24,8 @@ RSpec.describe 'Ticket subject endpoints', type: :request do
   end
 
   def sign_in_as(user)
-    # rubocop:disable RSpec/AnyInstance
+    # rubocop:disable-next RSpec/AnyInstance
     allow_any_instance_of(Escalated::ApplicationController).to receive(:current_user).and_return(user)
-    # rubocop:enable RSpec/AnyInstance
   end
 
   describe 'POST /support/agent/tickets/:id/subjects' do

@@ -32,9 +32,9 @@ module Escalated
       def call(method, params)
         case method
         # Config
-        when 'ctx.config.all'    then config_all(params)
-        when 'ctx.config.get'    then config_get(params)
-        when 'ctx.config.set'    then config_set(params)
+        when 'ctx.config.all' then config_all(params)
+        when 'ctx.config.get' then config_get(params)
+        when 'ctx.config.set' then config_set(params)
 
         # Store
         when 'ctx.store.get'     then store_get(params)

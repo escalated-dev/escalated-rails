@@ -396,7 +396,7 @@ RSpec.describe Escalated::Services::SkillRoutingService do
     end
 
     context 'when multiple eligible agents exist' do
-      # rubocop:disable RSpec/ExampleLength -- setup-heavy ordering scenario
+      # rubocop:disable-next RSpec/ExampleLength -- setup-heavy ordering scenario
       it 'orders by sum of proficiency on required skills, then open ticket load' do
         dept = create(:escalated_department)
         skill = create(:escalated_skill, name: 'Dept Routed')
@@ -433,7 +433,6 @@ RSpec.describe Escalated::Services::SkillRoutingService do
         expect(result.first.id).to eq(stronger.id)
         expect(result.second.id).to eq(weaker.id)
       end
-      # rubocop:enable RSpec/ExampleLength
     end
   end
 end

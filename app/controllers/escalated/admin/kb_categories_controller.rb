@@ -12,7 +12,7 @@ module Escalated
       def index
         categories = Escalated::ArticleCategory.ordered
 
-        render_page 'Escalated/Admin/KbCategories/Index', {
+        render_page 'Escalated/Admin/KnowledgeBase/Categories/Index', {
           categories: categories.map { |c| category_json(c) }
         }
       end

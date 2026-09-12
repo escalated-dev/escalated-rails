@@ -15,8 +15,8 @@ module Escalated
       end
 
       def show
-        render_page 'Escalated/Admin/SlaPolicies/Show', {
-          sla_policy: sla_policy_json(@sla_policy),
+        render_page 'Escalated/Admin/SlaPolicies/Form', {
+          policy: sla_policy_json(@sla_policy),
           targets: @sla_policy.priority_targets,
           department_count: @sla_policy.departments.count,
           ticket_count: @sla_policy.tickets.count

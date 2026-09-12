@@ -40,10 +40,9 @@ module Escalated
       def deliveries
         result = paginate(@webhook.deliveries.recent)
 
-        render_page 'Escalated/Admin/Webhooks/Deliveries', {
+        render_page 'Escalated/Admin/Webhooks/DeliveryLog', {
           webhook: webhook_json(@webhook),
-          deliveries: result[:data].map { |d| delivery_json(d) },
-          meta: result[:meta]
+          deliveries: paginated_page(result, result[:data].map { |d| delivery_json(d) })
         }
       end
 

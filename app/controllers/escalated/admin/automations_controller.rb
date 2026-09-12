@@ -15,14 +15,14 @@ module Escalated
       end
 
       def new
-        render_page 'Escalated/Admin/Automations/New', {
+        render_page 'Escalated/Admin/Automations/Form', {
           condition_fields: condition_fields,
           action_types: action_types
         }
       end
 
       def edit
-        render_page 'Escalated/Admin/Automations/Edit', {
+        render_page 'Escalated/Admin/Automations/Form', {
           automation: automation_json(@automation),
           condition_fields: condition_fields,
           action_types: action_types

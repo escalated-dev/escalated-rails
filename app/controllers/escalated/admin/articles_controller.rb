@@ -18,9 +18,8 @@ module Escalated
 
         result = paginate(scope)
 
-        render_page 'Escalated/Admin/Articles/Index', {
-          articles: result[:data].map { |a| article_json(a) },
-          meta: result[:meta],
+        render_page 'Escalated/Admin/KnowledgeBase/Articles/Index', {
+          articles: paginated_page(result, result[:data].map { |a| article_json(a) }),
           filters: {
             search: params[:search],
             status: params[:status],

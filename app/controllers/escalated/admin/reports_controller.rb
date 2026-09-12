@@ -44,12 +44,20 @@ module Escalated
           csat: calculate_csat_stats(period_start, period_end)
         }
 
-        render_page 'Escalated/Admin/Reports/Index', {
-          stats: stats,
-          filters: {
-            from: period_start.iso8601,
-            to: period_end.iso8601
-          }
+        # The overview screen takes these flat, not as the nested `stats` the
+        # JSON endpoints below return. Handed the nested hash it renders zeroes
+        # across the board, because every prop falls back to its default -- a
+        # dashboard of zeroes reads as a quiet week rather than as a wiring
+        # fault, which is why this went unnoticed.
+        render_page 'Escalated/Admin/Reports', {
+          period_days: ((period_end - period_start) / 1.day).round,
+          total_tickets: stats[:overview][:total_created],
+          resolved_tickets: stats[:overview][:total_resolved],
+          avg_first_response_hours: stats[:performance][:avg_first_response_hours],
+          sla_breach_count: stats[:sla][:total_breached] || 0,
+          by_status: stats[:by_status],
+          by_priority: stats[:by_priority],
+          csat: stats[:csat]
         }
       end
 

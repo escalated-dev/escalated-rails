@@ -15,8 +15,8 @@ module Escalated
       end
 
       def show
-        render_page 'Escalated/Admin/EscalationRules/Show', {
-          escalation_rule: rule_json(@rule)
+        render_page 'Escalated/Admin/EscalationRules/Form', {
+          rule: rule_json(@rule)
         }
       end
 

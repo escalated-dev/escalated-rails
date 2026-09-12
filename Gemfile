@@ -9,6 +9,21 @@ gem 'escalated-locale',
     glob: 'packages/rubygems/escalated-locale.gemspec',
     tag: 'v0.1.8'
 
+# json 3.0 removed the positional options argument from JSON.parse, and
+# Rails 8.1's SQLite adapter still passes one while reading table metadata
+# during a table rebuild. The first migration that rebuilds a table (011,
+# a change_column_null) then aborts the whole suite with
+# "wrong number of arguments (given 2, expected 1)" out of
+# json/common.rb#parse.
+#
+# Gemfile.lock is not committed -- correct for a gem, since the suite
+# should prove the library works against current dependencies -- so CI
+# picked json 3.0 up the day it shipped and main went red with nobody
+# touching it. Pinned until Rails is compatible; the constraint is only in
+# the Gemfile, so it applies to this repo's own test run and is not
+# imposed on host applications through the gemspec.
+gem 'json', '< 3.0'
+
 gem 'rexml'
 gem 'tzinfo-data'
 

@@ -6,6 +6,7 @@ module Escalated
                   :user_class,
                   :user_id_type,
                   :table_prefix,
+                  :database_connection,
                   :route_prefix,
                   :middleware,
                   :admin_middleware,
@@ -93,6 +94,7 @@ module Escalated
       @user_class = 'User'
       @user_id_type = :auto
       @table_prefix = 'escalated_'
+      @database_connection = nil
       @route_prefix = 'support'
       @middleware = [:authenticate_user!]
       @admin_middleware = nil

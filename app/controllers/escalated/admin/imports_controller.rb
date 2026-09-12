@@ -149,7 +149,10 @@ module Escalated
           Escalated.hooks.do_action('import.run_async', job)
         else
           Thread.new do
-            ActiveRecord::Base.connection_pool.with_connection do
+            # Escalated's own pool, not the host's primary: with a separate
+            # database configured, a checkout from ActiveRecord::Base would
+            # hold the wrong connection open for the whole import.
+            Escalated::ApplicationRecord.connection_pool.with_connection do
               import_service.run(job)
             rescue StandardError => e
               backtrace = e.backtrace.first(10).join("\n")

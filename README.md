@@ -577,6 +577,60 @@ Custom themes go in `app/views/escalated/newsletter_themes/<slug>.html.erb`. Eac
 bundle exec rspec
 ```
 
+## Database connection
+
+By default Escalated's tables live on your application's primary database. Name
+a different one to keep them somewhere else — a schema shared with a legacy
+system, a multi-tenant split, a separate reporting store, or simply out of your
+primary database:
+
+```ruby
+# config/initializers/escalated.rb
+Escalated.configure do |config|
+  config.database_connection = :support
+end
+```
+
+`:support` is an entry in your `config/database.yml`. Hosts already using
+Rails' role-based multiple databases can pass the mapping instead, and the
+reading/writing split is preserved:
+
+```ruby
+config.database_connection = { writing: :support_primary, reading: :support_replica }
+```
+
+Every Escalated model inherits `Escalated::ApplicationRecord`, so one setting
+moves all of them together. A spec enumerates `app/models/escalated` and fails
+if a model is ever added that does not inherit it.
+
+**Your user table does not move.** It belongs to your application, and
+Escalated stores host user ids as plain unconstrained columns precisely so the
+two can live on different connections — there is no foreign key that would have
+to span them.
+
+### Migrations
+
+Rails decides which database a migration runs against by which migration path
+it lives in, so install Escalated's into the path for that database rather than
+the primary one:
+
+```ruby
+# config/database.yml
+support:
+  adapter: postgresql
+  database: support
+  migrations_paths: db/support_migrate
+```
+
+```bash
+bin/rails escalated:install:migrations MIGRATIONS_PATH=db/support_migrate
+bin/rails db:migrate:support
+```
+
+Setting `database_connection` on an existing install does not move existing
+data. Migrate the tables and copy the rows across before pointing Escalated at
+the new database.
+
 ## License
 
 MIT

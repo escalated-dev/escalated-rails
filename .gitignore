@@ -33,3 +33,7 @@ node_modules/
 # RSpec local artifacts
 spec/examples.txt
 spec/dummy/tmp/
+
+# Local bundle install path, used when running the suite in a container.
+/vendor/bundle/
+/.bundle/

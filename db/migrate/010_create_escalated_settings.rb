@@ -10,16 +10,21 @@ class CreateEscalatedSettings < ActiveRecord::Migration[7.0]
 
     add_index table_name, :key, unique: true
 
-    # Seed default settings
-    now = Time.current
+    # Seed default settings.
+    #
+    # quoted_date, not iso8601: MySQL rejects the T and the Z outright
+    # ("Incorrect datetime value"), so this migration could not run there at all.
+    # The adapter knows the format its own server wants.
+    now = connection.quote(connection.quoted_date(Time.current.utc))
+
     execute <<-SQL.squish
       INSERT INTO #{table_name} (#{connection.quote_column_name('key')}, value, created_at, updated_at)
       VALUES
-        ('guest_tickets_enabled', '1', '#{now.utc.iso8601}', '#{now.utc.iso8601}'),
-        ('allow_customer_close', '1', '#{now.utc.iso8601}', '#{now.utc.iso8601}'),
-        ('auto_close_resolved_after_days', '7', '#{now.utc.iso8601}', '#{now.utc.iso8601}'),
-        ('max_attachments_per_reply', '5', '#{now.utc.iso8601}', '#{now.utc.iso8601}'),
-        ('max_attachment_size_kb', '10240', '#{now.utc.iso8601}', '#{now.utc.iso8601}')
+        ('guest_tickets_enabled', '1', #{now}, #{now}),
+        ('allow_customer_close', '1', #{now}, #{now}),
+        ('auto_close_resolved_after_days', '7', #{now}, #{now}),
+        ('max_attachments_per_reply', '5', #{now}, #{now}),
+        ('max_attachment_size_kb', '10240', #{now}, #{now})
     SQL
   end
 

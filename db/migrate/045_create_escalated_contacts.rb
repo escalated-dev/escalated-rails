@@ -18,7 +18,9 @@ class CreateEscalatedContacts < ActiveRecord::Migration[7.0]
       t.string :name, null: true
       t.column :user_id, Escalated.user_id_type, null: true,
                                                  comment: 'Linked host-app user id once the contact creates an account'
-      t.json :metadata, default: {}
+      # No database default: MySQL forbids one on a JSON column, which made the
+      # engine impossible to install there. The model carries it instead.
+      t.json :metadata
       t.timestamps
     end
 

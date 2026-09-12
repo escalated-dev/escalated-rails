@@ -8,18 +8,12 @@ RSpec.describe 'Ticket subject endpoints', type: :request do
 
   before do
     allow(Escalated.configuration).to receive(:notification_channels).and_return([])
-    ActiveRecord::Base.connection.create_table(:fake_projects, id: false, force: true) do |t|
-      t.string :id, primary_key: true
-      t.string :name, null: false
-      t.string :account
-    end
     Escalated.configure { |c| c.ticket_subject_types = [FakeProject.name] }
     agent
     ticket
   end
 
   after do
-    ActiveRecord::Base.connection.drop_table(:fake_projects, if_exists: true)
     Escalated.configure { |c| c.ticket_subject_types = [] }
   end
 

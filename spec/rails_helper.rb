@@ -53,8 +53,21 @@ RSpec.configure do |config|
       end
     end
 
-    # Run all migrations against the in-memory SQLite database
     ActiveRecord::Migration.verbose = false
+
+    # An in-memory SQLite database starts empty every run. A server-backed one
+    # does not: its tables outlive the process, so the migrations below would be
+    # applied to a schema that already has them.
+    connection = ActiveRecord::Base.connection
+
+    unless connection.adapter_name == 'SQLite'
+      # Foreign keys have to come off first. `force: :cascade` drops dependent
+      # *views* but not constraints on MySQL, so the first table another one
+      # references refuses to go.
+      connection.disable_referential_integrity do
+        connection.tables.each { |table| connection.drop_table(table, force: :cascade) }
+      end
+    end
 
     # Run the dummy app's user migration
     dummy_migrations_path = File.expand_path('dummy/db/migrate', __dir__)
@@ -67,6 +80,18 @@ RSpec.configure do |config|
     # Run the engine's migrations
     engine_migrations_path = File.expand_path('../db/migrate', __dir__)
     ActiveRecord::MigrationContext.new(engine_migrations_path).migrate if File.directory?(engine_migrations_path)
+
+    # The host-app table the ticket-subject specs attach to. Created once here
+    # rather than per example: MySQL commits implicitly on DDL, so a CREATE
+    # TABLE inside DatabaseCleaner's transaction destroyed it along with the
+    # savepoint every later statement expected ("SAVEPOINT active_record_1 does
+    # not exist"). SQLite and PostgreSQL have transactional DDL and never
+    # noticed.
+    ActiveRecord::Base.connection.create_table(:fake_projects, id: false, force: true) do |t|
+      t.string :id, primary_key: true
+      t.string :name, null: false
+      t.string :account
+    end
 
     DatabaseCleaner.strategy = :transaction
     DatabaseCleaner.clean_with(:truncation)

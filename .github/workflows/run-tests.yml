@@ -19,7 +19,7 @@ jobs:
         # because the controllers use params.expect (Rails 8 only) in 20 places.
         ruby: ["3.3", "3.2"]
 
-    name: Ruby ${{ matrix.ruby }}
+    name: Ruby ${{ matrix.ruby }} - sqlite3
 
     steps:
       - name: Checkout code
@@ -37,4 +37,72 @@ jobs:
       # No `|| echo` fallback: it swallowed rspec's exit code, so a red suite
       # reported green regardless of what the specs did.
       - name: Run RSpec
+        run: bundle exec rspec --no-color
+
+  # The Ruby matrix above runs on SQLite. These two legs run the same suite
+  # against the databases hosts actually deploy on. The three disagree about
+  # enough to matter -- MySQL has no uuid type and forbids a default on a JSON
+  # column, its collation folds case where PostgreSQL's does not, and it commits
+  # implicitly on DDL where the other two keep it in the transaction -- and none
+  # of that was visible from SQLite.
+  #
+  # Both service containers start on both legs. GitHub Actions cannot make a
+  # service conditional, and an empty `image:` is an error rather than a skip;
+  # a spare container is cheaper than the confusion of working around it.
+  databases:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        db: [postgresql, mysql2]
+
+    name: Ruby 3.3 - ${{ matrix.db }}
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: escalated_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd=pg_isready
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD: 'yes'
+          MYSQL_DATABASE: escalated_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Install dependencies
+        run: bundle install
+
+      - name: Run RSpec
+        env:
+          # Read by spec/dummy/config/database.yml. An unrecognised value raises
+          # rather than falling back, so a broken leg fails instead of quietly
+          # running SQLite and reporting green.
+          ESCALATED_TEST_ADAPTER: ${{ matrix.db }}
+          ESCALATED_TEST_PASSWORD: ${{ matrix.db == 'postgresql' && 'postgres' || '' }}
         run: bundle exec rspec --no-color

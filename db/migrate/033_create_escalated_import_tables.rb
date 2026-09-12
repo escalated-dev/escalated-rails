@@ -1,9 +1,21 @@
 class CreateEscalatedImportTables < ActiveRecord::Migration[7.0]
+  # MySQL has no uuid type at all, so `id: :uuid` was not a portable choice --
+  # the engine could not be installed on MySQL, and the failure was a raw SQL
+  # syntax error rather than anything that named the cause.
+  #
+  # PostgreSQL keeps its native type, because an existing install already has
+  # it and it is the better column where it exists. Everywhere else the id is a
+  # 36-character string, which holds the same value; Escalated::ImportJob
+  # generates it, so no database-side default is needed either way.
+  def uuid_type
+    connection.adapter_name == 'PostgreSQL' ? :uuid : :string
+  end
+
   def change
     # ------------------------------------------------------------------
     # import_jobs
     # ------------------------------------------------------------------
-    create_table Escalated.table_name("import_jobs"), id: :uuid do |t|
+    create_table Escalated.table_name("import_jobs"), id: uuid_type, default: nil do |t|
       t.string  :platform,      null: false
       t.string  :status,        null: false, default: "pending"
 
@@ -11,9 +23,11 @@ class CreateEscalatedImportTables < ActiveRecord::Migration[7.0]
       t.text    :credentials
 
       # JSON columns
-      t.json    :field_mappings, default: {}
-      t.json    :progress,       default: {}
-      t.json    :error_log,      default: []
+      # No database default: MySQL forbids one on a JSON column, which made the
+      # engine impossible to install there. The model carries it instead.
+      t.json    :field_mappings
+      t.json    :progress
+      t.json    :error_log
 
       # Timestamps
       t.datetime :started_at
@@ -29,7 +43,7 @@ class CreateEscalatedImportTables < ActiveRecord::Migration[7.0]
     # ------------------------------------------------------------------
     create_table Escalated.table_name("import_source_maps") do |t|
       t.references :import_job,
-                   type:       :uuid,
+                   type:       uuid_type,
                    null:       false,
                    foreign_key: { to_table: Escalated.table_name("import_jobs") },
                    index:      false

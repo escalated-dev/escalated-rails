@@ -4,19 +4,12 @@ require 'rails_helper'
 
 RSpec.describe 'Ticket subjects', type: :model do
   before do
-    ActiveRecord::Base.connection.create_table(:fake_projects, id: false, force: true) do |t|
-      t.string :id, primary_key: true
-      t.string :name, null: false
-      t.string :account
-    end
-
     Escalated.configure do |config|
       config.ticket_subject_types = [FakeProject.name]
     end
   end
 
   after do
-    ActiveRecord::Base.connection.drop_table(:fake_projects, if_exists: true)
     Escalated.configure do |config|
       config.ticket_subject_types = []
     end

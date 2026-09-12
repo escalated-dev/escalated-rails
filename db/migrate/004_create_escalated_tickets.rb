@@ -29,7 +29,9 @@ class CreateEscalatedTickets < ActiveRecord::Migration[7.0]
       t.datetime :closed_at
 
       # Metadata
-      t.json :metadata, default: {}
+      # No database default: MySQL forbids one on a JSON column, which made the
+      # engine impossible to install there. The model carries it instead.
+      t.json :metadata
 
       t.timestamps
     end

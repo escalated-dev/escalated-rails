@@ -29,7 +29,7 @@ RSpec.describe Escalated::Tag, type: :model do
       subject { create(:escalated_tag) }
 
       it { is_expected.to validate_uniqueness_of(:name).case_insensitive }
-      it { is_expected.to validate_uniqueness_of(:slug) }
+      it { is_expected.to uniqueness_of(:slug) }
     end
 
     describe 'color format' do

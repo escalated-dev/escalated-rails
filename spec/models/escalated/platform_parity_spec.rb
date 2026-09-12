@@ -80,7 +80,7 @@ RSpec.describe Escalated::TicketStatus, type: :model do
     context 'uniqueness' do
       subject { create(:escalated_ticket_status) }
 
-      it { is_expected.to validate_uniqueness_of(:slug) }
+      it { is_expected.to uniqueness_of(:slug) }
     end
   end
 
@@ -245,7 +245,7 @@ RSpec.describe Escalated::Role, type: :model do
     context 'uniqueness' do
       subject { create(:escalated_role) }
 
-      it { is_expected.to validate_uniqueness_of(:slug) }
+      it { is_expected.to uniqueness_of(:slug) }
     end
   end
 
@@ -329,7 +329,7 @@ RSpec.describe Escalated::Permission, type: :model do
     context 'uniqueness' do
       subject { create(:escalated_permission, slug: "test_perm_#{SecureRandom.hex(4)}") }
 
-      it { is_expected.to validate_uniqueness_of(:slug) }
+      it { is_expected.to uniqueness_of(:slug) }
     end
   end
 
@@ -383,7 +383,7 @@ RSpec.describe Escalated::CustomField, type: :model do
         described_class.create!(name: 'Test Field', slug: 'test_field_uniq', field_type: 'text', context: 'ticket')
       end
 
-      it { is_expected.to validate_uniqueness_of(:slug) }
+      it { is_expected.to uniqueness_of(:slug) }
     end
   end
 
@@ -786,7 +786,7 @@ RSpec.describe Escalated::Article, type: :model do
     context 'uniqueness' do
       subject { create(:escalated_article) }
 
-      it { is_expected.to validate_uniqueness_of(:slug) }
+      it { is_expected.to uniqueness_of(:slug) }
     end
   end
 
@@ -1025,7 +1025,7 @@ RSpec.describe Escalated::Skill, type: :model do
     context 'uniqueness' do
       subject { create(:escalated_skill) }
 
-      it { is_expected.to validate_uniqueness_of(:slug) }
+      it { is_expected.to uniqueness_of(:slug) }
     end
   end
 
@@ -1362,7 +1362,7 @@ RSpec.describe Escalated::CustomObject, type: :model do
     context 'uniqueness' do
       subject { described_class.create!(name: 'Test Object', slug: 'test_object_uniq') }
 
-      it { is_expected.to validate_uniqueness_of(:slug) }
+      it { is_expected.to uniqueness_of(:slug) }
     end
   end
 

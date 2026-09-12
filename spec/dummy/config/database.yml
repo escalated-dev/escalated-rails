@@ -1,11 +1,41 @@
-test:
+# The suite runs on SQLite unless ESCALATED_TEST_ADAPTER says otherwise, so it
+# needs nothing installed locally. CI runs it three times -- sqlite3, postgresql
+# and mysql2 -- because the three disagree about enough to matter: PostgreSQL
+# refuses to compare a boolean to an integer and its LIKE is case-sensitive
+# where MySQL's is not, aggregates come back as BigDecimal from one adapter and
+# Integer from another, and SQLite enforces no foreign keys unless asked. A
+# suite that has only ever seen SQLite has tested none of it.
+<%
+  adapter = ENV.fetch('ESCALATED_TEST_ADAPTER', 'sqlite3')
+
+  unless %w[sqlite3 postgresql mysql2].include?(adapter)
+    # Never fall back. A CI leg that quietly ran SQLite would report green
+    # having tested nothing the matrix exists for.
+    raise "ESCALATED_TEST_ADAPTER must be sqlite3, postgresql or mysql2; got #{adapter.inspect}."
+  end
+
+  sqlite = adapter == 'sqlite3'
+  default_port = adapter == 'postgresql' ? 5432 : 3306
+  default_user = adapter == 'postgresql' ? 'postgres' : 'root'
+%>
+
+<% if sqlite %>
+test: &test
   adapter: sqlite3
   database: ":memory:"
   pool: 5
   timeout: 5000
+<% else %>
+test: &test
+  adapter: <%= adapter %>
+  database: <%= ENV.fetch('ESCALATED_TEST_DATABASE', 'escalated_test') %>
+  username: <%= ENV.fetch('ESCALATED_TEST_USERNAME', default_user) %>
+  password: <%= ENV.fetch('ESCALATED_TEST_PASSWORD', '') %>
+  host: <%= ENV.fetch('ESCALATED_TEST_HOST', '127.0.0.1') %>
+  port: <%= ENV.fetch('ESCALATED_TEST_PORT', default_port) %>
+  encoding: <%= adapter == 'postgresql' ? 'unicode' : 'utf8mb4' %>
+  pool: 5
+<% end %>
 
 development:
-  adapter: sqlite3
-  database: ":memory:"
-  pool: 5
-  timeout: 5000
+  <<: *test

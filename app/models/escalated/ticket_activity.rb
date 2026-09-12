@@ -4,6 +4,11 @@ module Escalated
   class TicketActivity < ApplicationRecord
     self.table_name = Escalated.table_name('ticket_activities')
 
+    # Carried here rather than as a column default: MySQL forbids a default on a
+    # JSON column, so a database default made the engine impossible to install
+    # there at all. Every adapter honours this one the same way.
+    attribute :details, default: -> { {} }
+
     belongs_to :ticket, class_name: 'Escalated::Ticket'
     belongs_to :causer, polymorphic: true, optional: true
 

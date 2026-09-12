@@ -7,6 +7,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **Configurable database connection.** `Escalated.configuration.database_connection` names the database Escalated's own tables live on. `nil` keeps the host application's primary connection, which is the historical behaviour and leaves an unconfigured host unchanged.
+
+  Accepts either shape Rails offers: a Symbol/String establishes that `database.yml` entry directly, and a Hash is passed to `connects_to` so a host already using role-based multiple databases keeps its reading/writing split.
+
+  Every Escalated model inherits `Escalated::ApplicationRecord`, so one setting moves all of them together; a spec enumerates `app/models/escalated` and fails if a model is ever added that does not inherit it. The long-running import checkout now takes Escalated's pool rather than `ActiveRecord::Base`'s, which would otherwise hold the wrong connection open for the whole import.
+
+  Your user table is deliberately not moved — it belongs to the host, and Escalated stores host user ids as plain unconstrained columns so the two can live on different connections with no foreign key to span them.
+
+  Migrations follow Rails' own rule: install them into the migration path for that database (`MIGRATIONS_PATH=db/support_migrate`) and run `db:migrate:support`. See the README.
+
+### Added
 - Consume central translations from the `escalated-locale` gem; plugin-local `config/locales/*.yml` and a new `config/locales/overrides/` directory still override central keys (last-loaded wins)
 - SAML and JWT validation in SSO service
 - Full automation system matching Laravel AutomationRunner

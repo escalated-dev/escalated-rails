@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-09-12
+
 ### Added
 - **Configurable database connection.** `Escalated.configuration.database_connection` names the database Escalated's own tables live on. `nil` keeps the host application's primary connection, which is the historical behaviour and leaves an unconfigured host unchanged.
 

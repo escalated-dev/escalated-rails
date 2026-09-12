@@ -12,7 +12,7 @@ module Escalated
                .order(created_at: :desc)
                .limit(100)
 
-        render_page 'Escalated/Admin/Imports/Index', {
+        render_page 'Escalated/Admin/Import/Index', {
           jobs: jobs.map { |j| job_json(j) },
           adapters: import_service.available_adapters.map { |a| adapter_json(a) }
         }
@@ -20,7 +20,7 @@ module Escalated
 
       # GET /admin/imports/:id
       def show
-        render_page 'Escalated/Admin/Imports/Show', {
+        render_page 'Escalated/Admin/Import/Progress', {
           job: job_json(@job),
           adapters: import_service.available_adapters.map { |a| adapter_json(a) }
         }

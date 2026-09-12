@@ -14,7 +14,7 @@ module Escalated
       end
 
       def show
-        render_page 'Escalated/Admin/Workflows/Show', {
+        render_page 'Escalated/Admin/Workflows/Form', {
           workflow: workflow_json(@workflow),
           trigger_events: Escalated::Workflow::TRIGGER_EVENTS,
           operators: Escalated::WorkflowEngine::OPERATORS,
@@ -23,7 +23,7 @@ module Escalated
       end
 
       def new
-        render_page 'Escalated/Admin/Workflows/New', {
+        render_page 'Escalated/Admin/Workflows/Form', {
           trigger_events: Escalated::Workflow::TRIGGER_EVENTS,
           operators: Escalated::WorkflowEngine::OPERATORS,
           action_types: Escalated::WorkflowEngine::ACTION_TYPES
@@ -31,7 +31,7 @@ module Escalated
       end
 
       def edit
-        render_page 'Escalated/Admin/Workflows/Edit', {
+        render_page 'Escalated/Admin/Workflows/Form', {
           workflow: workflow_json(@workflow),
           trigger_events: Escalated::Workflow::TRIGGER_EVENTS,
           operators: Escalated::WorkflowEngine::OPERATORS,

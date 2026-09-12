@@ -16,9 +16,8 @@ module Escalated
 
         result = paginate(scope)
 
-        render_page 'Escalated/Admin/AuditLogs/Index', {
-          logs: result[:data].map { |l| log_json(l) },
-          meta: result[:meta],
+        render_page 'Escalated/Admin/AuditLog/Index', {
+          logs: paginated_page(result, result[:data].map { |l| log_json(l) }),
           filters: {
             user_id: params[:user_id],
             action: params[:action],

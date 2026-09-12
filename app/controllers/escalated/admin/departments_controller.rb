@@ -15,7 +15,7 @@ module Escalated
       end
 
       def show
-        render_page 'Escalated/Admin/Departments/Show', {
+        render_page 'Escalated/Admin/Departments/Form', {
           department: department_json(@department),
           agents: @department.agents.map do |a|
             { id: a.id, name: a.respond_to?(:name) ? a.name : a.email, email: a.email }

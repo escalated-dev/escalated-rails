@@ -135,5 +135,43 @@ module Escalated
         }
       }
     end
+
+    # The same page of records, shaped the way the frontend list components read
+    # it.
+    #
+    # They were written against a paginator that carries its own links -- they
+    # iterate `records.links` for { url, label, active } and gate the control on
+    # `records.last_page`. Handed our `{ data:, meta: }` instead, they render
+    # the rows and no way to reach page two, and `meta` goes unread. So the page
+    # payload is built here rather than at each call site.
+    def paginated_page(result, rows)
+      meta = result[:meta]
+
+      {
+        data: rows,
+        current_page: meta[:current_page],
+        last_page: meta[:total_pages],
+        per_page: meta[:per_page],
+        total: meta[:total],
+        links: pagination_links(meta[:current_page], meta[:total_pages])
+      }
+    end
+
+    # Previous / page numbers / Next, with a nil url on the ones that lead
+    # nowhere -- the component styles those as inert rather than hiding them.
+    def pagination_links(current, last)
+      return [] if last.to_i < 2
+
+      page_url = ->(n) { url_for(request.query_parameters.merge(page: n, only_path: true)) }
+
+      links = [{ url: current > 1 ? page_url.call(current - 1) : nil, label: '&laquo; Previous', active: false }]
+
+      (1..last).each do |n|
+        links << { url: page_url.call(n), label: n.to_s, active: n == current }
+      end
+
+      links << { url: current < last ? page_url.call(current + 1) : nil, label: 'Next &raquo;', active: false }
+      links
+    end
   end
 end

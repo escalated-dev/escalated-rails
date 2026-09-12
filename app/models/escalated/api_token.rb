@@ -4,6 +4,11 @@ module Escalated
   class ApiToken < ApplicationRecord
     self.table_name = Escalated.table_name('api_tokens')
 
+    # Carried here rather than as a column default: MySQL forbids a default on a
+    # JSON column, so a database default made the engine impossible to install
+    # there at all. Every adapter honours this one the same way.
+    attribute :abilities, default: -> { ['*'] }
+
     belongs_to :tokenable, polymorphic: true
 
     validates :name, presence: true, length: { maximum: 255 }

@@ -9,7 +9,12 @@ class CreateEscalatedNewsletterListMembers < ActiveRecord::Migration[7.0]
     create_table table_name do |t|
       t.bigint :list_id, null: false
       t.bigint :contact_id, null: false
-      t.datetime :added_at, null: false, default: -> { 'CURRENT_TIMESTAMP' }
+      # No database default. Rails creates this as datetime(6) on MySQL, where a
+      # default of CURRENT_TIMESTAMP does not match that precision and the
+      # column is rejected outright ("Invalid default value for 'added_at'") --
+      # so the engine could not be installed there. Escalated::NewsletterListMember
+      # sets it, which every adapter treats identically.
+      t.datetime :added_at, null: false
       t.column :added_by, Escalated.user_id_type
     end
 

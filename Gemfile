@@ -37,4 +37,9 @@ group :development, :test do
   gem 'rubocop-rspec', require: false
   gem 'shoulda-matchers'
   gem 'sqlite3'
+
+  # Loaded only when ESCALATED_TEST_ADAPTER selects them, so a default `bundle
+  # install` still needs no database client libraries present.
+  gem 'mysql2', require: false
+  gem 'pg', require: false
 end

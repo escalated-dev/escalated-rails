@@ -7,7 +7,9 @@ class CreateEscalatedApiTokens < ActiveRecord::Migration[7.0]
 
       t.string :name, null: false
       t.string :token, limit: 64, null: false
-      t.json :abilities, default: ["*"]
+      # No database default: MySQL forbids one on a JSON column, which made the
+      # engine impossible to install there. The model carries it instead.
+      t.json :abilities
       t.datetime :last_used_at
       t.string :last_used_ip, limit: 45
       t.datetime :expires_at

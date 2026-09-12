@@ -22,7 +22,7 @@ RSpec.describe Escalated::Department, type: :model do
       subject { create(:escalated_department) }
 
       it { is_expected.to validate_uniqueness_of(:name).case_insensitive }
-      it { is_expected.to validate_uniqueness_of(:slug) }
+      it { is_expected.to uniqueness_of(:slug) }
     end
 
     describe 'email format' do

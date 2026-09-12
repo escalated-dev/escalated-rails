@@ -4,6 +4,11 @@ module Escalated
   class SavedView < ApplicationRecord
     self.table_name = Escalated.table_name('saved_views')
 
+    # Carried here rather than as a column default: MySQL forbids a default on a
+    # JSON column, so a database default made the engine impossible to install
+    # there at all. Every adapter honours this one the same way.
+    attribute :filters, default: -> { {} }
+
     belongs_to :user, class_name: Escalated.configuration.user_class, optional: true
 
     validates :name, presence: true, length: { maximum: 100 }

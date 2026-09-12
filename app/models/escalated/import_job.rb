@@ -4,11 +4,30 @@ module Escalated
   class ImportJob < ApplicationRecord
     self.table_name = Escalated.table_name('import_jobs')
 
+    # Carried here rather than as a column default: MySQL forbids a default on a
+    # JSON column, so a database default made the engine impossible to install
+    # there at all. Every adapter honours this one the same way.
+    attribute :field_mappings, default: -> { {} }
+    attribute :progress, default: -> { {} }
+    attribute :error_log, default: -> { [] }
+
     has_many :source_maps,
              class_name: 'Escalated::ImportSourceMap',
              dependent: :destroy
 
     encrypts :credentials
+
+    # The primary key is a uuid on PostgreSQL and a 36-character string
+    # elsewhere, because MySQL has no uuid type. Generating it here means the
+    # value is the same shape on every adapter and no database-side default is
+    # needed -- PostgreSQL's own default would otherwise be the only thing
+    # filling it in.
+    before_create :assign_uuid_primary_key
+
+    def assign_uuid_primary_key
+      self.id = SecureRandom.uuid if id.blank?
+    end
+    private :assign_uuid_primary_key
 
     VALID_TRANSITIONS = {
       'pending' => %w[authenticating],

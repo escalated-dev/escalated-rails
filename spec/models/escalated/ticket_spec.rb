@@ -28,7 +28,7 @@ RSpec.describe Escalated::Ticket, type: :model do
     context 'reference uniqueness' do
       subject { create(:escalated_ticket) }
 
-      it { is_expected.to validate_uniqueness_of(:reference) }
+      it { is_expected.to uniqueness_of(:reference) }
     end
   end
 

@@ -19,33 +19,51 @@ module Escalated
       end
 
       def two_factor
+        two_factor = Escalated::TwoFactor.find_by(user_id: escalated_current_user.id)
+
         render_page 'Escalated/Admin/Settings/TwoFactor', {
-          two_factor_required: Escalated::EscalatedSetting.get('two_factor_required') == '1',
-          two_factor_grace_period_hours: Escalated::EscalatedSetting.get('two_factor_grace_period_hours').to_i
+          enabled: two_factor&.confirmed? || false,
+          pending: two_factor.present? && !two_factor.confirmed?
         }
       end
 
+      # Starts enrolment. The page reads the QR code and recovery codes from the
+      # flash; the secret itself stays on the server until a code proves the
+      # user's authenticator has it.
       def two_factor_setup
-        render_page 'Escalated/Admin/Settings/TwoFactorSetup', {
-          otp_secret: ROTP::Base32.random,
-          user_email: escalated_current_user.email
+        if Escalated::TwoFactor.where(user_id: escalated_current_user.id).where.not(confirmed_at: nil).exists?
+          return redirect_back_or_to(escalated.admin_settings_two_factor_path,
+                                     alert: I18n.t('escalated.admin.two_factor.already_enabled',
+                                                   default: 'Two-factor authentication is already enabled.'))
+        end
+
+        Escalated::TwoFactor.where(user_id: escalated_current_user.id, confirmed_at: nil).delete_all
+
+        totp = Escalated::Services::TwoFactorService.new
+        secret = totp.generate_secret
+        recovery_codes = totp.generate_recovery_codes
+        Escalated::TwoFactor.create!(user_id: escalated_current_user.id, secret: secret, recovery_codes: recovery_codes)
+
+        flash[:two_factor_setup] = {
+          qr_uri: totp.generate_qr_uri(secret, escalated_current_user.email),
+          recovery_codes: recovery_codes
         }
+        redirect_back_or_to escalated.admin_settings_two_factor_path
       end
 
       def two_factor_confirm
-        totp = ROTP::TOTP.new(params[:otp_secret])
+        two_factor = Escalated::TwoFactor.find_by(user_id: escalated_current_user.id, confirmed_at: nil)
 
-        unless totp.verify(params[:otp_code].to_s, drift_behind: 30)
+        unless two_factor && Escalated::Services::TwoFactorService.new.verify(two_factor.secret, params[:code].to_s)
           return redirect_back_or_to(escalated.admin_settings_two_factor_path,
                                      alert: I18n.t('escalated.admin.two_factor.invalid_code'))
         end
 
-        Escalated::TwoFactor.create_or_update_for(
-          escalated_current_user,
-          otp_secret: params[:otp_secret]
-        )
+        two_factor.update!(confirmed_at: Time.current)
 
-        redirect_to escalated.admin_settings_two_factor_path, notice: I18n.t('escalated.admin.two_factor.enabled')
+        flash[:two_factor_confirmed] = { recovery_codes: two_factor.recovery_codes }
+        redirect_back_or_to escalated.admin_settings_two_factor_path,
+                            notice: I18n.t('escalated.admin.two_factor.enabled')
       end
 
       def two_factor_disable

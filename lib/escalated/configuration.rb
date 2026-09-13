@@ -20,6 +20,11 @@ module Escalated
                   :sla,
                   :notification_channels,
                   :webhook_url,
+                  # Key for the X-Escalated-Signature on requests to webhook_url
+                  :webhook_secret,
+                  # Let admin webhooks and workflow send_webhook actions reach
+                  # loopback, private and link-local addresses
+                  :allow_private_webhook_urls,
                   :storage_service,
                   # Plugin system (Ruby-based)
                   :plugins_enabled,
@@ -119,6 +124,8 @@ module Escalated
       }
       @notification_channels = [:email]
       @webhook_url = nil
+      @webhook_secret = nil
+      @allow_private_webhook_urls = false
       @storage_service = :local
 
       # Plugin system defaults

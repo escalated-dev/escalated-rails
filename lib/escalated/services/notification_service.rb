@@ -14,6 +14,7 @@ module Escalated
           return if Escalated::Support::ImportContext.importing?
 
           send_webhook(event, payload) if webhook_configured?
+          dispatch_webhooks(event, payload)
           notify_followers(event, payload) if should_notify_followers?(event)
           instrument_event(event, payload)
         end
@@ -25,17 +26,21 @@ module Escalated
 
           Thread.new do
             uri = URI.parse(Escalated.configuration.webhook_url)
-            http = Net::HTTP.new(uri.host, uri.port)
+            http = Net::HTTP.new(uri.hostname, uri.port)
             http.use_ssl = uri.scheme == 'https'
             http.open_timeout = 10
             http.read_timeout = 10
 
-            request = Net::HTTP::Post.new(uri.path)
+            body = webhook_payload.to_json
+            # request_uri rather than path: path drops the query string, and is
+            # empty for a bare host, which Net::HTTP refuses.
+            request = Net::HTTP::Post.new(uri.request_uri)
             request['Content-Type'] = 'application/json'
             request['User-Agent'] = 'Escalated-Webhook/0.1.0'
             request['X-Escalated-Event'] = event.to_s
-            request['X-Escalated-Signature'] = compute_signature(webhook_payload)
-            request.body = webhook_payload.to_json
+            signature = compute_signature(body)
+            request['X-Escalated-Signature'] = signature if signature
+            request.body = body
 
             response = http.request(request)
 
@@ -55,6 +60,21 @@ module Escalated
 
         def webhook_configured?
           Escalated.configuration.webhook_url.present?
+        end
+
+        # Admin-configured webhooks (Escalated::Webhook), each delivered in its
+        # own job. A failure here must not fail the change that raised the event.
+        def dispatch_webhooks(event, payload)
+          names = WebhookDispatcher.events_for(event, payload)
+          return if names.empty?
+
+          data = JSON.parse(build_webhook_payload(event, payload)[:data].to_json)
+          dispatcher = WebhookDispatcher.new
+          names.each { |name| dispatcher.dispatch_later(name, data) }
+        rescue StandardError => e
+          Rails.logger.error(
+            "[Escalated::NotificationService] Webhook dispatch failed for event #{event}: #{e.message}"
+          )
         end
 
         def build_webhook_payload(event, payload)
@@ -107,9 +127,14 @@ module Escalated
           data
         end
 
-        def compute_signature(payload)
-          key = Escalated.configuration.hosted_api_key || 'escalated-webhook-secret'
-          OpenSSL::HMAC.hexdigest('SHA256', key, payload.to_json)
+        # Signed with webhook_secret, or hosted_api_key when that is all there is.
+        # With neither the request goes unsigned: a signature made with a key
+        # anyone can read in the gem source proves nothing to the receiver.
+        def compute_signature(body)
+          key = Escalated.configuration.webhook_secret.presence || Escalated.configuration.hosted_api_key.presence
+          return nil unless key
+
+          OpenSSL::HMAC.hexdigest('SHA256', key, body)
         end
 
         def should_notify_followers?(event)

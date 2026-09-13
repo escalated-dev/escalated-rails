@@ -297,6 +297,8 @@ Escalated.configure do |config|
   # Notifications
   config.notification_channels = [:email]
   config.webhook_url = nil
+  config.webhook_secret = nil              # signs requests to webhook_url (X-Escalated-Signature)
+  config.allow_private_webhook_urls = false # let admin webhooks reach private addresses
 
   # Storage (ActiveStorage)
   config.storage_service = :local

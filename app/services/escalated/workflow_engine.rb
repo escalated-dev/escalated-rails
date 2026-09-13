@@ -190,13 +190,18 @@ module Escalated
         payload: action['payload'] ? interpolate_variables(action['payload'].to_s, ticket) : nil
       }
 
+      # Raises for an address inside the server's own network, so the action is
+      # logged as failed. Connect to the address that was checked.
+      address = Escalated::Support::OutboundUrl.public_address!(url)
       uri = URI.parse(url)
-      http = Net::HTTP.new(uri.host, uri.port)
+      http = Net::HTTP.new(uri.hostname, uri.port)
+      http.ipaddr = address if address
       http.use_ssl = uri.scheme == 'https'
       http.open_timeout = 10
       http.read_timeout = 10
 
-      request = Net::HTTP::Post.new(uri.path, 'Content-Type' => 'application/json')
+      # request_uri rather than path, which drops the query string.
+      request = Net::HTTP::Post.new(uri.request_uri, 'Content-Type' => 'application/json')
       request.body = body.to_json
       http.request(request)
     end

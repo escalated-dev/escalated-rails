@@ -169,7 +169,7 @@ Escalated::Engine.routes.draw do
     resources :capacity, only: %i[index update]
 
     # Phase 4
-    resources :webhooks, only: %i[index create update destroy] do
+    resources :webhooks, only: %i[index new create edit update destroy] do
       member do
         get :deliveries
       end

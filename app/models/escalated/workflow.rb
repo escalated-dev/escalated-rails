@@ -7,11 +7,10 @@ module Escalated
     # The triggers a workflow can be given: the NotificationService events that
     # WorkflowSubscriber maps and that something actually dispatches. The admin
     # form offers exactly this list, so a workflow cannot be saved against an
-    # event that never fires. (The subscriber also maps sla_warning, which
-    # nothing dispatches.)
+    # event that never fires.
     TRIGGER_EVENTS = %w[
       ticket.created ticket.status_changed ticket.assigned ticket.priority_changed
-      ticket.replied ticket.escalated sla.breached
+      ticket.replied ticket.escalated sla.breached sla.warning
     ].freeze
 
     has_many :workflow_logs, dependent: :destroy

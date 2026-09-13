@@ -16,6 +16,7 @@ module Escalated
           send_webhook(event, payload) if webhook_configured?
           notify_followers(event, payload) if should_notify_followers?(event)
           instrument_event(event, payload)
+          fire_hooks(event, payload)
         end
 
         def send_webhook(event, payload)
@@ -161,6 +162,44 @@ module Escalated
 
         def instrument_event(event, payload)
           ActiveSupport::Notifications.instrument("escalated.notification.#{event}", payload)
+        end
+
+        # The HookRegistry action hooks an event stands for, called with the
+        # arguments the registry documents. Ruby plugins receive them through
+        # Escalated.hooks, and the engine forwards each one to the Node plugin
+        # runtime. A hook that raises is logged; the change it reports stands.
+        def fire_hooks(event, payload)
+          hook_calls(event, payload).each do |hook, *args|
+            Escalated.hooks.do_action(hook, *args)
+          rescue StandardError => e
+            Rails.logger.error("[Escalated::NotificationService] #{hook} hook failed: #{e.message}")
+          end
+        end
+
+        def hook_calls(event, payload)
+          ticket = payload[:ticket]
+          actor = payload[:actor]
+
+          case event.to_sym
+          when :ticket_created then [['ticket_created', ticket]]
+          when :ticket_updated then [['ticket_updated', ticket, actor]]
+          when :status_changed then status_hook_calls(ticket, payload[:old_status], payload[:status], actor)
+          when :ticket_assigned then [['ticket_assigned', ticket, payload[:agent]]]
+          when :reply_added then [['reply_added', ticket, payload[:reply]]]
+          when :priority_changed
+            [['ticket_priority_changed', ticket, payload[:old_priority]&.to_s, payload[:priority].to_s, actor]]
+          when :department_changed
+            [['ticket_department_changed', ticket, payload[:old_department], payload[:department], actor]]
+          else []
+          end
+        end
+
+        def status_hook_calls(ticket, old_status, new_status, actor)
+          new_status = new_status.to_s
+          calls = [['ticket_status_changed', ticket, old_status&.to_s, new_status, actor]]
+          calls << ['ticket_closed', ticket, actor] if new_status == 'closed'
+          calls << ['ticket_reopened', ticket, actor] if new_status == 'reopened'
+          calls
         end
       end
     end

@@ -4,9 +4,9 @@ require 'rails_helper'
 
 RSpec.describe Escalated::Workflow do
   # The events NotificationService actually dispatches that WorkflowSubscriber
-  # maps to a trigger. sla_warning is mapped but nothing dispatches it.
+  # maps to a trigger.
   fired = %w[ticket.created ticket.status_changed ticket.assigned ticket.priority_changed
-             ticket.replied ticket.escalated sla.breached]
+             ticket.replied ticket.escalated sla.breached sla.warning]
 
   describe 'trigger_event' do
     fired.each do |event|
@@ -16,7 +16,7 @@ RSpec.describe Escalated::Workflow do
     end
 
     %w[ticket.updated ticket.tagged ticket.department_changed reply.created reply.agent_reply
-       sla.warning ticket.reopened].each do |event|
+       ticket.reopened].each do |event|
       it "refuses #{event}, which nothing fires" do
         workflow = build(:escalated_workflow, trigger_event: event)
 
@@ -28,7 +28,7 @@ RSpec.describe Escalated::Workflow do
     it 'offers the form exactly the triggers the subscriber fires' do
       expect(described_class::TRIGGER_EVENTS).to match_array(
         %w[ticket.created ticket.status_changed ticket.assigned ticket.priority_changed
-           ticket.replied ticket.escalated sla.breached]
+           ticket.replied ticket.escalated sla.breached sla.warning]
       )
       expect(described_class::TRIGGER_EVENTS - Escalated::Services::WorkflowSubscriber::EVENT_MAP.values).to be_empty
     end

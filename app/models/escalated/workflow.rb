@@ -4,19 +4,25 @@ module Escalated
   class Workflow < ApplicationRecord
     self.table_name = Escalated.table_name('workflows')
 
+    # The triggers a workflow can be given: the NotificationService events that
+    # WorkflowSubscriber maps and that something actually dispatches. The admin
+    # form offers exactly this list, so a workflow cannot be saved against an
+    # event that never fires. (The subscriber also maps sla_warning, which
+    # nothing dispatches.)
+    TRIGGER_EVENTS = %w[
+      ticket.created ticket.status_changed ticket.assigned ticket.priority_changed
+      ticket.replied ticket.escalated sla.breached
+    ].freeze
+
     has_many :workflow_logs, dependent: :destroy
     has_many :delayed_actions, dependent: :destroy
 
+    before_validation :default_conditions
+
     validates :name, presence: true
-    validates :trigger_event, presence: true, inclusion: {
-      in: %w[ticket.created ticket.updated ticket.status_changed ticket.assigned
-             ticket.priority_changed ticket.tagged ticket.department_changed
-             reply.created reply.agent_reply sla.warning sla.breached ticket.reopened]
-    }
-    validate :conditions_must_be_present
-    validate :actions_must_be_present
+    validates :trigger_event, presence: true, inclusion: { in: TRIGGER_EVENTS }
     validate :conditions_must_be_valid
-    validate :actions_must_be_array
+    validate :actions_must_be_present
 
     scope :active, -> { where(is_active: true).order(position: :asc) }
     scope :for_event, ->(event) { active.where(trigger_event: event) }
@@ -27,31 +33,29 @@ module Escalated
       trigger_event
     end
 
-    TRIGGER_EVENTS = %w[
-      ticket.created ticket.updated ticket.status_changed ticket.assigned
-      ticket.priority_changed ticket.tagged ticket.department_changed
-      reply.created reply.agent_reply sla.warning sla.breached ticket.reopened
-    ].freeze
-
     private
 
-    def conditions_must_be_present
-      errors.add(:conditions, :blank) if conditions.nil?
+    # Omitted conditions match every ticket.
+    def default_conditions
+      self.conditions = { 'all' => [] } if conditions.nil?
+    end
+
+    # Exactly one of all/any holding a list. A flat list, stored before the
+    # admin contract, is still read as all.
+    def conditions_must_be_valid
+      return if conditions.is_a?(Array)
+      return if conditions.is_a?(Hash) && conditions.size == 1 &&
+                %w[all any].include?(conditions.keys.first.to_s) && conditions.values.first.is_a?(Array)
+
+      errors.add(:conditions, 'must be an object with exactly one of all or any, holding a list')
     end
 
     def actions_must_be_present
-      errors.add(:actions, :blank) if actions.nil?
-    end
-
-    def conditions_must_be_valid
-      return if conditions.is_a?(Hash) && (conditions.key?('all') || conditions.key?('any'))
-      return if conditions.is_a?(Array)
-
-      errors.add(:conditions, 'must be an object with all/any keys or an array')
-    end
-
-    def actions_must_be_array
-      errors.add(:actions, 'must be an array') unless actions.is_a?(Array)
+      if actions.blank?
+        errors.add(:actions, :blank)
+      elsif !actions.is_a?(Array)
+        errors.add(:actions, 'must be an array')
+      end
     end
   end
 end

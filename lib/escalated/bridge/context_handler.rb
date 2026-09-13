@@ -184,17 +184,14 @@ module Escalated
               query = apply_json_operator(query, field, op, val)
             end
           else
-            # Simple equality — use JSON extract for nested data fields
-            query = query.where("JSON_UNQUOTE(JSON_EXTRACT(data, '$.#{field}')) = ?", condition.to_s)
+            query = query.where(*store_condition(field, '=', condition))
           end
         end
 
         if options['orderBy']
-          direction = options['order'] || 'asc'
-          safe_dir  = %w[asc desc].include?(direction.downcase) ? direction.downcase : 'asc'
-          query = query.order(
-            Arel.sql("JSON_UNQUOTE(JSON_EXTRACT(data, '$.#{options['orderBy']}')) #{safe_dir}")
-          )
+          direction = options['order'].to_s.downcase == 'desc' ? 'DESC' : 'ASC'
+          sortable = Escalated::Support::JsonQuery.sortable(store_connection, 'data', options['orderBy'])
+          query = query.order(Arel.sql("#{sortable} #{direction}"))
         end
 
         query = query.limit(options['limit'].to_i) if options['limit']
@@ -245,21 +242,27 @@ module Escalated
         nil
       end
 
+      STORE_OPERATORS = {
+        '$gt' => '>', '$gte' => '>=', '$lt' => '<', '$lte' => '<=', '$ne' => '!=', '$in' => 'IN', '$nin' => 'NOT IN'
+      }.freeze
+
       # Apply a MongoDB-style query operator to an ActiveRecord relation.
       def apply_json_operator(query, field, op, value)
-        extract = "JSON_UNQUOTE(JSON_EXTRACT(data, '$.#{field}'))"
+        operator = STORE_OPERATORS[op] or raise ArgumentError, "Unsupported store query operator: #{op}"
+        value = Array(value) if operator.include?('IN')
 
-        case op
-        when '$gt'  then query.where("#{extract} > ?", value)
-        when '$gte' then query.where("#{extract} >= ?", value)
-        when '$lt'  then query.where("#{extract} < ?", value)
-        when '$lte' then query.where("#{extract} <= ?", value)
-        when '$ne'  then query.where("#{extract} != ?", value)
-        when '$in'  then query.where("#{extract} IN (?)", Array(value))
-        when '$nin' then query.where("#{extract} NOT IN (?)", Array(value))
-        else
-          raise ArgumentError, "Unsupported store query operator: #{op}"
-        end
+        query.where(*store_condition(field, operator, value))
+      end
+
+      # The field is a dotted path into the record's data. JsonQuery writes the
+      # SQL for the database in use and raises ArgumentError for anything that
+      # is not a plain path, since the path is part of the SQL text.
+      def store_condition(field, operator, value)
+        Escalated::Support::JsonQuery.condition(store_connection, 'data', field, operator, value)
+      end
+
+      def store_connection
+        Escalated::PluginStoreRecord.connection
       end
 
       # -----------------------------------------------------------------------

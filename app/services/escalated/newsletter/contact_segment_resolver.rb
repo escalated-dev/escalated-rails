@@ -50,10 +50,16 @@ module Escalated
           next if field.blank?
 
           if field.start_with?('metadata.')
-            key = field.sub(/\Ametadata\./, '')
-            # SQLite-friendly JSON LIKE; hosts on Postgres can swap this for jsonb_path.
-            # `key` lands inside a bound parameter value, so it can't alter the SQL.
-            scope = scope.where('metadata LIKE ?', "%\"#{key}\":#{value.to_json}%")
+            key = field.delete_prefix('metadata.')
+            sql_op = ALLOWED_OPS[op.to_s.strip.downcase]
+            # metadata is a json column, read with each database's own JSON
+            # functions. The key becomes part of the SQL, so a rule whose key is
+            # not a plain dotted name is skipped like any other rule we can't run.
+            next unless sql_op && Escalated::Support::JsonQuery.valid_path?(key)
+
+            scope = scope.where(
+              *Escalated::Support::JsonQuery.condition(Escalated::Contact.connection, 'metadata', key, sql_op, value)
+            )
             next
           end
 

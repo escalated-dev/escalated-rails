@@ -50,15 +50,6 @@ module PageNameParity
   #     is SAML-and-JWT-shaped (sso_entity_id, sso_certificate, sso_jwt_secret,
   #     the attribute mappings).
   #
-  #   Settings/TwoFactorSetup
-  #     TwoFactor drives the whole enrolment itself: it posts to the setup route
-  #     and reads flash.two_factor_setup.qr_uri, then posts { code } and reads
-  #     flash.two_factor_confirmed.recovery_codes. This engine instead renders a
-  #     page per step and round-trips the secret through the form. Reworking it
-  #     is its own change, and it has to be -- two_factor_confirm calls
-  #     Escalated::TwoFactor.create_or_update_for, which is not defined on the
-  #     model, so confirming raises NoMethodError.
-  #
   # This list may shrink. It must never grow.
   KNOWN_BLANK = [
     'Escalated/Admin/Reports/Cohort',
@@ -68,8 +59,7 @@ module PageNameParity
     'Escalated/Admin/Reports/ResolutionDistribution',
     'Escalated/Admin/Reports/ResolutionTrends',
     'Escalated/Admin/Settings/Csat',
-    'Escalated/Admin/Settings/Sso',
-    'Escalated/Admin/Settings/TwoFactorSetup'
+    'Escalated/Admin/Settings/Sso'
   ].freeze
 
   PAGE_NAME = %r{'(Escalated/[A-Za-z0-9/_]+)'}

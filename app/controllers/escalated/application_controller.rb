@@ -49,7 +49,10 @@ module Escalated
           success: flash[:success],
           error: flash[:error],
           notice: flash[:notice],
-          alert: flash[:alert]
+          alert: flash[:alert],
+          # Admin/Settings/TwoFactor reads its enrolment steps from here.
+          two_factor_setup: flash[:two_factor_setup],
+          two_factor_confirmed: flash[:two_factor_confirmed]
         }
       }
 

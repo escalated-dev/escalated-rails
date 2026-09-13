@@ -208,11 +208,8 @@ module Escalated
       g.fixture_replacement :factory_bot, dir: 'spec/factories'
     end
 
-    # Expose escalated:import:* rake tasks to the host app
-    rake_tasks do
-      load 'tasks/escalated_import.rake'
-      load 'tasks/escalated_chat.rake'
-      load 'tasks/escalated_newsletters.rake'
-    end
+    # No rake_tasks block: Rails::Engine already loads every lib/tasks/**/*.rake
+    # into the host. Loading the import and chat files a second time here gave
+    # each of their tasks a second copy of its body, so each ran twice.
   end
 end

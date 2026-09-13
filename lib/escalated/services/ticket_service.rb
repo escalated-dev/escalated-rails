@@ -6,6 +6,7 @@ module Escalated
       class << self
         def create(params)
           params = resolve_contact_params(params)
+          fire_hook('ticket_before_create', params)
           ticket = driver.create_ticket(params)
 
           if Escalated.configuration.notification_channels.include?(:email)
@@ -20,11 +21,13 @@ module Escalated
 
         def update(ticket, params, actor:)
           result = driver.update_ticket(ticket, params, actor: actor)
+          Services::NotificationService.dispatch(:ticket_updated, ticket: result, actor: actor)
           Escalated::Broadcasting.ticket_updated(result)
           result
         end
 
         def transition_status(ticket, new_status, actor:, note: nil)
+          old_status = ticket.status
           result = driver.transition_status(ticket, new_status, actor: actor, note: note)
 
           if Escalated.configuration.notification_channels.include?(:email)
@@ -35,8 +38,9 @@ module Escalated
             Escalated::TicketMailer.ticket_resolved(result).deliver_later
           end
 
-          Services::NotificationService.dispatch(:status_changed, ticket: result, status: new_status)
-          Escalated::Broadcasting.ticket_status_changed(result, ticket.status_was || ticket.status, new_status)
+          Services::NotificationService.dispatch(:status_changed, ticket: result, status: new_status,
+                                                                  old_status: old_status, actor: actor)
+          Escalated::Broadcasting.ticket_status_changed(result, old_status, new_status)
 
           result
         end
@@ -88,13 +92,21 @@ module Escalated
         end
 
         def change_department(ticket, department, actor:)
-          driver.change_department(ticket, department, actor: actor)
+          old_department = ticket.department
+          result = driver.change_department(ticket, department, actor: actor)
+
+          Services::NotificationService.dispatch(:department_changed, ticket: result, department: department,
+                                                                      old_department: old_department, actor: actor)
+
+          result
         end
 
         def change_priority(ticket, new_priority, actor:)
+          old_priority = ticket.priority
           result = driver.change_priority(ticket, new_priority, actor: actor)
 
-          Services::NotificationService.dispatch(:priority_changed, ticket: result, priority: new_priority)
+          Services::NotificationService.dispatch(:priority_changed, ticket: result, priority: new_priority,
+                                                                    old_priority: old_priority, actor: actor)
 
           result
         end
@@ -190,6 +202,13 @@ module Escalated
 
         def driver
           Escalated.driver
+        end
+
+        # A plugin hook that raises is logged; it does not stop the ticket.
+        def fire_hook(hook, *)
+          Escalated.hooks.do_action(hook, *)
+        rescue StandardError => e
+          Rails.logger.error("[Escalated::TicketService] #{hook} hook failed: #{e.message}")
         end
 
         # Resolve/create a Contact when inline guest_email is provided

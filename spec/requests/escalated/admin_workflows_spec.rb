@@ -115,7 +115,7 @@ RSpec.describe 'Admin workflows', type: :request do
 
     it 'refuses a trigger this backend never fires' do
       expect do
-        inertia_visit(:post, '/support/admin/workflows', contract_body.merge(trigger_event: 'sla.warning'),
+        inertia_visit(:post, '/support/admin/workflows', contract_body.merge(trigger_event: 'ticket.tagged'),
                       referer: '/support/admin/workflows/new')
       end.not_to change(Escalated::Workflow, :count)
 
@@ -200,7 +200,7 @@ RSpec.describe 'Admin workflows', type: :request do
       expect(props).to include('workflow' => nil)
       expect(props['trigger_events']).to match_array(
         %w[ticket.created ticket.status_changed ticket.assigned ticket.priority_changed
-           ticket.replied ticket.escalated sla.breached]
+           ticket.replied ticket.escalated sla.breached sla.warning]
       )
       expect(props['action_types']).to match_array(
         %w[change_status change_priority add_tag remove_tag set_department assign_agent add_note

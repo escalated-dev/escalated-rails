@@ -21,10 +21,11 @@ module Escalated
         ticket = warning[:ticket]
         type = warning[:type]
 
-        ActiveSupport::Notifications.instrument('escalated.sla.warning', {
-                                                  ticket: ticket,
-                                                  warning_type: type
-                                                })
+        # Dispatched like every other event, so it is instrumented as
+        # escalated.notification.sla_warning -- the name the workflow
+        # subscriber listens for. It was instrumented as escalated.sla.warning,
+        # which nothing heard.
+        Services::NotificationService.dispatch(:sla_warning, ticket: ticket, warning_type: type)
       end
 
       # Check if any breached tickets should be escalated

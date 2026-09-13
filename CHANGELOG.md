@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-09-13
+
+### Fixed
+- **The engine could not be installed on MySQL.** `rails db:migrate` stopped on the first of four incompatibilities, each surfacing as a raw adapter error rather than naming its cause: eight JSON columns carried a database default, which MySQL forbids; `import_jobs` used `id: :uuid`, a type MySQL does not have; `newsletter_list_members.added_at` defaulted to `CURRENT_TIMESTAMP`, which MySQL rejects on the `datetime(6)` column Rails creates; and the settings seed wrote iso8601 timestamps into raw SQL, whose `T` and `Z` MySQL refuses.
+
+  The JSON defaults moved to the models, where every adapter honours them the same way. PostgreSQL keeps its native `uuid` column, which existing installs already have; elsewhere the id is a 36-character string that `Escalated::ImportJob` generates. `Escalated::NewsletterListMember` stamps `added_at` on create, and the seed asks the adapter for its own `quoted_date`.
+
+- **Twenty-five screens rendered blank.** They rendered page names with no component behind them in `@escalated-dev/escalated`, and Inertia resolves such a name to nothing rather than to an error, so each returned 200 and an empty panel. Fifteen are renamed to the component the frontend ships, among them `Admin/Workflows/{Edit,New,Show}` to `Admin/Workflows/Form` and `Admin/Imports/Show` to `Admin/Import/Progress`. `Escalated/Error`, rendered for every 403 and 404 inside the panel, now exists in `@escalated-dev/escalated` 0.11.5.
+
+  Five of those needed their props fixed too, or they would have resolved and still shown nothing. The escalation rule and SLA policy forms read `rule` and `policy`. Articles, audit logs and webhook deliveries now get the paginator shape their list components page through, where they showed the first page with no way past it. The overview report takes its figures flat, where it had rendered zeroes that read as a quiet week. Eight names stay blank because this engine's surface is a different shape from the component's: six advanced reports, `Settings/Csat` and `Settings/Sso`.
+
+- **Turning on two-factor authentication from the admin settings never worked.** Setup rendered `Escalated/Admin/Settings/TwoFactorSetup`, which the frontend does not ship; it generated the secret with `ROTP::Base32.random`, though `rotp` is not a dependency; and confirming called `Escalated::TwoFactor.create_or_update_for`, which was never defined.
+
+  The controller now drives the enrolment the shared `Admin/Settings/TwoFactor` page runs, following escalated-laravel. Setup stores a secret and eight recovery codes from the engine's own `TwoFactorService` and flashes the QR URI; confirm checks the posted code against the stored secret rather than one round-tripped through the form; and the index passes `enabled` and `pending`. The engine still does not ask for a second factor at sign-in, so this makes enrolment work without yet enforcing it.
+
+- **The shared workflow builder could not save a workflow.** `workflow_params` read the body under a `workflow` key that exists only when the host turns on ParamsWrapper, so every create was a 400, and even a wrapped body lost its actions, because `actions: []` permits only arrays of scalars. The trigger list also disagreed with what fires: `ticket.replied` and `ticket.escalated` were refused, while seven events nothing dispatches were accepted and offered.
+
+  The endpoints now follow escalated-developer-context `domain-model/workflow-admin-contract.md`. The body is read top-level, a workflow needs at least one action, omitted conditions are stored as `{ "all": [] }`, and `trigger_event` must be one of the seven events something dispatches, which is also the list the form offers. A failed save returns field errors through the session for `useForm`, and the create form gets `workflow: null`. The engine handles `insert_canned_reply`, and `{ "any": [] }` matches every ticket. `delay` and `send_notification` are no longer offered, since neither does anything with the builder's shape, but rows that store them still run.
+
+### Changed
+- **The test suite runs on PostgreSQL and MySQL as well as SQLite.** `spec/dummy/config/database.yml` reads `ESCALATED_TEST_ADAPTER` (`sqlite3`, `postgresql` or `mysql2`) and defaults to SQLite, so running the suite locally still needs nothing installed. An unrecognised value raises rather than falling back, because a CI leg that quietly ran SQLite would report green having tested nothing the matrix exists for.
+
+### Added
+- **`spec/page_name_parity_spec.rb`**, asserting every page name this engine renders resolves to a component. It diffs them against the manifest the frontend publishes, vendored at `spec/fixtures/escalated-pages.json`, and fails if its list of known-blank names still excuses one that has since been fixed, so that list can only shrink.
+
 ## [0.6.0] - 2026-09-12
 
 ### Added

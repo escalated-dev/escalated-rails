@@ -31,4 +31,32 @@ RSpec.describe Escalated::Newsletter::ContactSegmentResolver do
     expect { resolver.count_matches(filter) }.not_to raise_error
     expect(resolver.count_matches(filter)).to eq(2)
   end
+
+  # metadata is a json column. The rule used to be `metadata LIKE ?`, which
+  # PostgreSQL refuses for json and which ignored the operator everywhere.
+  describe 'metadata rules' do
+    before do
+      create(:escalated_contact, email: 'pro@example.com', metadata: { 'plan' => 'pro', 'seats' => 25 })
+      create(:escalated_contact, email: 'team@example.com', metadata: { 'plan' => 'team', 'seats' => 5 })
+    end
+
+    it 'matches a metadata value' do
+      filter = { 'rules' => [{ 'field' => 'metadata.plan', 'op' => '=', 'value' => 'pro' }] }
+
+      expect(resolver.count_matches(filter)).to eq(1)
+    end
+
+    it 'applies the operator to a metadata value' do
+      filter = { 'rules' => [{ 'field' => 'metadata.seats', 'op' => '>', 'value' => 10 }] }
+
+      expect(resolver.count_matches(filter)).to eq(1)
+    end
+
+    it 'skips a metadata rule whose key is not a plain name' do
+      filter = { 'rules' => [{ 'field' => "metadata.plan') = 'pro' OR ('1", 'op' => '=', 'value' => 'x' }] }
+
+      expect { resolver.count_matches(filter) }.not_to raise_error
+      expect(resolver.count_matches(filter)).to eq(4)
+    end
+  end
 end

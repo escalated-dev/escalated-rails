@@ -592,10 +592,13 @@ RSpec.describe Escalated::Services::WebhookDispatcher do
 
     # Stub HTTP requests by default
     allow(Net::HTTP).to receive(:new).and_return(mock_http)
+    # ...and DNS, which the dispatcher consults before it connects.
+    allow(Addrinfo).to receive(:getaddrinfo).and_return([instance_double(Addrinfo, ip_address: '93.184.215.14')])
   end
 
   let(:mock_http) do
     http = instance_double(Net::HTTP)
+    allow(http).to receive(:ipaddr=)
     allow(http).to receive(:use_ssl=)
     allow(http).to receive(:open_timeout=)
     allow(http).to receive(:read_timeout=)

@@ -24,6 +24,7 @@ module Escalated
 
       def new
         render_page 'Escalated/Admin/Workflows/Form', {
+          workflow: nil,
           trigger_events: Escalated::Workflow::TRIGGER_EVENTS,
           operators: Escalated::WorkflowEngine::OPERATORS,
           action_types: Escalated::WorkflowEngine::ACTION_TYPES
@@ -44,7 +45,7 @@ module Escalated
         if workflow.save
           redirect_to escalated.admin_workflows_path, notice: I18n.t('escalated.admin.workflow.created')
         else
-          redirect_back_or_to(escalated.admin_workflows_path, alert: workflow.errors.full_messages.join(', '))
+          redirect_back_with_errors(workflow)
         end
       end
 
@@ -52,7 +53,7 @@ module Escalated
         if @workflow.update(workflow_params)
           redirect_to escalated.admin_workflows_path, notice: I18n.t('escalated.admin.workflow.updated')
         else
-          redirect_back_or_to(escalated.admin_workflows_path, alert: @workflow.errors.full_messages.join(', '))
+          redirect_back_with_errors(@workflow)
         end
       end
 
@@ -61,8 +62,10 @@ module Escalated
         redirect_to escalated.admin_workflows_path, notice: I18n.t('escalated.admin.workflow.deleted')
       end
 
+      # Flips the one column without re-validating the rest, so a workflow
+      # stored before a validation was tightened can still be switched off.
       def toggle
-        @workflow.update!(is_active: !@workflow.is_active)
+        @workflow.update_attribute(:is_active, !@workflow.is_active)
         redirect_to escalated.admin_workflows_path,
                     notice: I18n.t("escalated.admin.workflow.#{@workflow.is_active ? 'activated' : 'deactivated'}")
       end
@@ -96,10 +99,27 @@ module Escalated
         @workflow = Escalated::Workflow.find(params[:id])
       end
 
+      CONDITION_KEYS = %i[field operator value].freeze
+
+      # The admin contract sends these keys top-level. They also appear under
+      # `workflow` only when the host app turns on ParamsWrapper for JSON, so
+      # nothing can depend on that. Conditions are { all | any: [condition] } and
+      # actions are [{ type, value }]; `description` has no column and is dropped.
       def workflow_params
-        params.expect(
-          workflow: [:name, :trigger_event, :is_active, :position,
-                     { conditions: {}, actions: [] }]
+        params.slice(:name, :trigger_event, :is_active, :position, :conditions, :actions).permit(
+          :name, :trigger_event, :is_active, :position,
+          conditions: { all: CONDITION_KEYS, any: CONDITION_KEYS },
+          actions: %i[type value]
+        )
+      end
+
+      # Inertia's convention for a failed form visit: back to the form, with the
+      # errors in the session keyed by field so useForm shows them on the inputs.
+      def redirect_back_with_errors(workflow)
+        redirect_back_or_to(
+          escalated.admin_workflows_path,
+          alert: workflow.errors.full_messages.join(', '),
+          inertia: { errors: workflow.errors.to_hash(true).transform_values(&:first) }
         )
       end
 

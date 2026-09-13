@@ -9,9 +9,14 @@ module Escalated
     OPERATORS = %w[equals not_equals contains not_contains starts_with ends_with
                    greater_than less_than greater_or_equal less_or_equal is_empty is_not_empty].freeze
 
+    # What the admin form offers: the actions this executor carries out as the
+    # builder sends them, { type, value }. `delay` and `send_notification` still
+    # execute for workflows already stored with them but are not offered -- the
+    # builder's delay carries no remaining_actions to defer (and nothing calls
+    # process_delayed_actions), and send_notification only writes a log line.
     ACTION_TYPES = %w[change_status assign_agent change_priority add_tag remove_tag
-                      set_department add_note send_webhook set_type delay
-                      add_follower send_notification].freeze
+                      set_department add_note insert_canned_reply send_webhook set_type
+                      add_follower].freeze
 
     def process_event(event_name, ticket, context = {})
       workflows = Escalated::Workflow.for_event(event_name)
@@ -43,7 +48,8 @@ module Escalated
         if conditions.key?('all')
           conditions['all'].all? { |c| evaluate_single_condition(c, ticket) }
         elsif conditions.key?('any')
-          conditions['any'].any? { |c| evaluate_single_condition(c, ticket) }
+          # An empty list matches every ticket, under either key.
+          conditions['any'].empty? || conditions['any'].any? { |c| evaluate_single_condition(c, ticket) }
         else
           evaluate_single_condition(conditions, ticket)
         end
@@ -147,6 +153,8 @@ module Escalated
         ticket.update!(department_id: value.to_i)
       when 'add_note'
         ticket.replies.create!(body: interpolate_variables(value.to_s, ticket), is_internal: true)
+      when 'insert_canned_reply'
+        ticket.replies.create!(body: interpolate_variables(value.to_s, ticket), is_internal: false)
       when 'send_webhook'
         send_webhook(action, ticket)
       when 'set_type'

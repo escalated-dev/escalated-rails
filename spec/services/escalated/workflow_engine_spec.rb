@@ -63,6 +63,26 @@ RSpec.describe Escalated::WorkflowEngine do
       ] }
       expect(engine.evaluate_conditions(conditions, ticket)).to be true
     end
+
+    it 'matches every ticket when the condition list is empty, whichever key holds it' do
+      expect(engine.evaluate_conditions({ 'all' => [] }, ticket)).to be true
+      expect(engine.evaluate_conditions({ 'any' => [] }, ticket)).to be true
+    end
+  end
+
+  describe 'insert_canned_reply' do
+    it 'posts the reply body on the ticket as a public reply' do
+      create(:escalated_workflow,
+             trigger_event: 'ticket.created',
+             conditions: { 'all' => [] },
+             actions: [{ 'type' => 'insert_canned_reply', 'value' => 'Thanks, we are on {{reference}}.' }])
+
+      engine.process_event('ticket.created', ticket)
+
+      reply = ticket.replies.sole
+      expect(reply.body).to eq("Thanks, we are on #{ticket.reference}.")
+      expect(reply.is_internal).to be(false)
+    end
   end
 
   describe '#process_event' do
@@ -111,7 +131,8 @@ RSpec.describe Escalated::WorkflowEngine do
   describe '#process_delayed_actions' do
     it 'executes pending delayed actions' do
       workflow = create(:escalated_workflow, trigger_event: 'ticket.created',
-                                             conditions: { 'all' => [] }, actions: [])
+                                             conditions: { 'all' => [] },
+                                             actions: [{ 'type' => 'add_tag', 'value' => 'delayed' }])
       create(:escalated_delayed_action,
              workflow: workflow, ticket: ticket,
              action_data: { 'type' => 'change_priority', 'value' => 'urgent' },

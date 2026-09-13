@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Escalated
-  class NewsletterViewInBrowserController < Escalated::ApplicationController
+  class NewsletterViewInBrowserController < Escalated::PublicController
     include Escalated::NewsletterAccess
 
     UNAVAILABLE_HTML = '<!doctype html><html lang="en"><head><meta charset="utf-8"><title>Email unavailable</title></head><body><p>This email is no longer available.</p></body></html>' # rubocop:disable Layout/LineLength

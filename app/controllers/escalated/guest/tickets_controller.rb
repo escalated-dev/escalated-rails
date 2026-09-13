@@ -2,7 +2,7 @@
 
 module Escalated
   module Guest
-    class TicketsController < ApplicationController
+    class TicketsController < Escalated::PublicController
       include Escalated::Renderable
 
       protect_from_forgery with: :exception

@@ -8,7 +8,7 @@ module Escalated
     # manifest's "webhooks" array.  CSRF protection is skipped because webhook
     # callers are external services; authentication is delegated to the plugin
     # itself (it verifies signatures, shared secrets, etc. via ctx.config).
-    class WebhooksController < ApplicationController
+    class WebhooksController < Escalated::PublicController
       protect_from_forgery with: :null_session
 
       # Handle any HTTP method forwarded to a plugin webhook.

@@ -270,7 +270,7 @@ Escalated::Engine.routes.draw do
 
   # Widget routes (public, no authentication required)
   scope 'widget', controller: :widget do
-    get :config, as: :widget_config
+    get :config, action: :widget_config, as: :widget_config
     get :articles, as: :widget_articles
     get 'articles/:slug', action: :article, as: :widget_article
     post :tickets, action: :create_ticket, as: :widget_create_ticket

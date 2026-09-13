@@ -59,6 +59,8 @@ module Escalated
                   # Branding (used by newsletters + emails)
                   :app_name,
                   :app_url,
+                  # Sender address for ticket emails, e.g. "Support <help@example.com>"
+                  :mailer_from,
                   # Newsletters (optional, disabled by default)
                   :enable_newsletters,
                   :newsletter_default_from,
@@ -157,6 +159,7 @@ module Escalated
       # Branding defaults
       @app_name = 'Support'
       @app_url = nil
+      @mailer_from = nil
 
       # Newsletter defaults (feature off by default)
       @enable_newsletters = false

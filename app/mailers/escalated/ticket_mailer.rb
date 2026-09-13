@@ -157,12 +157,15 @@ module Escalated
       configured = Escalated.configuration.email_domain.to_s
       return configured unless configured.empty?
 
-      from_address = Escalated.configuration.respond_to?(:mailer_from) ? Escalated.configuration.mailer_from : nil
-      if from_address.present? && from_address.include?('@')
-        from_address.split('@').last
-      else
-        'escalated.localhost'
-      end
+      sender_domain.presence || 'escalated.localhost'
+    end
+
+    # The domain of mailer_from, which may carry a display name
+    # ("Support <help@example.com>") that a plain split on '@' would keep.
+    def sender_domain
+      ::Mail::Address.new(Escalated.configuration.mailer_from.to_s).domain
+    rescue ::Mail::Field::ParseError
+      nil
     end
 
     def load_branding

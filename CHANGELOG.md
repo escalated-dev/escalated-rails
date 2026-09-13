@@ -6,6 +6,66 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.6.2] - 2026-09-13
+
+### Security
+- **Webhook URLs could point at internal addresses, and signatures proved
+  nothing.**
+  - **URL checks:** admin webhooks and the workflow `send_webhook` action now
+    refuse loopback, private and link-local destinations. The check runs when a
+    webhook is saved and again at delivery, and delivery connects to the
+    address that was checked and does not follow redirects. Set
+    `allow_private_webhook_urls` to allow internal destinations.
+  - **Signing:** requests to `webhook_url` were signed with a key published in
+    the gem whenever `hosted_api_key` was unset. They are now signed with the
+    new `webhook_secret` (or `hosted_api_key`), and unsigned when neither is set
+    (#85).
+- **The plugin store query built SQL from field names.** Field paths are now
+  validated as plain dotted names before they reach the SQL (#87).
+
+### Fixed
+- **Every public endpoint ran the host's login filter.** Inbound mail, the
+  widget, widget chat, guest tickets, newsletter tracking, unsubscribe and
+  view-in-browser links, and plugin webhooks inherited the configured
+  middleware, so callers were redirected to the host's sign-in page. They now
+  inherit `Escalated::PublicController`, which skips it. `current_user` is read
+  safely when the host defines none. `GET /support/widget/config` also no
+  longer recurses until the stack runs out (the action was named `config`) (#84).
+- **The admin webhooks screen was broken end to end.**
+  - **Screens:** the index and delivery log answered 500, and create, update and
+    retry called methods, columns and a service that don't exist. The
+    controller now matches the models and the shared frontend's Index, Form and
+    DeliveryLog pages.
+  - **Deliveries:** `WebhookDispatcher` had no caller. Ticket and reply events
+    are now delivered to subscribed webhooks, each in a
+    `Escalated::DeliverWebhookJob`.
+  - **Query strings:** URLs keep their query string, and a bare host no longer
+    raises (#85).
+- **Ticket hooks and several events never fired.**
+  - **Plugin hooks:** the documented `ticket_*` and `reply_added` hooks now fire
+    from the dispatch path, so Ruby plugins and the Node bridge receive them.
+  - **Escalations:** every escalation dispatches `ticket_escalated`, not only
+    those that send an email, and a rule's priority, status, assignee and
+    department changes are dispatched once committed.
+  - **SLA warnings:** `sla_warning` reaches the workflow subscriber, and
+    `sla.warning` is a workflow trigger again.
+  - **Broadcasts:** the status-change broadcast reports the real old status.
+  - **Webhook URL:** hosts with `webhook_url` now also receive `ticket_updated`,
+    `department_changed` and `sla_warning` (#86).
+- **Plugin store queries and contact metadata segments failed on SQLite and
+  PostgreSQL.** They used MySQL-only JSON functions, and PostgreSQL also
+  rejected `LIKE` on the json column. On MySQL, numbers sorted as text and
+  metadata rules matched nothing. A new adapter-aware `JsonQuery` helper
+  compares numbers as numbers on all three databases, and segment rules honour
+  their operator (#87).
+- **Rake tasks ran twice.** The engine loaded its import and chat task files
+  again after Rails had loaded them, so `escalated:import:run` imported, ran
+  again and exited 1 (#83).
+- **`mailer_from` could not be configured.** The mailers read it but
+  `Configuration` had no such setting, so every email came from
+  `support@example.com`. A display-name address is parsed correctly for the
+  Message-ID domain (#82).
+
 ## [0.6.1] - 2026-09-13
 
 ### Fixed

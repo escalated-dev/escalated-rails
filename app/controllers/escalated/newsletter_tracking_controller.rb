@@ -3,7 +3,7 @@
 require 'base64'
 
 module Escalated
-  class NewsletterTrackingController < Escalated::ApplicationController
+  class NewsletterTrackingController < Escalated::PublicController
     include Escalated::NewsletterAccess
 
     PIXEL_BYTES = Base64.decode64(

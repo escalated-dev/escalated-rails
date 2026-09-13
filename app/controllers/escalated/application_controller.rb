@@ -43,7 +43,7 @@ module Escalated
           features: {
             newsletters: Escalated.configuration.enable_newsletters?
           },
-          permissions: user_permission_slugs(current_user&.id)
+          permissions: user_permission_slugs(escalated_current_user&.id)
         },
         flash: {
           success: flash[:success],
@@ -72,19 +72,23 @@ module Escalated
     end
 
     def current_user_data
-      return nil unless respond_to?(:current_user) && current_user
+      user = escalated_current_user
+      return nil unless user
 
       {
-        id: current_user.id,
-        name: current_user.respond_to?(:name) ? current_user.name : current_user.email,
-        email: current_user.email,
-        is_agent: current_user.respond_to?(:escalated_agent?) ? current_user.escalated_agent? : false,
-        is_admin: current_user.respond_to?(:escalated_admin?) ? current_user.escalated_admin? : false
+        id: user.id,
+        name: user.respond_to?(:name) ? user.name : user.email,
+        email: user.email,
+        is_agent: user.respond_to?(:escalated_agent?) ? user.escalated_agent? : false,
+        is_admin: user.respond_to?(:escalated_admin?) ? user.escalated_admin? : false
       }
     end
 
+    # The host's signed-in user, or nil when the host defines no current_user
+    # because it authenticates some other way. Devise's helper is public; a
+    # host's own may be private, so both count.
     def escalated_current_user
-      return nil unless respond_to?(:current_user)
+      return nil unless respond_to?(:current_user, true)
 
       current_user
     end

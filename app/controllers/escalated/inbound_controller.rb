@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Escalated
-  class InboundController < ApplicationController
+  class InboundController < PublicController
     skip_before_action :verify_authenticity_token
 
     before_action :ensure_inbound_enabled

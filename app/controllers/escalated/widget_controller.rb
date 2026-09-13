@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Escalated
-  class WidgetController < ApplicationController
+  class WidgetController < PublicController
     include Escalated::ApiRateLimiting
 
     protect_from_forgery with: :null_session
@@ -9,7 +9,11 @@ module Escalated
     before_action :ensure_widget_enabled!
 
     # GET /support/widget/config
-    def config
+    #
+    # Not named `config`: that is ActionController's configuration reader, so an
+    # action of that name was called again from inside its own render and
+    # recursed until the stack ran out.
+    def widget_config
       render json: {
         enabled: widget_enabled?,
         color: Escalated::EscalatedSetting.get('widget_color', '#4F46E5'),

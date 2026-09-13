@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Escalated
-  class NewsletterUnsubscribeController < Escalated::ApplicationController
+  class NewsletterUnsubscribeController < Escalated::PublicController
     include Escalated::NewsletterAccess
 
     skip_forgery_protection only: :store

@@ -33,20 +33,18 @@ module PageNameParity
   # looks like it works.
   #
   #   Settings/Csat
-  #     Persists csat_enabled, csat_send_after_hours and csat_message;
-  #     CsatSettings is built around csat_question_text, csat_scale,
-  #     csat_delivery_trigger and csat_delay_hours. Aligning them changes the
-  #     settings keys this engine stores.
-  #
-  #   Settings/Sso
-  #     Exposes an OIDC-shaped surface (sso_client_id, sso_issuer); SsoSettings
-  #     is SAML-and-JWT-shaped (sso_entity_id, sso_certificate, sso_jwt_secret,
-  #     the attribute mappings).
+  #     Not a naming problem and not a prop-shape one either. This engine has a
+  #     SatisfactionRating model and a customer-facing controller to submit one,
+  #     but nothing that asks for a rating: no survey is sent, and the three
+  #     settings this screen saves -- csat_enabled, csat_send_after_hours,
+  #     csat_message -- are read nowhere in app/ or lib/. Pointing the name at
+  #     CsatSettings would give an admin a working-looking form for a delivery
+  #     that does not happen, which is worse than a blank screen. It is closed
+  #     by building the survey, not by renaming anything.
   #
   # This list may shrink. It must never grow.
   KNOWN_BLANK = [
-    'Escalated/Admin/Settings/Csat',
-    'Escalated/Admin/Settings/Sso'
+    'Escalated/Admin/Settings/Csat'
   ].freeze
 
   PAGE_NAME = %r{'(Escalated/[A-Za-z0-9/_]+)'}

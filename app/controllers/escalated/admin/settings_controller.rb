@@ -73,27 +73,25 @@ module Escalated
         redirect_to escalated.admin_settings_two_factor_path, notice: I18n.t('escalated.admin.two_factor.disabled')
       end
 
+      # The SSO settings screen, showing the settings SsoService actually reads.
+      #
+      # It used to show a different, OIDC-shaped set -- sso_client_id and
+      # sso_issuer -- which SsoService has never consulted, and none of the keys
+      # it does consult. So the form saved values nothing used and hid the ones
+      # that mattered, and it rendered under a page name the frontend does not
+      # ship, which meant the whole screen came up blank anyway.
       def sso
-        render_page 'Escalated/Admin/Settings/Sso', {
-          sso_enabled: Escalated::EscalatedSetting.get('sso_enabled') == '1',
-          sso_provider: Escalated::EscalatedSetting.get('sso_provider'),
-          sso_metadata_url: Escalated::EscalatedSetting.get('sso_metadata_url'),
-          sso_client_id: Escalated::EscalatedSetting.get('sso_client_id'),
-          sso_issuer: Escalated::EscalatedSetting.get('sso_issuer')
+        render_page 'Escalated/Admin/Settings/SsoSettings', {
+          settings: sso_service.get_config
         }
       end
 
       def update_sso
-        %w[sso_provider sso_metadata_url sso_client_id sso_issuer sso_client_secret].each do |key|
-          next unless params.key?(key)
-
-          Escalated::EscalatedSetting.set(key, params[key].to_s.strip)
-        end
-
-        sso_enabled = params[:sso_enabled].in?(%w[1 true on]) ? '1' : '0'
-        Escalated::EscalatedSetting.set('sso_enabled', sso_enabled)
+        sso_service.save_config(params.permit(*Escalated::Services::SsoService::CONFIG_KEYS).to_h)
 
         redirect_to escalated.admin_settings_sso_path, notice: I18n.t('escalated.admin.settings.updated')
+      rescue Escalated::Services::SsoValidationError => e
+        redirect_to escalated.admin_settings_sso_path, alert: e.message
       end
 
       def csat
@@ -231,6 +229,10 @@ module Escalated
         return unless encryption.present? && %w[ssl tls starttls none].include?(encryption)
 
         Escalated::EscalatedSetting.set('imap_encryption', encryption)
+      end
+
+      def sso_service
+        @sso_service ||= Escalated::Services::SsoService.new
       end
 
       def mask_secret(value)

@@ -32,13 +32,6 @@ module PageNameParity
   # Save posts fields the controller ignores -- worse than blank, because it
   # looks like it works.
   #
-  #   Reports/{Cohort,Frt*,Resolution*}
-  #     Nine advanced-report endpoints pass { data:, filters: } while every
-  #     report component takes flat props. Three of the nine resolve by name and
-  #     still render an empty report; these six do not resolve at all. Closing
-  #     them means collapsing the three FRT endpoints into the one ResponseTimes
-  #     screen and the two resolution endpoints into ResolutionTimes.
-  #
   #   Settings/Csat
   #     Persists csat_enabled, csat_send_after_hours and csat_message;
   #     CsatSettings is built around csat_question_text, csat_scale,
@@ -52,12 +45,6 @@ module PageNameParity
   #
   # This list may shrink. It must never grow.
   KNOWN_BLANK = [
-    'Escalated/Admin/Reports/Cohort',
-    'Escalated/Admin/Reports/FrtByAgent',
-    'Escalated/Admin/Reports/FrtDistribution',
-    'Escalated/Admin/Reports/FrtTrends',
-    'Escalated/Admin/Reports/ResolutionDistribution',
-    'Escalated/Admin/Reports/ResolutionTrends',
     'Escalated/Admin/Settings/Csat',
     'Escalated/Admin/Settings/Sso'
   ].freeze

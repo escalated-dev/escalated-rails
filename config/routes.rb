@@ -112,12 +112,19 @@ Escalated::Engine.routes.draw do
     # Advanced reporting endpoints
     scope 'reports/advanced', controller: :advanced_reports do
       get :sla_trends, as: :reports_sla_trends
+      get :response_times, as: :reports_response_times
+      get :resolution_times, as: :reports_resolution_times
+      get :agent_ranking, as: :reports_agent_ranking
+      get :cohorts, as: :reports_cohorts
+
+      # The frontend has one first-response screen and one resolution screen;
+      # these five paths served what are now two. They redirect rather than
+      # 404, having been in the routes long enough to be linked.
       get :frt_distribution, as: :reports_frt_distribution
       get :frt_trends, as: :reports_frt_trends
       get :frt_by_agent, as: :reports_frt_by_agent
       get :resolution_distribution, as: :reports_resolution_distribution
       get :resolution_trends, as: :reports_resolution_trends
-      get :agent_ranking, as: :reports_agent_ranking
       get :cohort, as: :reports_cohort
       get :comparison, as: :reports_comparison
       get :export, as: :reports_export

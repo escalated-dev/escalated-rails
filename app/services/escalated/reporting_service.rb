@@ -2,6 +2,9 @@
 
 module Escalated
   class ReportingService
+    # The figures the report screens read, in the shape they read them.
+    include Escalated::ReportingService::ScreenMetrics
+
     def initialize(from:, to:)
       @from = from
       @to = to
@@ -67,6 +70,28 @@ module Escalated
       results.sort_by { |a| a[:avg_hours] }
     end
 
+    # Resolution time broken down by agent, the same shape as frt_by_agent.
+    def resolution_by_agent
+      tickets = @tickets.where.not(resolved_at: nil, assigned_to: nil)
+      grouped = tickets.pluck(:assigned_to, :resolved_at, :created_at).group_by(&:first)
+
+      results = grouped.filter_map do |agent_id, rows|
+        times = rows.map { |_, resolved, created| (resolved - created) / 3600.0 }
+        agent = Escalated.configuration.user_model.find_by(id: agent_id)
+        next unless agent
+
+        {
+          agent_id: agent_id,
+          agent_name: agent.respond_to?(:name) ? agent.name : agent.email,
+          avg_hours: (times.sum / times.size).round(2),
+          count: times.size,
+          percentiles: percentiles(times)
+        }
+      end
+
+      results.sort_by { |a| a[:avg_hours] }
+    end
+
     # Resolution time distribution
     def resolution_time_distribution
       tickets = @tickets.where.not(resolved_at: nil)
@@ -110,7 +135,20 @@ module Escalated
       when 'department' then cohort_by_department
       when 'channel' then cohort_by_channel
       when 'type' then cohort_by_type
+      when 'priority' then cohort_by_priority
       else { error: "Unknown dimension: #{dimension}" }
+      end
+    end
+
+    # Tickets raised per day over an arbitrary window, as the charts read it.
+    # The comparison screen draws both its periods, and only one of them is the
+    # window this service was built for.
+    def volume_by_date(from:, to:)
+      days = ((to.to_date - from.to_date).to_i + 1).clamp(1, 90)
+
+      (0...days).map do |i|
+        date = from.to_date + i.days
+        { label: date.strftime('%Y-%m-%d'), value: Escalated::Ticket.where(created_at: date.all_day).count }
       end
     end
 
@@ -255,6 +293,10 @@ module Escalated
 
     def cohort_by_type
       @tickets.distinct.pluck(:ticket_type).compact.map { |t| build_cohort_stats(t, @tickets.where(ticket_type: t)) }
+    end
+
+    def cohort_by_priority
+      @tickets.distinct.pluck(:priority).compact.map { |p| build_cohort_stats(p.to_s, @tickets.where(priority: p)) }
     end
 
     def build_cohort_stats(name, scope)

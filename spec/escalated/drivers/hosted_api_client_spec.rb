@@ -15,7 +15,7 @@ RSpec.describe Escalated::Drivers::HostedApiClient do
     )
   end
 
-  after(:all) do
+  after do
     WebMock.allow_net_connect!
     WebMock.disable!
   end
@@ -23,7 +23,7 @@ RSpec.describe Escalated::Drivers::HostedApiClient do
   describe '.emit' do
     it 'posts driver actions to /events as named cloud events with a stable event id' do
       stub = stub_request(:post, events_url)
-        .to_return(status: 200, body: '{"received":true}', headers: { 'Content-Type' => 'application/json' })
+             .to_return(status: 200, body: '{"received":true}', headers: { 'Content-Type' => 'application/json' })
 
       described_class.emit(:create_ticket, { reference: 'ESC-00007', subject: 'Hello' })
 

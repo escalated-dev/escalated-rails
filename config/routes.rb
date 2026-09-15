@@ -9,6 +9,10 @@ Escalated::Engine.routes.draw do
   # Inbound email webhook (no authentication -- verified by adapter)
   post 'inbound/:adapter', to: 'inbound#webhook', as: :inbound_webhook
 
+  # Signed ticket webhooks from cloud.escalated.dev (Synced mode). Verified by
+  # X-Escalated-Signature, not by a session, so no host auth filters apply.
+  post 'cloud/webhook', to: 'cloud_webhook#receive', as: :cloud_webhook
+
   # SDK plugin routes are registered dynamically at boot time by
   # Escalated::Bridge::RouteRegistrar based on each plugin's manifest.
   # They appear as:

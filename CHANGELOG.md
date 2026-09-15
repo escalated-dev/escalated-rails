@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.6.4] - 2026-09-15
+
+### Added
+- **Cloud → site webhook receiver.** `POST /support/cloud/webhook` applies `ticket.updated` and
+  `ticket.status_changed` from cloud.escalated.dev to the local ticket (matched by `reference`),
+  verified with the new `hosted_signing_secret` and deduplicated by `event_id`. Synced mode is
+  now two-way, as it already was for the Laravel package (v1.8.4).
+
 ## [0.6.3] - 2026-09-15
 
 ### Fixed

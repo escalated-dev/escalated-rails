@@ -113,6 +113,7 @@ module Escalated
           status: ticket.status,
           priority: ticket.priority,
           requester_email: ticket.requester&.email,
+          requester_name: ticket.requester.try(:name),
           assignee_email: ticket.assignee&.email,
           department_name: ticket.department&.name,
           tag_names: ticket.tags.pluck(:name),

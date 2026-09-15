@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- **Synced mode never reached the cloud.** `HostedApiClient.emit` posted to
+  `/sync/<action>`, routes cloud.escalated.dev does not serve, so every event
+  from the `SyncedDriver` was a 404 that the driver logged and dropped. Actions
+  are now mapped to the cloud's event names (`ticket.created`,
+  `ticket.status_changed`, `reply.created`, ...) and posted to `POST /events`
+  with a stable `event_id` and timestamp. The ticket payload also carries
+  `requester_name` so the cloud projection shows who asked.
+
 ## [0.6.2] - 2026-09-13
 
 ### Security

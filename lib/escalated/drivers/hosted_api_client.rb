@@ -2,6 +2,7 @@
 
 require 'net/http'
 require 'json'
+require 'securerandom'
 require 'uri'
 
 module Escalated
@@ -39,8 +40,30 @@ module Escalated
         new.emit(action, payload)
       end
 
-      def emit(action, payload)
-        post("/sync/#{action}", payload)
+      # Synced-mode event names the cloud ingests, keyed by driver action.
+      EVENT_NAMES = {
+        create_ticket: 'ticket.created',
+        update_ticket: 'ticket.updated',
+        transition_status: 'ticket.status_changed',
+        assign_ticket: 'ticket.assigned',
+        unassign_ticket: 'ticket.unassigned',
+        add_reply: 'reply.created',
+        add_tags: 'ticket.tags_added',
+        remove_tags: 'ticket.tags_removed',
+        change_department: 'ticket.department_changed',
+        change_priority: 'ticket.priority_changed'
+      }.freeze
+
+      # Posts one Synced-mode event to the cloud's POST /events endpoint.
+      # The event id is minted once per logical event; reuse it when
+      # retrying so cloud.escalated.dev can drop the redelivery.
+      def emit(action, payload, event_id: SecureRandom.uuid)
+        post('/events', {
+               event: EVENT_NAMES.fetch(action.to_sym) { action.to_s },
+               payload: payload,
+               event_id: event_id,
+               timestamp: Time.current.iso8601
+             })
       rescue StandardError => e
         Rails.logger.error("[Escalated::HostedApiClient] Emit failed: #{e.message}")
         raise

@@ -60,6 +60,15 @@ RSpec.describe 'Escalated::CloudWebhookController', type: :request do
     expect(ticket.activities.where(action: 'priority_changed').count).to eq(1)
   end
 
+  it 'does not report a blank subject or description as applied' do
+    body = post_event('ticket.updated', projected(subject: '', description: '   '), event_id: 'evt-blank')
+    expect(response).to have_http_status(:ok)
+    expect(body).to include('applied' => false, 'changes' => [])
+    ticket.reload
+    expect(ticket.subject).to eq('Before')
+    expect(ticket.description).to eq('Body')
+  end
+
   it 'reports nothing applied when the projection matches the ticket' do
     body = post_event('ticket.updated', projected)
     expect(body).to include('applied' => false, 'changes' => [])

@@ -76,7 +76,7 @@ module Escalated
       content = {}
       %w[subject description].each do |field|
         value = cloud_ticket[field]
-        content[field.to_sym] = value.to_s if !value.nil? && value.to_s != ticket.public_send(field).to_s
+        content[field.to_sym] = value.to_s if value.present? && value.to_s != ticket.public_send(field).to_s
       end
 
       if content.any?

@@ -12,6 +12,7 @@ module Escalated
                   :admin_middleware,
                   :hosted_api_url,
                   :hosted_api_key,
+                  :hosted_signing_secret,
                   :allow_customer_close,
                   :auto_close_resolved_after_days,
                   :max_attachments,
@@ -107,6 +108,7 @@ module Escalated
       @admin_middleware = nil
       @hosted_api_url = nil
       @hosted_api_key = nil
+      @hosted_signing_secret = nil
       @allow_customer_close = true
       @auto_close_resolved_after_days = 7
       @max_attachments = 5

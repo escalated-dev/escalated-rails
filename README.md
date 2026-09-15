@@ -240,6 +240,21 @@ Escalated.configure do |config|
 end
 ```
 
+Agent actions taken in the cloud portal come back through a signed webhook. Set the
+site's signing secret (shown on the connected site in the cloud dashboard) and give
+the cloud this URL:
+
+```ruby
+config.hosted_signing_secret = ENV["ESCALATED_CLOUD_SIGNING_SECRET"]
+# Webhook URL for the connected site: https://your-app.example.com/support/cloud/webhook
+```
+
+The receiver verifies `X-Escalated-Signature` (HMAC-SHA256 of the raw body), ignores replayed
+`event_id`s for 24 hours, and applies subject, description, priority and status from
+`ticket.updated` / `ticket.status_changed` to the local ticket whose `reference` matches the
+projection's `external_id`. Changes run through the local driver, so your listeners fire, and
+are not echoed back to the cloud.
+
 ### Cloud
 
 All ticket data proxied to the cloud API. Your app handles auth and renders UI, but storage lives in the cloud.

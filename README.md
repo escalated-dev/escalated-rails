@@ -21,6 +21,7 @@
 [![Rails](https://img.shields.io/badge/rails-7.0+-D30001?logo=rubyonrails&logoColor=white)](https://rubyonrails.org/)
 [![Gem Downloads](https://img.shields.io/gem/dt/escalated)](https://rubygems.org/gems/escalated)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Views](https://hits.sh/github.com/escalated-dev/escalated-rails.svg?style=flat&label=views&color=007ec6)](https://hits.sh/github.com/escalated-dev/escalated-rails/)
 
 A full-featured, embeddable support ticket system for Rails. Drop it into any app — get a complete helpdesk with SLA tracking, escalation rules, agent workflows, and a customer portal. No external services required.
 

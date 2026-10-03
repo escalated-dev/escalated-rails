@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- **Inbound email webhooks load their adapters.** Nothing required `lib/escalated/mail`, so every
+  provider webhook answered 500.
+- **Inbound replies come only from the ticket's requester.** With `email_inbound_secret` set, only
+  the signed Reply-To address links mail to a ticket. A matched email is a reply only when `From`
+  is the ticket's guest or requester email, and it is posted as the requester; any other sender
+  gets a new ticket. Accepted replies reopen resolved or closed tickets.
+
 ## [0.6.4] - 2026-09-15
 
 ### Added

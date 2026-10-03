@@ -432,6 +432,11 @@ Escalated.configure do |config|
   config.inbound_email_adapter = :mailgun
   config.inbound_email_address = "support@yourapp.com"
 
+  # Signs the Reply-To on outbound mail (reply+{id}.{hmac8}@domain). Once set,
+  # only that signed address links an inbound email to a ticket.
+  config.email_domain = "support.yourapp.com"
+  config.email_inbound_secret = ENV["ESCALATED_EMAIL_INBOUND_SECRET"]
+
   # Mailgun
   config.mailgun_signing_key = ENV["ESCALATED_MAILGUN_SIGNING_KEY"]
 
@@ -473,9 +478,10 @@ poll_imap:
 
 ### Features
 
-- Thread detection via subject reference and `In-Reply-To` / `References` headers
+- Thread detection via the signed Reply-To address when `email_inbound_secret` is set; without a secret, via our `In-Reply-To` / `References` Message-IDs and the subject reference
+- Replies accepted only from the ticket's requester (the guest email or the requester's email, case-insensitive) and posted as that requester. Staff identity is never taken from the `From` header, so agents reply in the app. Any other sender gets a new ticket of their own
 - Guest tickets for unknown senders with auto-derived display names
-- Auto-reopen resolved/closed tickets on email reply
+- Auto-reopen resolved/closed tickets when the requester replies by email
 - Duplicate detection via `Message-ID` headers
 - Attachment handling with configurable size and count limits
 - Audit logging of every inbound email

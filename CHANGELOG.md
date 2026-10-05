@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **Per-IP rate limit on guest ticket creation and replies.** The widget and guest-form ticket
+  endpoints allow 5 submissions and the guest reply endpoint 10 replies per client IP per minute,
+  counted separately; over the limit the response is `429` with `Retry-After`. The reply limit is
+  checked before the guest token, so wrong-token requests count. Configure with
+  `config.guest_rate_limit` (`enabled`, `tickets_per_minute`, `replies_per_minute`, `cache_store`).
+  The client IP is `request.remote_ip`: behind a proxy, set `config.action_dispatch.trusted_proxies`
+  or all guests share one limit.
+
 ### Fixed
 - **Inbound email webhooks load their adapters.** Nothing required `lib/escalated/mail`, so every
   provider webhook answered 500.

@@ -2,6 +2,13 @@
 
 module Escalated
   class Configuration
+    GUEST_RATE_LIMIT_DEFAULTS = {
+      enabled: true,
+      tickets_per_minute: 5,
+      replies_per_minute: 10,
+      cache_store: nil
+    }.freeze
+
     attr_accessor :mode,
                   :user_class,
                   :user_id_type,
@@ -60,6 +67,8 @@ module Escalated
                   # REST API settings
                   :api_enabled,
                   :api_rate_limit,
+                  # Per-client-IP limits on the guest ticket and reply endpoints
+                  :guest_rate_limit,
                   :api_token_expiry_days,
                   :api_prefix,
                   # Branding (used by newsletters + emails)
@@ -165,6 +174,19 @@ module Escalated
       @api_token_expiry_days = nil
       @api_prefix = 'support/api/v1'
 
+      # Per-client-IP limits on the unauthenticated guest endpoints (widget and
+      # guest-form ticket submission, guest replies). Over the limit: 429 with
+      # Retry-After. Tickets and replies are counted separately over 60 seconds.
+      # Keys the host sets are merged over these defaults.
+      #   enabled: set false only when the host already throttles upstream.
+      #   cache_store: an ActiveSupport::Cache::Store for the counters; nil uses
+      #     Rails.cache. Use a shared store (Redis, Memcache, Solid Cache) when
+      #     running several processes.
+      # The client IP is request.remote_ip. Behind a proxy or load balancer,
+      # set config.action_dispatch.trusted_proxies, or every guest shares the
+      # proxy's address.
+      @guest_rate_limit = GUEST_RATE_LIMIT_DEFAULTS.dup
+
       # Branding defaults
       @app_name = 'Support'
       @app_url = nil
@@ -227,6 +249,11 @@ module Escalated
 
     def newsletter_tracking_enabled?
       @newsletter_tracking_enabled != false
+    end
+
+    # guest_rate_limit with any key the host left out filled from the defaults.
+    def guest_rate_limit_settings
+      GUEST_RATE_LIMIT_DEFAULTS.merge((guest_rate_limit || {}).to_h.symbolize_keys)
     end
 
     def ui_enabled?

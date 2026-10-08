@@ -22,7 +22,7 @@ gem 'escalated-locale',
 # touching it. Pinned until Rails is compatible; the constraint is only in
 # the Gemfile, so it applies to this repo's own test run and is not
 # imposed on host applications through the gemspec.
-gem 'json', '< 3.0'
+gem 'json', '< 4.0'
 
 gem 'rexml'
 gem 'tzinfo-data'

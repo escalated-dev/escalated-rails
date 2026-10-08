@@ -6,6 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-08
+
+### Upgrading
+
+- **Inbound email works again.** Provider webhooks answered 500 in 0.6.x
+  because the mail adapters were never loaded. Check your provider's webhook
+  logs after upgrading; mail sent while it was broken was not stored.
+- **Only the requester can reply by email.** A matched message is a reply only
+  when `From` is the ticket's guest email or `requester.email`
+  (case-insensitive), and it is posted as the requester. Mail from anyone else,
+  an agent's address included, opens a new ticket, so agents reply in the app.
+- **Set `config.email_inbound_secret`.** With it set, only the signed Reply-To
+  address links mail to a ticket; `In-Reply-To`, `References` and subject
+  references no longer do.
+- **Accepted email replies reopen resolved and closed tickets.**
+- **Guest endpoints are rate-limited per client IP** (5 tickets and 10 replies
+  a minute) through `config.guest_rate_limit`. Behind a proxy, set
+  `config.action_dispatch.trusted_proxies` or every guest shares one limit. Use
+  a shared `cache_store` when you run more than one process.
+
 ### Added
 - **Per-IP rate limit on guest ticket creation and replies.** The widget and guest-form ticket
   endpoints allow 5 submissions and the guest reply endpoint 10 replies per client IP per minute,

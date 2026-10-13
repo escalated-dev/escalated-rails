@@ -2,7 +2,7 @@
 
 FactoryBot.define do
   factory :escalated_sla_policy, class: 'Escalated::SlaPolicy' do
-    name { "#{Faker::Company.buzzword.capitalize} SLA" }
+    sequence(:name) { |n| "#{Faker::Company.buzzword.capitalize} SLA #{n}" }
     description { Faker::Lorem.sentence }
     is_active { true }
     is_default { false }

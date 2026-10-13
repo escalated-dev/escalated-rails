@@ -41,7 +41,7 @@ module Escalated
         check_sla_breach(ticket) &&
         check_unassigned_duration(ticket) &&
         check_no_response_duration(ticket) &&
-        check_department(ticket)
+        check_department(ticket) && check_account_and_type(ticket)
     end
 
     def active?
@@ -49,6 +49,18 @@ module Escalated
     end
 
     private
+
+    def check_account_and_type(ticket)
+      %w[ticket_type account_type account_id].each do |field|
+        return false if conditions.key?(field) && ticket.public_send(field).to_s != conditions[field].to_s
+      end
+      return true unless conditions.key?('account')
+
+      expected = TicketAccess.normalize_identity(conditions['account'])
+      return false unless expected
+
+      ticket.account_type == expected['type'] && ticket.account_id == expected['id']
+    end
 
     def check_status(ticket)
       return true if conditions['status'].blank?

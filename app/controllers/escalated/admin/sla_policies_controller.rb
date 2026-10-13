@@ -69,7 +69,7 @@ module Escalated
 
       def sla_policy_params
         params.expect(
-          sla_policy: [:name, :description, :is_active, :is_default,
+          sla_policy: [:name, :description, :is_active, :is_default, :department_id, :ticket_type,
                        {
                          first_response_hours: {},
                          resolution_hours: {}
@@ -81,6 +81,8 @@ module Escalated
         {
           id: policy.id,
           name: policy.name,
+          department_id: policy.department_id,
+          ticket_type: policy.ticket_type,
           description: policy.description,
           is_active: policy.is_active,
           is_default: policy.is_default,

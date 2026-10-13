@@ -8,6 +8,7 @@ module Escalated
   class Manager
     class << self
       def driver
+        Escalated::TicketAccess.validate!
         @driver ||= resolve_driver
       end
 

@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Opt-in department/account ticket access across queries, policies, API, bulk
+  actions, reports, widgets, notifications and chat subscriptions.
+- Nullable account identities and host resolvers; type/account routing conditions.
+- Optional department/type SLA targets with deterministic selection.
+
+### Fixed
+
+- API bearer tokens use the hashed token lookup; bulk actions read the submitted
+  action instead of the Rails route action.
+
+## [Unreleased]
+
 ## [0.7.0] - 2026-10-08
 
 ### Upgrading

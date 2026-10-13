@@ -7,7 +7,14 @@ module Escalated
 
       # Only agents/admins can subscribe to ticket channels
       if authorized_for_ticket?(ticket)
-        stream_from Escalated::Broadcasting.ticket_channel(ticket)
+        stream_from Escalated::Broadcasting.ticket_channel(ticket), coder: ActiveSupport::JSON do |message|
+          current_ticket = Escalated::Ticket.find_by(id: ticket.id)
+          if current_ticket && authorized_for_ticket?(current_ticket)
+            transmit(message)
+          else
+            stop_all_streams
+          end
+        end
       else
         reject
       end
@@ -23,6 +30,7 @@ module Escalated
 
     def authorized_for_ticket?(ticket)
       return false unless current_user
+      return false unless TicketAccess.allowed?(current_user, ticket)
 
       # Agents and admins can subscribe
       return true if current_user.respond_to?(:escalated_agent?) && current_user.escalated_agent?

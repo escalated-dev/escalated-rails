@@ -79,7 +79,7 @@ module Escalated
 
       def resolve
         if admin? || agent?
-          scope.all
+          Escalated::TicketAccess.apply(scope.all, user)
         else
           scope.where(requester: user)
         end
@@ -99,11 +99,11 @@ module Escalated
     private
 
     def owner?
-      ticket.requester == user
+      TicketAccess.allowed?(user, ticket) && ticket.requester == user
     end
 
     def agent?
-      user.respond_to?(:escalated_agent?) && user.escalated_agent?
+      user.respond_to?(:escalated_agent?) && user.escalated_agent? && TicketAccess.allowed?(user, ticket)
     end
 
     def admin?

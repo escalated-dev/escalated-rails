@@ -51,9 +51,8 @@ module Escalated
 
       def agent_performance(start_date, end_date)
         user_class = Escalated.configuration.user_class.constantize
-        agents = user_class.joins(:escalated_assigned_tickets)
-                           .where(Escalated.table_name('tickets') => { created_at: start_date..end_date })
-                           .distinct
+        agent_ids = Escalated::Ticket.where(created_at: start_date..end_date).distinct.pluck(:assigned_to)
+        agents = user_class.where(id: agent_ids.compact)
 
         agents.map do |agent|
           tickets = Escalated::Ticket.where(assigned_to: agent.id, created_at: start_date..end_date)

@@ -17,7 +17,8 @@ module Escalated
         return
       end
 
-      api_token = Escalated::ApiToken.find_by(plain_text: plain_text)
+      # rubocop:disable-next Rails/DynamicFindBy
+      api_token = Escalated::ApiToken.find_by_plain_text(plain_text)
       unless api_token
         render json: { message: 'Invalid token.' }, status: :unauthorized
         return

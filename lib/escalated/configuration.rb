@@ -10,6 +10,8 @@ module Escalated
     }.freeze
 
     attr_accessor :mode,
+                  :visibility,
+                  :accounts,
                   :user_class,
                   :user_id_type,
                   :table_prefix,
@@ -108,6 +110,8 @@ module Escalated
 
     def initialize
       @mode = :self_hosted
+      @visibility = 'all'
+      @accounts = { enabled: false, scope_agents: false, resolver: nil }
       @user_class = 'User'
       @user_id_type = :auto
       @table_prefix = 'escalated_'
@@ -125,6 +129,7 @@ module Escalated
       @default_priority = :medium
       @sla = {
         enabled: true,
+        targeted: false,
         business_hours_only: true,
         business_hours: {
           start: 9,

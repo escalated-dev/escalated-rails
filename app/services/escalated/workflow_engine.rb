@@ -80,6 +80,16 @@ module Escalated
       field = condition['field'].to_s
       operator = condition['operator'] || 'equals'
       expected = condition['value']
+      if field == 'account'
+        actual = ticket.account_type ? { 'type' => ticket.account_type, 'id' => ticket.account_id } : nil
+        return actual.nil? if operator == 'is_empty'
+        return !actual.nil? if operator == 'is_not_empty'
+
+        expected = TicketAccess.normalize_identity(expected)
+        return false unless expected
+
+        return { 'equals' => actual == expected, 'not_equals' => actual != expected }.fetch(operator, false)
+      end
       actual = resolve_field(field, ticket)
 
       apply_operator(operator, actual, expected)
@@ -93,6 +103,8 @@ module Escalated
       when 'department_id' then ticket.department_id
       when 'channel' then ticket.channel
       when 'ticket_type' then ticket.ticket_type
+      when 'account_type' then ticket.account_type
+      when 'account_id' then ticket.account_id
       when 'subject' then ticket.subject
       when 'description' then ticket.description
       when 'tags' then ticket.tags.pluck(:name).join(',')

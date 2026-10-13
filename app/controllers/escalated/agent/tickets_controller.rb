@@ -11,7 +11,7 @@ module Escalated
                              follow presence pin]
 
       def index
-        scope = Escalated::Ticket.all.recent
+        scope = TicketAccess.filter_accounts(Escalated::Ticket.all.recent, params)
 
         scope = scope.where(status: params[:status]) if params[:status].present?
         scope = scope.where(priority: params[:priority]) if params[:priority].present?
@@ -265,19 +265,14 @@ module Escalated
       end
 
       def agent_list
-        if Escalated.configuration.user_model.respond_to?(:escalated_agents)
-          Escalated.configuration.user_model.escalated_agents.map do |a|
-            { id: a.id, name: a.respond_to?(:name) ? a.name : a.email, email: a.email }
-          end
-        else
-          []
-        end
+        TicketAccess.assignment_candidates(@ticket)
       end
 
       def ticket_list_json(ticket)
         {
           id: ticket.id,
           reference: ticket.reference,
+          **TicketAccess.serialize_account(ticket),
           subject: ticket.subject,
           status: ticket.status,
           priority: ticket.priority,

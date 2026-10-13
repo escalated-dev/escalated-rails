@@ -9,6 +9,10 @@ module Escalated
 
     validates :user_id, uniqueness: { scope: :reply_id }
 
+    default_scope do
+      TicketAccess.restricted? ? where(reply_id: Escalated::Reply.select(:id)) : all
+    end
+
     scope :unread, -> { where(read_at: nil) }
     scope :read, -> { where.not(read_at: nil) }
     scope :for_user, ->(user_id) { where(user_id: user_id) }

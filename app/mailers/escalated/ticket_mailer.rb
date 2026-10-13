@@ -5,6 +5,8 @@ require 'escalated/mail/message_id_util'
 module Escalated
   class TicketMailer < ApplicationMailer
     def new_ticket(ticket)
+      return unless recipient_email(ticket.requester, ticket)
+
       @ticket = ticket
       @requester = ticket.requester
       load_branding
@@ -13,7 +15,7 @@ module Escalated
       apply_signed_reply_to(ticket)
 
       mail(
-        to: @requester.email,
+        to: recipient_email(@requester, ticket),
         subject: I18n.t('escalated.mailer.new_ticket', reference: ticket.reference, subject: ticket.subject)
       )
     end
@@ -25,9 +27,9 @@ module Escalated
 
       # Notify the requester if an agent replied, or notify the assignee if the customer replied
       recipient = if reply.author == ticket.requester
-                    ticket.assignee&.email
+                    recipient_email(ticket.assignee, ticket)
                   else
-                    ticket.requester.email
+                    recipient_email(ticket.requester, ticket)
                   end
 
       return unless recipient
@@ -49,18 +51,20 @@ module Escalated
       @assignee = ticket.assignee
       load_branding
 
-      return unless @assignee&.email
+      return unless recipient_email(@assignee, ticket)
 
       set_threading_headers(ticket)
       apply_signed_reply_to(ticket)
 
       mail(
-        to: @assignee.email,
+        to: recipient_email(@assignee, ticket),
         subject: I18n.t('escalated.mailer.assigned', reference: ticket.reference, subject: ticket.subject)
       )
     end
 
     def status_changed(ticket)
+      return unless recipient_email(ticket.requester, ticket)
+
       @ticket = ticket
       load_branding
 
@@ -68,7 +72,7 @@ module Escalated
       apply_signed_reply_to(ticket)
 
       mail(
-        to: ticket.requester.email,
+        to: recipient_email(ticket.requester, ticket),
         subject: I18n.t('escalated.mailer.status_updated', reference: ticket.reference, status: ticket.status.humanize)
       )
     end
@@ -78,7 +82,7 @@ module Escalated
       load_branding
 
       recipients = []
-      recipients << ticket.assignee.email if ticket.assignee&.email
+      recipients << recipient_email(ticket.assignee, ticket) if recipient_email(ticket.assignee, ticket)
       recipients << ticket.department&.email if ticket.department&.email
 
       return if recipients.empty?
@@ -98,7 +102,7 @@ module Escalated
       load_branding
 
       recipients = Array(rule.actions['notification_recipients'])
-      recipients << ticket.assignee&.email if ticket.assignee
+      recipients << recipient_email(ticket.assignee, ticket) if ticket.assignee
       recipients << ticket.department&.email if ticket.department
 
       return if recipients.compact.empty?
@@ -113,6 +117,8 @@ module Escalated
     end
 
     def ticket_resolved(ticket)
+      return unless recipient_email(ticket.requester, ticket)
+
       @ticket = ticket
       load_branding
 
@@ -120,12 +126,18 @@ module Escalated
       apply_signed_reply_to(ticket)
 
       mail(
-        to: ticket.requester.email,
+        to: recipient_email(ticket.requester, ticket),
         subject: I18n.t('escalated.mailer.resolved', reference: ticket.reference, subject: ticket.subject)
       )
     end
 
     private
+
+    def recipient_email(user, ticket)
+      return nil unless user && TicketAccess.allowed?(user, ticket)
+
+      user.email
+    end
 
     # RFC 5322 Message-ID for the ticket root (the thread anchor).
     def ticket_message_id(ticket)

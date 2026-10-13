@@ -4,6 +4,8 @@ module Escalated
   class TicketLink < ApplicationRecord
     self.table_name = Escalated.table_name('ticket_links')
 
+    default_scope { Escalated::TicketAccess.children(self, :parent_ticket_id, :child_ticket_id) }
+
     LINK_TYPES = %w[problem_incident parent_child related].freeze
 
     belongs_to :parent_ticket, class_name: 'Escalated::Ticket'

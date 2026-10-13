@@ -4,6 +4,9 @@ module Escalated
   class SlaPolicy < ApplicationRecord
     self.table_name = Escalated.table_name('sla_policies')
 
+    belongs_to :department, optional: true
+    validates :ticket_type, inclusion: { in: Escalated::Ticket::TICKET_TYPES }, allow_nil: true
+
     has_many :tickets, class_name: 'Escalated::Ticket', dependent: :nullify
     has_many :departments,
              class_name: 'Escalated::Department',

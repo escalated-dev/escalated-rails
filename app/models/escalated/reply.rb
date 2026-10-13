@@ -4,6 +4,8 @@ module Escalated
   class Reply < ApplicationRecord
     self.table_name = Escalated.table_name('replies')
 
+    default_scope { Escalated::TicketAccess.children(self) }
+
     belongs_to :ticket, class_name: 'Escalated::Ticket'
     belongs_to :author, polymorphic: true, optional: true
     has_many :attachments, as: :attachable, dependent: :destroy, class_name: 'Escalated::Attachment'

@@ -6,6 +6,7 @@ module Escalated
       class BaseController < ActionController::API
         include Escalated::ApiAuthentication
         include Escalated::ApiRateLimiting
+        include Escalated::TicketAccess::Controller
 
         before_action :check_api_enabled!
         before_action :authenticate_api_token!

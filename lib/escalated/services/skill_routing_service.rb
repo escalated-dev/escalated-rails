@@ -10,6 +10,10 @@ module Escalated
         return user_class.none if required_skill_ids.empty?
 
         eligible_user_ids = eligible_agent_user_ids(required_skill_ids)
+        if Escalated.configuration.visibility.to_s != 'all' || TicketAccess.accounts[:scope_agents]
+          eligible_user_ids = user_class.where(id: eligible_user_ids)
+                                        .select { |agent| TicketAccess.allowed?(agent, ticket) }.map(&:id)
+        end
         return user_class.none if eligible_user_ids.empty?
 
         prof_sums = Escalated::AgentSkill

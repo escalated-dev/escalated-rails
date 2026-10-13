@@ -9,8 +9,9 @@ module Escalated
 
         # GET /api/v1/tickets
         def index
-          scope = Escalated::Ticket.all.recent
+          scope = TicketAccess.filter_accounts(Escalated::Ticket.all.recent, params)
 
+          scope = scope.by_ticket_type(params[:ticket_type]) if params[:ticket_type].present?
           scope = scope.where(status: params[:status]) if params[:status].present?
           scope = scope.where(priority: params[:priority]) if params[:priority].present?
           scope = scope.assigned_to(params[:assigned_to]) if params[:assigned_to].present?
@@ -234,6 +235,7 @@ module Escalated
           {
             id: ticket.id,
             reference: ticket.reference,
+            **TicketAccess.serialize_account(ticket),
             subject: ticket.subject,
             status: ticket.status,
             priority: ticket.priority,

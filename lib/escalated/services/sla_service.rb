@@ -10,10 +10,11 @@ module Escalated
           policy ||= find_policy_for(ticket)
           return unless policy
 
+          from = Escalated.configuration.sla[:targeted] ? (ticket.created_at || Time.current) : Time.current
           ticket.update!(
             sla_policy_id: policy.id,
-            sla_first_response_due_at: calculate_due_date(policy.first_response_hours_for(ticket.priority)),
-            sla_resolution_due_at: calculate_due_date(policy.resolution_hours_for(ticket.priority))
+            sla_first_response_due_at: calculate_due_date(policy.first_response_hours_for(ticket.priority), from: from),
+            sla_resolution_due_at: calculate_due_date(policy.resolution_hours_for(ticket.priority), from: from)
           )
         end
 
@@ -79,13 +80,13 @@ module Escalated
           warning_tickets
         end
 
-        def calculate_due_date(hours)
+        def calculate_due_date(hours, from: Time.current)
           return nil unless hours
 
           if Escalated.configuration.business_hours_only?
-            calculate_business_hours_due_date(hours)
+            calculate_business_hours_due_date(hours, from: from)
           else
-            Time.current + hours.hours
+            from + hours.hours
           end
         end
 
@@ -136,10 +137,23 @@ module Escalated
         private
 
         def find_policy_for(ticket)
+          if Escalated.configuration.sla[:targeted]
+            specificity = 'CASE WHEN department_id IS NOT NULL AND ticket_type IS NOT NULL THEN 0 ' \
+                          'WHEN department_id IS NOT NULL THEN 1 WHEN ticket_type IS NOT NULL THEN 2 ELSE 3 END'
+            return Escalated::SlaPolicy.active
+                                       .where(department_id: [nil, ticket.department_id])
+                                       .where(ticket_type: [nil, ticket.ticket_type])
+                                       .where(
+                                         'department_id IS NOT NULL OR ticket_type IS NOT NULL OR is_default = ?', true
+                                       )
+                                       .order(Arel.sql(specificity))
+                                       .order(:id).first
+          end
           if ticket.department&.default_sla_policy_id.present?
-            Escalated::SlaPolicy.find_by(id: ticket.department.default_sla_policy_id)
+            Escalated::SlaPolicy.where(department_id: nil,
+                                       ticket_type: nil).find_by(id: ticket.department.default_sla_policy_id)
           else
-            Escalated::SlaPolicy.default_policy.first
+            Escalated::SlaPolicy.default_policy.where(department_id: nil, ticket_type: nil).order(:id).first
           end
         end
 
@@ -166,14 +180,14 @@ module Escalated
                                                   })
         end
 
-        def calculate_business_hours_due_date(hours)
+        def calculate_business_hours_due_date(hours, from: Time.current)
           bh = Escalated.configuration.business_hours
           start_hour = bh[:start] || 9
           end_hour = bh[:end] || 17
           working_days = bh[:working_days] || [1, 2, 3, 4, 5]
           tz = bh[:timezone] || 'UTC'
 
-          current_time = Time.current.in_time_zone(tz)
+          current_time = from.in_time_zone(tz)
           remaining_hours = hours.to_f
 
           while remaining_hours.positive?

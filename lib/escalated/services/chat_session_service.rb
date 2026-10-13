@@ -30,7 +30,7 @@ module Escalated
           end
 
           # Try to auto-assign an agent
-          agent_id = ChatRoutingService.find_available_agent(department_id: params[:department_id])
+          agent_id = ChatRoutingService.find_available_agent(department_id: params[:department_id], ticket: ticket)
           assign_agent(session, agent_id) if agent_id
 
           Escalated::Broadcasting.chat_started(ticket, session)
@@ -39,6 +39,9 @@ module Escalated
         end
 
         def assign_agent(session, agent_id)
+          raise ArgumentError, 'Agent cannot access this ticket' unless TicketAccess.eligible_agent?(agent_id,
+                                                                                                     session.ticket)
+
           session.update!(
             agent_id: agent_id,
             status: 'active',
@@ -74,6 +77,10 @@ module Escalated
         end
 
         def transfer_chat(session, new_agent_id)
+          unless TicketAccess.eligible_agent?(new_agent_id, session.ticket)
+            raise ArgumentError, 'Agent cannot access this ticket'
+          end
+
           old_agent_id = session.agent_id
 
           session.update!(

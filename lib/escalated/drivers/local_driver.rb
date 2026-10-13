@@ -12,6 +12,7 @@ module Escalated
           description: params[:description],
           priority: params[:priority] || Escalated.configuration.default_priority,
           status: :open,
+          ticket_type: params[:ticket_type] || 'question',
           requester: params[:requester],
           assigned_to: params[:assigned_to],
           department_id: params[:department_id],
@@ -21,6 +22,7 @@ module Escalated
 
         ActiveRecord::Base.transaction do
           ticket.save!
+          Array(params[:subjects]).each { |subject| ticket.attach_subject(subject) }
 
           ticket.tags = Escalated::Tag.where(id: params[:tag_ids]) if params[:tag_ids].present?
 
@@ -256,21 +258,7 @@ module Escalated
       end
 
       def attach_sla_policy(ticket)
-        return unless Escalated.configuration.sla_enabled?
-
-        policy = if ticket.department&.default_sla_policy_id.present?
-                   Escalated::SlaPolicy.find_by(id: ticket.department.default_sla_policy_id)
-                 else
-                   Escalated::SlaPolicy.default_policy.first
-                 end
-
-        return unless policy
-
-        ticket.update!(
-          sla_policy_id: policy.id,
-          sla_first_response_due_at: calculate_due_date(policy.first_response_hours_for(ticket.priority)),
-          sla_resolution_due_at: calculate_due_date(policy.resolution_hours_for(ticket.priority))
-        )
+        Escalated::Services::SlaService.attach_policy(ticket)
       end
 
       def calculate_due_date(hours)

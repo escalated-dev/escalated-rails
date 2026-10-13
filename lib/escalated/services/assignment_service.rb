@@ -15,7 +15,7 @@ module Escalated
         def auto_assign(ticket)
           return nil if ticket.department.blank?
 
-          agent = next_available_agent(ticket.department)
+          agent = next_available_agent(ticket.department, ticket)
           return nil unless agent
 
           TicketService.assign(ticket, agent, actor: nil)
@@ -55,8 +55,9 @@ module Escalated
 
         private
 
-        def next_available_agent(department)
+        def next_available_agent(department, ticket = nil)
           agents = department.agents.to_a
+          agents.select! { |agent| TicketAccess.allowed?(agent, ticket) } if ticket
           return nil if agents.empty?
 
           # Prefer agents who are currently available for support work (chat

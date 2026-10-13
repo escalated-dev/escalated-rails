@@ -10,6 +10,7 @@ module Escalated
     attribute :metadata, default: -> { {} }
 
     belongs_to :requester, polymorphic: true, optional: true
+    belongs_to :account, polymorphic: true, optional: true
     belongs_to :contact, class_name: 'Escalated::Contact', optional: true
     belongs_to :assignee,
                class_name: Escalated.configuration.user_class,
@@ -72,7 +73,11 @@ module Escalated
     validates :reference, uniqueness: true, allow_nil: true
     validates :ticket_type, inclusion: { in: TICKET_TYPES }, allow_nil: true
 
+    before_validation :resolve_requester_account, on: :create
     before_create :set_reference
+    validate :complete_account_identity
+
+    default_scope { Escalated::TicketAccess.apply(self) }
 
     # Scopes
     scope :by_open, lambda {
@@ -253,6 +258,18 @@ module Escalated
         link.position = (ticket_subjects.maximum(:position) || -1) + 1
       end
       link.save!
+      account = TicketAccess.resolve_account(subject)
+      if account
+        TicketAccess.with_actor(nil) do
+          self.class.where(id: id, account_type: nil, account_id: nil).update_all(
+            account_type: account.class.polymorphic_name, account_id: account.id.to_s
+          )
+          stored = self.class.find(id)
+          self.account_type = stored.account_type
+          self.account_id = stored.account_id
+          association(:account).reset
+        end
+      end
       link
     end
 
@@ -275,6 +292,19 @@ module Escalated
     end
 
     private
+
+    def resolve_requester_account
+      return unless TicketAccess.accounts[:enabled]
+      return if account_type.present? || account_id.present?
+
+      self.account = TicketAccess.resolve_account(requester)
+    end
+
+    def complete_account_identity
+      return if account_type.nil? == account_id.nil?
+
+      errors.add(:account, 'requires both account_type and account_id')
+    end
 
     def set_reference
       self.reference ||= self.class.generate_reference

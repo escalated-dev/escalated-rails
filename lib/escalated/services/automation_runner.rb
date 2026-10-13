@@ -37,6 +37,13 @@ module Escalated
             scope = scope.where(status: value)
           when 'priority'
             scope = scope.where(priority: value)
+          when 'ticket_type', 'department_id', 'account_type', 'account_id'
+            scope = scope.where(field => value)
+          when 'account'
+            account = TicketAccess.normalize_identity(value)
+            return scope.none unless account
+
+            scope = scope.where(account_type: account['type'], account_id: account['id'])
           when 'assigned'
             scope = value == 'unassigned' ? scope.where(assigned_to: nil) : scope.where.not(assigned_to: nil)
           end

@@ -5,6 +5,8 @@ module Escalated
   class TicketSubject < ApplicationRecord
     self.table_name = Escalated.table_name('ticket_subjects')
 
+    default_scope { Escalated::TicketAccess.children(self) }
+
     belongs_to :ticket, class_name: 'Escalated::Ticket'
     belongs_to :subject, polymorphic: true, optional: true
 

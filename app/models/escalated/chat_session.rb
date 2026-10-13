@@ -4,6 +4,8 @@ module Escalated
   class ChatSession < ApplicationRecord
     self.table_name = Escalated.table_name('chat_sessions')
 
+    default_scope { Escalated::TicketAccess.children(self) }
+
     belongs_to :ticket, class_name: 'Escalated::Ticket'
     belongs_to :agent, class_name: Escalated.configuration.user_class, optional: true
 

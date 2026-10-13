@@ -4,6 +4,7 @@ module Escalated
   class ApplicationController < ActionController::Base
     include Pundit::Authorization
     include Escalated::Renderable
+    include Escalated::TicketAccess::Controller
 
     protect_from_forgery with: :exception
 

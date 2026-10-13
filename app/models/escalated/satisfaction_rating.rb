@@ -4,6 +4,8 @@ module Escalated
   class SatisfactionRating < ApplicationRecord
     self.table_name = Escalated.table_name('satisfaction_ratings')
 
+    default_scope { Escalated::TicketAccess.children(self) }
+
     belongs_to :ticket, class_name: 'Escalated::Ticket'
     belongs_to :rated_by, polymorphic: true, optional: true
 

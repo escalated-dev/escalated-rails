@@ -7,7 +7,7 @@ module Escalated
 
       def create
         ticket_ids = params[:ticket_ids]
-        action = params[:action]
+        action = request.request_parameters['action']
         value = params[:value]
         success_count = 0
 

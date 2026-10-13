@@ -4,12 +4,13 @@ module Escalated
   module Services
     class ChatRoutingService
       class << self
-        def find_available_agent(department_id: nil)
+        def find_available_agent(department_id: nil, ticket: nil)
           rule = routing_rule_for(department_id)
           strategy = rule&.routing_strategy || 'round_robin'
           max_concurrent = rule&.max_concurrent_per_agent || 5
 
           candidates = available_agent_ids(department_id: department_id, max_concurrent: max_concurrent)
+          candidates.select! { |id| TicketAccess.eligible_agent?(id, ticket) } if ticket
           return nil if candidates.empty?
 
           case strategy

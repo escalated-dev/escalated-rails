@@ -79,56 +79,97 @@ module Escalated
         # Determine whether this is a reply to an existing ticket or a new ticket,
         # then process accordingly.
         #
+        # A thread match alone is not enough to post on a ticket: the sender
+        # must also be the ticket's requester, and the reply is always posted
+        # as that requester, never as an identity named by the unauthenticated
+        # From header. Anything else becomes a new ticket, so no mail is lost.
+        #
         # @return [Array(Ticket, Reply|nil)] the ticket and optional reply
         def resolve_and_process(message)
-          # Try to find an existing ticket by subject reference
           ticket = find_existing_ticket(message)
 
-          if ticket
+          if ticket && requester_sender?(ticket, message)
             reply = add_reply_to_ticket(ticket, message)
             [ticket, reply]
           else
-            ticket = create_new_ticket(message)
-            [ticket, nil]
+            if ticket
+              Rails.logger.info(
+                "[Escalated::InboundEmailService] Message matched ticket #{ticket.reference} " \
+                'but not its requester; opening a new ticket'
+              )
+            end
+
+            [create_new_ticket(message), nil]
           end
         end
 
-        # Search for an existing ticket using:
-        # 1. Subject line reference tag (e.g., [ESC-2602-ABC123])
-        # 2. In-Reply-To / References headers matching previous message IDs
+        # Search for an existing ticket.
+        #
+        # With an inbound secret configured, outbound mail carries the signed
+        # Reply-To address (reply+{id}.{hmac8}@domain) and only that address
+        # links mail to a ticket: Message-IDs and subject references are
+        # guessable. Without a secret the unsigned chain is used:
+        # 1. In-Reply-To / References carrying our canonical Message-ID
+        # 2. Subject line reference tag (e.g., [ESC-2602-ABC123])
+        # 3. In-Reply-To / References matching a previous inbound email
         #
         # @return [Escalated::Ticket, nil]
         def find_existing_ticket(message)
-          # Strategy 1: Look for ticket reference in subject
+          secret = Escalated.configuration.email_inbound_secret.to_s
+          unless secret.empty?
+            ticket_id = Escalated::Mail::MessageIdUtil.verify_reply_to(message.to_email.to_s.strip, secret)
+            return ticket_id && Escalated::Ticket.find_by(id: ticket_id)
+          end
+
+          # Strategy 1: canonical Message-ID in In-Reply-To / References
+          header_message_ids(message).each do |raw|
+            ticket_id = Escalated::Mail::MessageIdUtil.parse_ticket_id_from_message_id(raw)
+            ticket = ticket_id && Escalated::Ticket.find_by(id: ticket_id)
+            return ticket if ticket
+          end
+
+          # Strategy 2: Look for ticket reference in subject
           reference = message.ticket_reference
           if reference.present?
             ticket = Escalated::Ticket.find_by(reference: reference)
             return ticket if ticket
           end
 
-          # Strategy 2: Look up by In-Reply-To matching a previous inbound email
-          if message.in_reply_to.present?
-            previous = Escalated::InboundEmail.find_by(message_id: message.in_reply_to)
+          # Strategy 3: Look up by In-Reply-To / References matching a previous inbound email
+          header_message_ids(message).each do |raw|
+            previous = Escalated::InboundEmail.find_by(message_id: raw)
             return previous.ticket if previous&.ticket
-          end
-
-          # Strategy 3: Look up by References header
-          if message.references.present?
-            message.references.reverse_each do |ref|
-              previous = Escalated::InboundEmail.find_by(message_id: ref)
-              return previous.ticket if previous&.ticket
-            end
           end
 
           nil
         end
 
-        # Add a reply to an existing ticket.
-        # Look up the user by email; if not found, treat as guest reply.
+        def header_message_ids(message)
+          ([message.in_reply_to] + Array(message.references).reverse).compact_blank
+        end
+
+        # Whether the sender is the ticket's requester: the guest email, or the
+        # requester's email, compared case-insensitively.
+        def requester_sender?(ticket, message)
+          sender = normalize_email(message.from_email)
+          return false if sender.empty?
+
+          return true if ticket.guest_email.present? && normalize_email(ticket.guest_email) == sender
+
+          requester = ticket.requester
+          requester.respond_to?(:email) && normalize_email(requester.email) == sender
+        end
+
+        def normalize_email(email)
+          email.to_s.strip.downcase
+        end
+
+        # Add a reply to an existing ticket as its requester (nil for a guest
+        # ticket), and reopen the ticket if it was resolved or closed.
         #
         # @return [Escalated::Reply]
         def add_reply_to_ticket(ticket, message)
-          author = find_user_by_email(message.from_email)
+          author = ticket.requester
           body = get_sanitized_body(message)
 
           body = "(empty reply from #{message.from_email})" if body.blank?
@@ -139,6 +180,8 @@ module Escalated
                                                   is_internal: false,
                                                   is_system: false
                                                 })
+
+          Services::TicketService.reopen(ticket, actor: author) if ticket.resolved? || ticket.closed?
 
           Rails.logger.info(
             "[Escalated::InboundEmailService] Added reply to ticket #{ticket.reference} from #{message.from_email}"

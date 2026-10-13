@@ -3,10 +3,12 @@
 module Escalated
   class WidgetController < PublicController
     include Escalated::ApiRateLimiting
+    include Escalated::GuestThrottling
 
     protect_from_forgery with: :null_session
     before_action :enforce_rate_limit!
     before_action :ensure_widget_enabled!
+    before_action :throttle_guest_tickets!, only: :create_ticket
 
     # GET /support/widget/config
     #
@@ -136,6 +138,10 @@ module Escalated
 
     def rate_limit_key
       "widget:ip:#{request.remote_ip}"
+    end
+
+    def guest_throttle_json?
+      true
     end
   end
 end

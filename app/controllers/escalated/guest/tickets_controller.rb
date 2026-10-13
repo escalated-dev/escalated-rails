@@ -4,10 +4,14 @@ module Escalated
   module Guest
     class TicketsController < Escalated::PublicController
       include Escalated::Renderable
+      include Escalated::GuestThrottling
 
       protect_from_forgery with: :exception
 
       before_action :ensure_guest_tickets_enabled
+      before_action :throttle_guest_tickets!, only: :store
+      # Before the token lookup, so requests with a wrong token count too.
+      before_action :throttle_guest_replies!, only: :reply
       before_action :set_ticket_by_token, only: %i[show reply rate]
       before_action :set_inertia_shared_data, if: -> { Escalated.configuration.ui_enabled? }
 

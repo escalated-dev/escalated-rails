@@ -106,7 +106,7 @@ module Escalated
         account = identity(resolve_account(user))
         return scope.none unless account
 
-        scope = scope.where(account_type: account['type'], account_id: account['id'])
+        scope = where_account(scope, account)
       end
       scope
     end
@@ -139,7 +139,18 @@ module Escalated
       account = normalize_identity(type: params[:account_type], id: params[:account_id])
       raise InvalidAccountFilter, 'Account filters require account_type and account_id' unless account
 
-      scope.where(account_type: account['type'], account_id: account['id'])
+      where_account(scope, account)
+    end
+
+    def where_account(scope, account)
+      scope = scope.where(account_type: account['type'], account_id: account['id'])
+      # utf8mb4_bin is case-sensitive but still ignores trailing spaces on MySQL.
+      if scope.connection.adapter_name.downcase.include?('mysql')
+        table = scope.connection.quote_table_name(scope.table_name)
+        scope = scope.where("CAST(#{table}.account_type AS BINARY) = CAST(? AS BINARY) AND " \
+                            "CAST(#{table}.account_id AS BINARY) = CAST(? AS BINARY)", account['type'], account['id'])
+      end
+      scope
     end
 
     def assignment_candidates(ticket = nil)

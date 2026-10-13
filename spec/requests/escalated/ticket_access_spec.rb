@@ -119,6 +119,20 @@ RSpec.describe 'Configurable ticket access' do
     expect(stale.account).to eq(first)
   end
 
+  %i[account_type account_id].each do |field|
+    it "preserves trailing spaces in #{field} for scopes and filters" do
+      company = FakeProject.create!(id: '001', name: 'Company')
+      allow(Escalated.configuration).to receive(:accounts).and_return(
+        enabled: true, scope_agents: true, resolver: ->(_model) { company }
+      )
+      identity = { account_type: 'FakeProject', account_id: '001' }
+      visible.update!(identity)
+      create(:escalated_ticket, department: department, **identity.merge(field => "#{identity[field]} "))
+      expect(Escalated::TicketAccess.filter_accounts(Escalated::Ticket.all, identity).pluck(:id)).to eq([visible.id])
+      Escalated::TicketAccess.with_actor(agent) { expect(Escalated::Ticket.pluck(:id)).to eq([visible.id]) }
+    end
+  end
+
   it 'selects the most specific SLA and preserves it when the department changes' do
     allow(Escalated.configuration).to receive(:sla).and_return(enabled: true, targeted: true,
                                                                business_hours_only: false)

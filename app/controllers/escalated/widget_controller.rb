@@ -4,6 +4,7 @@ module Escalated
   class WidgetController < PublicController
     include Escalated::ApiRateLimiting
     include Escalated::GuestThrottling
+    include Escalated::WidgetCors
 
     protect_from_forgery with: :null_session
     before_action :enforce_rate_limit!
@@ -21,7 +22,9 @@ module Escalated
         color: Escalated::EscalatedSetting.get('widget_color', '#4F46E5'),
         position: Escalated::EscalatedSetting.get('widget_position', 'bottom-right'),
         greeting: Escalated::EscalatedSetting.get('widget_greeting', 'How can we help you?'),
-        kb_enabled: Escalated::EscalatedSetting.get_bool('knowledge_base_enabled', default: true)
+        kb_enabled: Escalated::EscalatedSetting.get_bool('knowledge_base_enabled', default: true),
+        # Tickets and chats keep host parameters sent as `metadata`.
+        accepts_metadata: true
       }
     end
 
@@ -61,11 +64,14 @@ module Escalated
 
     # POST /support/widget/tickets
     def create_ticket
+      return render_invalid_metadata if Escalated::Support::WidgetMetadata.invalid?(params[:metadata])
+
+      host_metadata = Escalated::Support::WidgetMetadata.sanitize(params[:metadata], origin: widget_cross_origin)
       attrs = {
         subject: params[:subject],
         description: params[:description],
         priority: Escalated.configuration.default_priority,
-        metadata: { 'source' => 'widget' }
+        metadata: (host_metadata || {}).merge('source' => 'widget')
       }
 
       # Apply the admin-configured guest policy. Persisted by
@@ -134,6 +140,10 @@ module Escalated
       return if widget_enabled?
 
       render json: { error: 'Widget is disabled' }, status: :forbidden
+    end
+
+    def render_invalid_metadata
+      render json: { error: 'metadata must be an object with at most 50 keys' }, status: :unprocessable_content
     end
 
     def rate_limit_key

@@ -3,6 +3,7 @@
 module Escalated
   class WidgetChatController < PublicController
     include Escalated::ApiRateLimiting
+    include Escalated::WidgetCors
 
     protect_from_forgery with: :null_session
     before_action :enforce_rate_limit!
@@ -24,6 +25,12 @@ module Escalated
 
     # POST /widget/chat/start
     def start
+      if Escalated::Support::WidgetMetadata.invalid?(params[:metadata])
+        return render json: { error: 'metadata must be an object with at most 50 keys' },
+                      status: :unprocessable_content
+      end
+
+      host_metadata = Escalated::Support::WidgetMetadata.sanitize(params[:metadata], origin: widget_cross_origin)
       result = Services::ChatSessionService.start_chat(
         subject: params[:subject] || 'Live Chat',
         message: params[:message],
@@ -31,7 +38,8 @@ module Escalated
         email: params[:email],
         department_id: params[:department_id],
         session_id: params[:session_id],
-        metadata: { 'user_agent' => request.user_agent, 'ip' => request.remote_ip }
+        metadata: (host_metadata || {}).merge('user_agent' => request.user_agent, 'ip' => request.remote_ip),
+        session_metadata: host_metadata
       )
 
       render json: {

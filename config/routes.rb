@@ -279,6 +279,14 @@ Escalated::Engine.routes.draw do
     end
   end
 
+  # The standalone widget bundle, loaded with a <script> tag on any site.
+  if Escalated.configuration.widget_serve_script
+    get 'widget/embed.js', to: 'widget_script#show', format: false, as: :widget_script
+  end
+
+  # CORS preflights for every widget route, answered by Escalated::WidgetCors.
+  match 'widget/*path', to: 'widget#preflight', via: :options, format: false, as: :widget_preflight
+
   # Widget routes (public, no authentication required)
   scope 'widget', controller: :widget do
     get :config, action: :widget_config, as: :widget_config

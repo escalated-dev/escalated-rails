@@ -71,6 +71,10 @@ module Escalated
                   :api_rate_limit,
                   # Per-client-IP limits on the guest ticket and reply endpoints
                   :guest_rate_limit,
+                  # Sites that may embed the widget (docs/embedding-the-widget.md)
+                  :widget_allowed_origins,
+                  :widget_preflight_max_age,
+                  :widget_serve_script,
                   :api_token_expiry_days,
                   :api_prefix,
                   # Branding (used by newsletters + emails)
@@ -191,6 +195,15 @@ module Escalated
       # set config.action_dispatch.trusted_proxies, or every guest shares the
       # proxy's address.
       @guest_rate_limit = GUEST_RATE_LIMIT_DEFAULTS.dup
+
+      # Origins (scheme://host[:port], or https://*.example.com) whose pages may
+      # call the widget routes cross-origin. Combined with the
+      # widget_allowed_origins admin setting. Empty: no cross-origin access.
+      @widget_allowed_origins = ENV.fetch('ESCALATED_WIDGET_ALLOWED_ORIGINS', '').split(',').map(&:strip)
+                                   .reject(&:empty?)
+      @widget_preflight_max_age = 600
+      # Mount {route_prefix}/widget/embed.js, the standalone widget bundle.
+      @widget_serve_script = true
 
       # Branding defaults
       @app_name = 'Support'

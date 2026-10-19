@@ -159,6 +159,15 @@ module Escalated
       end
 
       def update
+        # Validated before anything is saved, so a bad entry changes nothing.
+        origins_error = widget_allowed_origins_error
+        if origins_error
+          errors = { widget_allowed_origins: origins_error }
+          return redirect_to(escalated.admin_settings_path, alert: origins_error, inertia: { errors: errors })
+        end
+
+        update_widget_settings
+
         # Boolean settings
         %w[guest_tickets_enabled allow_customer_close inbound_email_enabled show_powered_by
            knowledge_base_enabled knowledge_base_public knowledge_base_feedback_enabled].each do |key|
@@ -188,6 +197,42 @@ module Escalated
       end
 
       private
+
+      WIDGET_POSITIONS = %w[bottom-right bottom-left].freeze
+
+      # The entries in widget_allowed_origins that are not bare origins, as a
+      # message, or nil when every entry is valid (or the field was not sent).
+      def widget_allowed_origins_error
+        return nil unless params.key?(:widget_allowed_origins)
+
+        invalid = widget_origin_entries.reject { |entry| Escalated::Support::WidgetOrigins.normalize_pattern(entry) }
+        return nil if invalid.empty?
+
+        "Not a site origin (scheme://host[:port]): #{invalid.join(', ')}"
+      end
+
+      def widget_origin_entries
+        params[:widget_allowed_origins].to_s.split(/[\s,]+/).reject(&:empty?)
+      end
+
+      # The Support Widget section of the settings screen. Each key is saved only
+      # when the form sends it, so other forms posting here leave it alone.
+      def update_widget_settings
+        if params.key?(:widget_allowed_origins)
+          Escalated::EscalatedSetting.set('widget_allowed_origins', widget_origin_entries.join("\n"))
+        end
+        if params.key?(:widget_enabled)
+          enabled = params[:widget_enabled].to_s.in?(%w[1 true on])
+          Escalated::EscalatedSetting.set('widget_enabled', enabled ? '1' : '0')
+        end
+        color = params[:widget_color].to_s.strip
+        Escalated::EscalatedSetting.set('widget_color', color) if color.match?(/\A#\h{3}(\h{3})?\z/)
+        position = params[:widget_position].to_s
+        Escalated::EscalatedSetting.set('widget_position', position) if WIDGET_POSITIONS.include?(position)
+        return unless params.key?(:widget_greeting)
+
+        Escalated::EscalatedSetting.set('widget_greeting', params[:widget_greeting].to_s.strip[0, 255])
+      end
 
       def update_inbound_email_settings
         # Adapter selection (mailgun, postmark, ses, imap)

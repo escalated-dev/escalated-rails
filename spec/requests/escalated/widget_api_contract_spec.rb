@@ -134,6 +134,15 @@ RSpec.describe 'Widget API used by the shared widget', type: :request do
       expect(body['messages']).to eq([])
     end
 
+    it 'never lets the browser choose the chat token' do
+      victim = start_chat
+      body = start_chat(session_id: victim['id'])
+
+      expect(response).to have_http_status(:created)
+      expect(body['id']).not_to eq(victim['id'])
+      expect(body['id']).to match(/\A\h{32}\z/)
+    end
+
     it 'rejects an unknown department when starting a chat' do
       start_chat(department_id: 999_999)
 

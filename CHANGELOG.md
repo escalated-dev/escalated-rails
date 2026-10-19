@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.1] - 2026-10-19
+
 ### Changed
 - The bundled widget is now `@escalated-dev/escalated` 0.12.2. It hides its Check Status tab when `/config` returns `status_lookup_enabled: false`.
 
@@ -52,7 +54,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - API bearer tokens use the hashed token lookup; bulk actions read the submitted
   action instead of the Rails route action.
 
-## [Unreleased]
 
 ## [0.7.0] - 2026-10-08
 

@@ -40,7 +40,6 @@ module Escalated
         name: params[:name],
         email: params[:email],
         department_id: params[:department_id].presence,
-        session_id: params[:session_id],
         metadata: (host_metadata || {}).merge('user_agent' => request.user_agent, 'ip' => request.remote_ip),
         session_metadata: host_metadata
       )

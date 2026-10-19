@@ -301,6 +301,9 @@ Escalated::Engine.routes.draw do
     get :availability, as: :widget_chat_availability
     post :start, as: :widget_chat_start
     post ':session_id/message', action: :message, as: :widget_chat_message
+    # The shared widget's paths: list and send on `messages`.
+    get ':session_id/messages', action: :messages, as: :widget_chat_messages
+    post ':session_id/messages', action: :message
     post ':session_id/typing', action: :typing, as: :widget_chat_typing
     post ':session_id/end', action: :end_chat, as: :widget_chat_end
     post ':session_id/rate', action: :rate, as: :widget_chat_rate

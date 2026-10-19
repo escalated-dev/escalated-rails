@@ -103,6 +103,26 @@ cross-origin` and `Access-Control-Allow-Origin: *`. Set
 `config.widget_serve_script = false` to unmount the route, for example when
 you serve the bundle from a CDN. Pages then need `data-base-url`.
 
+### The routes the widget calls
+
+All paths are under `{route_prefix}/widget`.
+
+| Route | Answer the widget reads |
+|---|---|
+| `GET /config` | `color`, `position`, `greeting`, `departments` (active, `[{id, name}]`), `kb_enabled`, `guest_tickets_enabled`, `accepts_metadata`, `status_lookup_enabled: false`. 403 with `enabled: false` while the widget is off. |
+| `GET /chat/availability` | `available` |
+| `GET /articles?q=` | `{ articles: [{ id, title, slug, excerpt }] }` |
+| `GET /articles/:slug` | `title`, `slug`, `body`, `category` |
+| `POST /tickets` | 201 with `message`, `reference`, `guest_token`. Takes `name`, `email`, `subject`, `description`, optional `department_id` (an active department, else 422 with `errors.department_id`) and `metadata`. |
+| `POST /chat/start` | 201 with `id`, the random token the chat paths below use (also kept as `customer_session_id`), `session_id`, `status`, `messages`, `agent`. |
+| `GET /chat/:id/messages` | `messages: [{ id, body, is_agent, author: { name }, created_at }]` (no internal notes), `agent`, `typing` (the agent's name for 5 seconds after they type), `ended` |
+| `POST /chat/:id/messages` | Sends `{ body }`. `POST /chat/:id/message` still works. |
+| `POST /chat/:id/typing`, `/end`, `/rate` | `rate` takes `{ rating: 1-5, comment }`. |
+
+An unknown chat token answers 404. Guests have no mailbox verification here,
+so `/config` sends `status_lookup_enabled: false` and the widget hides its
+status tab. `GET /tickets/:token` still looks a ticket up by its guest token.
+
 ## Configuration
 
 ```ruby

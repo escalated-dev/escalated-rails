@@ -7,6 +7,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Fixed
+- The widget API now matches the shared widget. `/widget/config` lists the
+  active `departments` and sends `guest_tickets_enabled` and
+  `status_lookup_enabled: false`, and answers 403 with `enabled: false` while
+  the widget is off. `/widget/articles` returns `{ articles: [...] }` instead of
+  a bare array. Widget tickets and chats file into the chosen `department_id`
+  (unknown or inactive departments get a 422 with `errors.department_id`).
+  `/widget/chat/start` returns `id`, the chat's random customer token, and the
+  chat adds `GET`/`POST /widget/chat/:id/messages`; the older
+  `/widget/chat/:id/message` route still works.
 - Preserve trailing spaces in account visibility and list filters on MySQL and MariaDB.
 
 ### Added

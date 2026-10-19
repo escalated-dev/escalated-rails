@@ -5,6 +5,7 @@ module Escalated
     include Escalated::ApiRateLimiting
     include Escalated::GuestThrottling
     include Escalated::WidgetCors
+    include Escalated::WidgetDepartments
 
     protect_from_forgery with: :null_session
     before_action :enforce_rate_limit!
@@ -22,9 +23,14 @@ module Escalated
         color: Escalated::EscalatedSetting.get('widget_color', '#4F46E5'),
         position: Escalated::EscalatedSetting.get('widget_position', 'bottom-right'),
         greeting: Escalated::EscalatedSetting.get('widget_greeting', 'How can we help you?'),
+        departments: Escalated::Department.active.ordered.map { |d| { id: d.id, name: d.name } },
         kb_enabled: Escalated::EscalatedSetting.get_bool('knowledge_base_enabled', default: true),
+        guest_tickets_enabled: Escalated::EscalatedSetting.guest_tickets_enabled?,
         # Tickets and chats keep host parameters sent as `metadata`.
-        accepts_metadata: true
+        accepts_metadata: true,
+        # There is no mailbox verification for guests, so the widget hides its
+        # status tab; `guest_verification_required` is left out on purpose.
+        status_lookup_enabled: false
       }
     end
 
@@ -36,13 +42,15 @@ module Escalated
 
       articles = scope.limit(10)
 
-      render json: articles.map { |a|
-        {
-          id: a.id,
-          title: a.title,
-          slug: a.slug,
-          excerpt: a.body&.truncate(200)
-        }
+      render json: {
+        articles: articles.map do |a|
+          {
+            id: a.id,
+            title: a.title,
+            slug: a.slug,
+            excerpt: a.body&.truncate(200)
+          }
+        end
       }
     end
 
@@ -65,12 +73,14 @@ module Escalated
     # POST /support/widget/tickets
     def create_ticket
       return render_invalid_metadata if Escalated::Support::WidgetMetadata.invalid?(params[:metadata])
+      return render_unknown_department unless widget_department_valid?(params[:department_id])
 
       host_metadata = Escalated::Support::WidgetMetadata.sanitize(params[:metadata], origin: widget_cross_origin)
       attrs = {
         subject: params[:subject],
         description: params[:description],
         priority: Escalated.configuration.default_priority,
+        department_id: params[:department_id].presence,
         metadata: (host_metadata || {}).merge('source' => 'widget')
       }
 
@@ -102,11 +112,16 @@ module Escalated
       ticket = Escalated::Services::TicketService.create(attrs)
 
       render json: {
+        message: 'Ticket created.',
         reference: ticket.reference,
         guest_token: ticket.guest_token
       }, status: :created
     rescue ActiveRecord::RecordInvalid => e
-      render json: { error: e.record.errors.full_messages.join(', ') }, status: :unprocessable_content
+      render json: {
+        error: e.record.errors.full_messages.join(', '),
+        message: e.record.errors.full_messages.join(', '),
+        errors: e.record.errors.to_hash(true)
+      }, status: :unprocessable_content
     end
 
     # GET /support/widget/tickets/:token
@@ -139,7 +154,7 @@ module Escalated
     def ensure_widget_enabled!
       return if widget_enabled?
 
-      render json: { error: 'Widget is disabled' }, status: :forbidden
+      render json: { enabled: false, error: 'Widget is disabled', message: 'Widget is disabled' }, status: :forbidden
     end
 
     def render_invalid_metadata

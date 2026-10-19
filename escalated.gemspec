@@ -11,8 +11,8 @@ Gem::Specification.new do |spec|
   spec.license       = 'MIT'
   spec.required_ruby_version = '>= 3.2'
 
-  spec.files = Dir['lib/**/*', 'app/**/*', 'config/**/*', 'db/**/*', 'resources/**/*', 'stubs/**/*', 'LICENSE',
-                   'README.md']
+  spec.files = Dir['lib/**/*', 'app/**/*', 'config/**/*', 'db/**/*', 'resources/**/*', 'stubs/**/*',
+                   'vendor/widget/**/*', 'LICENSE', 'README.md']
 
   spec.add_dependency 'csv'
   spec.add_dependency 'escalated-locale', '~> 0.1'

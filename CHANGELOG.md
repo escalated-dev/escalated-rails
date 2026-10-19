@@ -11,6 +11,22 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 
+- Embed the widget, ticket form and live chat on other sites. List the
+  embedding sites in `config.widget_allowed_origins`
+  (`ESCALATED_WIDGET_ALLOWED_ORIGINS`) or the `widget_allowed_origins` admin
+  setting; `https://*.example.com` subdomain wildcards are supported. Widget
+  requests from a listed origin get CORS headers (including on 403, 404, 422
+  and 429 answers) and always run as a guest. Requests from any other origin
+  are handled exactly as before. Empty by default. See
+  `docs/embedding-the-widget.md`.
+- `GET {route_prefix}/widget/embed.js` serves the standalone widget bundle
+  built from `@escalated-dev/escalated` 0.12.1; `config.widget_serve_script`
+  turns the route off.
+- Widget tickets and live chats keep host parameters sent as `metadata`,
+  sanitised to a flat map of short scalar values, plus a server-recorded
+  `embedded_on` origin. `/widget/config` advertises `accepts_metadata: true`.
+- The admin settings screen saves the widget switch, colour, position and
+  greeting it already showed; they were dropped before.
 - Opt-in department/account ticket access across queries, policies, API, bulk
   actions, reports, widgets, notifications and chat subscriptions.
 - Nullable account identities and host resolvers; type/account routing conditions.

@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Security
+- The widget and widget chat skip CSRF only for requests from an allowed embedding site (`widget_allowed_origins`). A tokenless POST from any other origin, or from the same origin, is now refused, as with Laravel's `WidgetCsrf`.
+- The widget's article endpoints honour the knowledge-base switches: 404 while the knowledge base is off, 403 to a guest while it is not public. `/widget/config` reports `kb_enabled` the same way.
+
+### Fixed
+- Widget tickets keep the visitor's name, email, contact and a guest token. `LocalDriver#create_ticket` dropped those fields, so every widget ticket was saved anonymous and the widget got `guest_token: null`. The `guest_user` policy mode is applied too.
+- Guest-portal and live-chat tickets go through `TicketService`, so they get an SLA and emit `ticket_created` (workflows, webhooks, notifications, broadcast).
+- Ticket screens get the props the pages read: `ticket.replies` (and `ticket.activities`) on Customer, Agent and Admin ticket show, `tickets.data` on every ticket list, `cannedResponses`, `assigned_to`, and the SLA due dates under the names the sidebar reads.
+- Customer routes: `GET /customer/tickets` rendered the create form instead of the list, and `POST /customer/tickets` rendered the form instead of saving. The form is at `/customer/tickets/create` (and `/new`), and customer tickets are found by reference.
+- Widget chat checks `widget_enabled` and a new `chat_enabled` setting (on by default), applies the guest submission and reply throttles, and answers 422 JSON for an empty message or an ended chat.
+- `TicketService.unassign` emits `ticket_unassigned`. Webhooks now send `ticket.unassigned`, `ticket.updated`, `ticket.department_changed`, `ticket.tag_added`, `ticket.tag_removed` and `sla.warning`.
+- UUID and string user keys: migration 064 moves `department_agents.agent_id` and `chat_sessions.agent_id` to `Escalated.user_id_type` (no-op on bigint hosts), and the `add_follower` workflow action no longer casts the user id to an integer.
+
 ## [0.7.1] - 2026-10-19
 
 ### Changed

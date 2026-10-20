@@ -7,9 +7,16 @@ module Escalated
     include Escalated::WidgetCors
     include Escalated::WidgetDepartments
 
-    protect_from_forgery with: :null_session
+    # CSRF is skipped only for a request WidgetCors accepted from an allowed
+    # embedding site: it runs as a guest with no session to protect. Every
+    # other POST (same-origin, or from any other site) needs a valid token, as
+    # with Laravel's WidgetCsrf. WidgetCors is prepended, so the origin is
+    # known before verification runs.
+    protect_from_forgery with: :exception
+    skip_forgery_protection if: -> { widget_cross_origin.present? }
     before_action :enforce_rate_limit!
     before_action :ensure_widget_enabled!
+    before_action :ensure_knowledge_base_available!, only: %i[articles article]
     before_action :throttle_guest_tickets!, only: :create_ticket
 
     # GET /support/widget/config
@@ -24,7 +31,7 @@ module Escalated
         position: Escalated::EscalatedSetting.get('widget_position', 'bottom-right'),
         greeting: Escalated::EscalatedSetting.get('widget_greeting', 'How can we help you?'),
         departments: Escalated::Department.active.ordered.map { |d| { id: d.id, name: d.name } },
-        kb_enabled: Escalated::EscalatedSetting.get_bool('knowledge_base_enabled', default: true),
+        kb_enabled: knowledge_base_available?,
         guest_tickets_enabled: Escalated::EscalatedSetting.guest_tickets_enabled?,
         # Tickets and chats keep host parameters sent as `metadata`.
         accepts_metadata: true,
@@ -108,8 +115,10 @@ module Escalated
       end
       attrs[:guest_name] = params[:name]
       attrs[:guest_email] = params[:email]
+      # The widget's status lookup and the guest portal find the ticket by it.
+      attrs[:guest_token] = SecureRandom.hex(32)
 
-      ticket = Escalated::Services::TicketService.create(attrs)
+      ticket = Escalated::Services::TicketService.create_local(attrs)
 
       render json: {
         message: 'Ticket created.',
@@ -155,6 +164,23 @@ module Escalated
       return if widget_enabled?
 
       render json: { enabled: false, error: 'Widget is disabled', message: 'Widget is disabled' }, status: :forbidden
+    end
+
+    # A widget visitor is always a guest (WidgetCors drops the host user for
+    # cross-origin requests), so a private knowledge base is only offered to
+    # a signed-in, same-origin visitor.
+    def knowledge_base_available?
+      Escalated::EscalatedSetting.knowledge_base_enabled? &&
+        (Escalated::EscalatedSetting.knowledge_base_public? || escalated_current_user.present?)
+    end
+
+    def ensure_knowledge_base_available!
+      unless Escalated::EscalatedSetting.knowledge_base_enabled?
+        return render json: { error: 'Not found', message: 'Not found' }, status: :not_found
+      end
+      return if Escalated::EscalatedSetting.knowledge_base_public? || escalated_current_user.present?
+
+      render json: { error: 'Forbidden', message: 'Forbidden' }, status: :forbidden
     end
 
     def render_invalid_metadata

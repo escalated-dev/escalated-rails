@@ -94,7 +94,9 @@ module Escalated
           attrs[:requester] = nil
         end
 
-        ticket = Escalated::Ticket.create!(attrs)
+        # Through TicketService so the ticket gets its SLA and the
+        # ticket_created event (workflows, webhooks, notifications) fires.
+        ticket = Services::TicketService.create_local(attrs)
 
         if guest_ticket_params[:attachments].present?
           Services::AttachmentService.attach(ticket, guest_ticket_params[:attachments])

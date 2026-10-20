@@ -154,14 +154,16 @@ RSpec.describe 'Widget embedding on other sites', type: :request do
       expect(Escalated::Ticket.where(subject: 'Where is my order?')).to exist
     end
 
-    # The widget endpoints used :null_session before embedding existed, so a
-    # tokenless POST was never refused. That is unchanged for everyone else.
+    # Only an allowed embedding site skips CSRF (Laravel's WidgetCsrf). A
+    # tokenless POST from anywhere else used to be accepted under
+    # :null_session; it is refused now, and gets no CORS grant.
     ['https://evil.example.net', 'http://www.example.com', nil].each do |origin|
-      it "handles a POST from #{origin.inspect} exactly as before, with no CORS grant" do
+      it "refuses a tokenless POST from #{origin.inspect}, with no CORS grant" do
         post_json('/support/widget/tickets', ticket_params, origin: origin)
 
-        expect(response).to have_http_status(:created)
+        expect(response).to have_http_status(:unprocessable_content)
         expect(response.headers).not_to have_key('Access-Control-Allow-Origin')
+        expect(Escalated::Ticket.where(subject: 'Where is my order?')).not_to exist
       end
     end
   end
@@ -175,7 +177,7 @@ RSpec.describe 'Widget embedding on other sites', type: :request do
     before do
       signed_in = agent
       Escalated::ApplicationController.define_method(:current_user) { signed_in }
-      allow(Escalated::Services::TicketService).to receive(:create).and_wrap_original do |original, *args|
+      allow(Escalated::Services::TicketService).to receive(:create_local).and_wrap_original do |original, *args|
         seen << Escalated::TicketAccess.current_actor
         original.call(*args)
       end

@@ -8,15 +8,32 @@ module Escalated
           params = resolve_contact_params(params)
           fire_hook('ticket_before_create', params)
           ticket = driver.create_ticket(params)
+          announce_created(ticket)
+          ticket
+        end
 
+        # Guest portal, widget and live-chat tickets. These need a real local
+        # row (the guest token and the chat session point at it), so they are
+        # written by the local driver even when the cloud driver is selected.
+        # With `announce: false` the caller fires `announce_created` itself,
+        # after its own transaction commits.
+        def create_local(params, announce: true)
+          params = resolve_contact_params(params)
+          fire_hook('ticket_before_create', params)
+          ticket = local_driver.create_ticket(params)
+          announce_created(ticket) if announce
+          ticket
+        end
+
+        # The new-ticket mail, the `ticket_created` event (workflows, webhooks,
+        # follower notifications) and the broadcast.
+        def announce_created(ticket)
           if Escalated.configuration.notification_channels.include?(:email)
             Escalated::TicketMailer.new_ticket(ticket).deliver_later
           end
 
           Services::NotificationService.dispatch(:ticket_created, ticket: ticket)
           Escalated::Broadcasting.ticket_created(ticket)
-
-          ticket
         end
 
         def update(ticket, params, actor:)
@@ -59,7 +76,16 @@ module Escalated
         end
 
         def unassign(ticket, actor:)
-          driver.unassign_ticket(ticket, actor: actor)
+          previous_agent_id = ticket.assigned_to
+          result = driver.unassign_ticket(ticket, actor: actor)
+
+          if previous_agent_id.present?
+            Services::NotificationService.dispatch(:ticket_unassigned, ticket: result,
+                                                                       previous_agent_id: previous_agent_id.to_s,
+                                                                       actor: actor)
+          end
+
+          result
         end
 
         def reply(ticket, params)
@@ -84,11 +110,17 @@ module Escalated
         end
 
         def add_tags(ticket, tag_ids, actor:)
-          driver.add_tags(ticket, tag_ids, actor: actor)
+          before = ticket.tag_ids
+          result = driver.add_tags(ticket, tag_ids, actor: actor)
+          dispatch_tag_events(:tag_added, result, Escalated::Tag.where(id: Array(tag_ids)).where.not(id: before), actor)
+          result
         end
 
         def remove_tags(ticket, tag_ids, actor:)
-          driver.remove_tags(ticket, tag_ids, actor: actor)
+          removed = Escalated::Tag.where(id: Array(tag_ids) & ticket.tag_ids).to_a
+          result = driver.remove_tags(ticket, tag_ids, actor: actor)
+          dispatch_tag_events(:tag_removed, result, removed, actor)
+          result
         end
 
         def change_department(ticket, department, actor:)
@@ -202,6 +234,18 @@ module Escalated
 
         def driver
           Escalated.driver
+        end
+
+        def dispatch_tag_events(event, ticket, tags, actor)
+          tags.each do |tag|
+            Services::NotificationService.dispatch(event, ticket: ticket, tag_id: tag.id, tag_name: tag.name,
+                                                          actor: actor)
+          end
+        end
+
+        def local_driver
+          current = driver
+          current.is_a?(Escalated::Drivers::LocalDriver) ? current : Escalated::Drivers::LocalDriver.new
         end
 
         # A plugin hook that raises is logged; it does not stop the ticket.

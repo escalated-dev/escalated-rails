@@ -175,6 +175,12 @@ module Escalated
           Escalated::EscalatedSetting.set(key, value)
         end
 
+        # Only written when the form sends it, so an older settings form that
+        # has no Live Chat switch does not turn chat off.
+        if params.key?(:chat_enabled)
+          Escalated::EscalatedSetting.set('chat_enabled', params[:chat_enabled].in?(%w[1 true on]) ? '1' : '0')
+        end
+
         # Integer settings
         %w[auto_close_resolved_after_days max_attachments_per_reply max_attachment_size_kb].each do |key|
           raw = params[key]

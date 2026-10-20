@@ -183,7 +183,8 @@ module Escalated
         end
         return 'delayed'
       when 'add_follower'
-        ticket.follow(value.to_i)
+        # Passed through as-is: `to_i` turned a UUID or string user key into 0.
+        ticket.follow(value)
       when 'send_notification'
         # Placeholder for notification integration
         Rails.logger.info("Escalated workflow notification: #{interpolate_variables(value.to_s, ticket)}")

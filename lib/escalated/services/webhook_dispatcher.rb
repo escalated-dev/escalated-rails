@@ -13,10 +13,16 @@ module Escalated
       # reply_added and status_changed depend on the payload; see .events_for.
       EVENTS = {
         ticket_created: 'ticket.created',
+        ticket_updated: 'ticket.updated',
         ticket_assigned: 'ticket.assigned',
+        ticket_unassigned: 'ticket.unassigned',
         priority_changed: 'ticket.priority_changed',
+        department_changed: 'ticket.department_changed',
         ticket_escalated: 'ticket.escalated',
-        sla_breached: 'sla.breached'
+        tag_added: 'ticket.tag_added',
+        tag_removed: 'ticket.tag_removed',
+        sla_breached: 'sla.breached',
+        sla_warning: 'sla.warning'
       }.freeze
 
       STATUS_EVENTS = {
@@ -26,9 +32,10 @@ module Escalated
       # What an admin can subscribe a webhook to: exactly what .events_for
       # produces, so the form never offers an event that is not sent.
       AVAILABLE_EVENTS = %w[
-        ticket.created ticket.status_changed ticket.resolved ticket.closed ticket.reopened
-        ticket.assigned ticket.priority_changed ticket.escalated
-        reply.created internal_note.added sla.breached
+        ticket.created ticket.updated ticket.status_changed ticket.resolved ticket.closed ticket.reopened
+        ticket.assigned ticket.unassigned ticket.priority_changed ticket.department_changed ticket.escalated
+        ticket.tag_added ticket.tag_removed
+        reply.created internal_note.added sla.breached sla.warning
       ].freeze
 
       def self.events_for(event, payload)

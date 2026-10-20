@@ -6,6 +6,11 @@ module Escalated
       ALLOWED_SORT_COLUMNS = %w[created_at updated_at status priority subject reference assigned_to department_id
                                 resolved_at closed_at].freeze
 
+      # Guest, widget and chat tickets carry the submitter's identity on the
+      # ticket itself. These used to be dropped here, so every widget ticket
+      # was saved with no name, email, contact or token.
+      OPTIONAL_CREATE_FIELDS = %i[guest_name guest_email guest_token contact_id channel].freeze
+
       def create_ticket(params)
         ticket = Escalated::Ticket.new(
           subject: params[:subject],
@@ -19,6 +24,7 @@ module Escalated
           reference: Escalated::Ticket.generate_reference,
           metadata: params[:metadata] || {}
         )
+        assign_optional_create_fields(ticket, params)
 
         ActiveRecord::Base.transaction do
           ticket.save!
@@ -239,6 +245,19 @@ module Escalated
       end
 
       private
+
+      def assign_optional_create_fields(ticket, params)
+        OPTIONAL_CREATE_FIELDS.each do |field|
+          value = params[field]
+          ticket.public_send(:"#{field}=", value) if value.present?
+        end
+
+        # guest_user policy mode routes the ticket to a host user by type + id.
+        return unless params[:requester].nil? && params[:requester_type].present? && params[:requester_id].present?
+
+        ticket.requester_type = params[:requester_type]
+        ticket.requester_id = params[:requester_id]
+      end
 
       def log_activity(ticket, actor, action, details = {})
         ticket.activities.create!(

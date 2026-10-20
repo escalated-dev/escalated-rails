@@ -28,7 +28,11 @@ Escalated::Engine.routes.draw do
 
   # Customer-facing routes
   namespace :customer do
-    resources :tickets, only: %i[index create show] do
+    # The controller's `create` renders the form and `store` saves it (the
+    # Laravel names). `resources ... only: :create` sent POST /tickets to the
+    # form action, and `get :new, action: :create` was drawn at /tickets
+    # itself, ahead of index: the list was unreachable and nothing was saved.
+    resources :tickets, only: %i[index show] do
       member do
         post :reply
         post :close
@@ -36,7 +40,9 @@ Escalated::Engine.routes.draw do
         post :rate, to: 'satisfaction_ratings#create'
       end
       collection do
-        get :new, action: :create, as: :new
+        get 'new', action: :create, as: :new
+        get 'create', action: :create
+        post '/', action: :store, as: :store
       end
     end
   end

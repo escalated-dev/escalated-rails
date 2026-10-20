@@ -53,9 +53,9 @@ RSpec.describe 'Configurable ticket access' do
   it 'scopes HTTP list, search, and direct detail access' do
     sign_in_as(agent)
     get '/support/agent/tickets'
-    expect(page_props['tickets'].pluck('id')).to eq([visible.id])
+    expect(page_props['tickets']['data'].pluck('id')).to eq([visible.id])
     get '/support/agent/tickets', params: { search: hidden.reference }
-    expect(page_props['tickets']).to be_empty
+    expect(page_props['tickets']['data']).to be_empty
     get "/support/agent/tickets/#{hidden.id}"
     expect(response).to have_http_status(:not_found)
   end

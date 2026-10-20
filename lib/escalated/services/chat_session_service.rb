@@ -9,17 +9,19 @@ module Escalated
           session = nil
 
           ActiveRecord::Base.transaction do
-            ticket = Escalated::Ticket.create!(
-              subject: params[:subject] || 'Live Chat',
-              description: params[:message] || 'Chat started',
-              channel: 'chat',
-              status: :open,
-              priority: params[:priority] || Escalated.configuration.default_priority,
-              guest_name: params[:name],
-              guest_email: params[:email],
-              department_id: params[:department_id],
-              metadata: (params[:metadata] || {}).merge('source' => 'chat')
-            )
+            # TicketService rather than Ticket.create! so the chat ticket gets
+            # its SLA and contact; ticket_created is announced after commit.
+            ticket = TicketService.create_local({
+                                                  subject: params[:subject] || 'Live Chat',
+                                                  description: params[:message] || 'Chat started',
+                                                  channel: 'chat',
+                                                  priority: params[:priority] ||
+                                                            Escalated.configuration.default_priority,
+                                                  guest_name: params[:name],
+                                                  guest_email: params[:email],
+                                                  department_id: params[:department_id],
+                                                  metadata: (params[:metadata] || {}).merge('source' => 'chat')
+                                                }, announce: false)
 
             session = Escalated::ChatSession.create!(
               ticket: ticket,
@@ -28,6 +30,8 @@ module Escalated
               metadata: params[:session_metadata]
             )
           end
+
+          TicketService.announce_created(ticket)
 
           # Try to auto-assign an agent
           agent_id = ChatRoutingService.find_available_agent(department_id: params[:department_id], ticket: ticket)

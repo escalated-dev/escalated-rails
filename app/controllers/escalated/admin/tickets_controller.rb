@@ -32,7 +32,8 @@ module Escalated
         result = paginate(scope)
 
         render_page 'Escalated/Admin/Tickets/Index', {
-          tickets: result[:data].includes(:requester, :department, :assignee, :tags).map { |t| ticket_list_json(t) },
+          tickets: paginated_page(result, result[:data].includes(:requester, :department, :assignee, :tags)
+                                                     .map { |t| ticket_list_json(t) }),
           meta: result[:meta],
           filters: {
             status: params[:status],
@@ -60,13 +61,14 @@ module Escalated
         @ticket.ticket_subjects.load
 
         render_page 'Escalated/Admin/Tickets/Show', {
-          ticket: ticket_detail_json(@ticket),
-          replies: replies.map { |r| reply_json(r) },
-          activities: activities.map { |a| activity_json(a) },
+          ticket: ticket_detail_json(@ticket).merge(
+            replies: replies.map { |r| reply_json(r) },
+            activities: activities.map { |a| activity_json(a) }
+          ),
           departments: Escalated::Department.active.ordered.map { |d| { id: d.id, name: d.name } },
           agents: agent_list,
           tags: Escalated::Tag.ordered.map { |t| { id: t.id, name: t.name, color: t.color } },
-          canned_responses: Escalated::CannedResponse.for_user(escalated_current_user.id).ordered.map do |c|
+          cannedResponses: Escalated::CannedResponse.for_user(escalated_current_user.id).ordered.map do |c|
             { id: c.id, title: c.title, body: c.body, shortcode: c.shortcode }
           end,
           macros: Escalated::Macro.for_agent(escalated_current_user.id).ordered.map do |m|
@@ -283,6 +285,7 @@ module Escalated
                         name: ticket.assignee.respond_to?(:name) ? ticket.assignee.name : ticket.assignee.email
                       }
                     end,
+          assigned_to: ticket.assigned_to,
           department: ticket.department ? { id: ticket.department.id, name: ticket.department.name } : nil,
           tags: ticket.tags.map { |t| { id: t.id, name: t.name, color: t.color } },
           sla_breached: ticket.sla_breached,
@@ -302,6 +305,7 @@ module Escalated
           sla_policy: ticket.sla_policy ? { id: ticket.sla_policy.id, name: ticket.sla_policy.name } : nil,
           sla_first_response_due_at: ticket.sla_first_response_due_at&.iso8601,
           sla_resolution_due_at: ticket.sla_resolution_due_at&.iso8601,
+          **ticket_sidebar_sla_json(ticket),
           first_response_at: ticket.first_response_at&.iso8601,
           resolved_at: ticket.resolved_at&.iso8601,
           closed_at: ticket.closed_at&.iso8601,

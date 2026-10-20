@@ -46,6 +46,12 @@ module Escalated
       get_bool('knowledge_base_public', default: true)
     end
 
+    # Live chat in the widget. On by default so hosts that already use chat
+    # keep it after upgrading; admins switch it off with `chat_enabled`.
+    def self.chat_enabled?
+      get_bool('chat_enabled', default: true)
+    end
+
     def self.knowledge_base_feedback_enabled?
       get_bool('knowledge_base_feedback_enabled', default: true)
     end

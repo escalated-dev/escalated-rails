@@ -67,6 +67,8 @@ RSpec.describe 'Public endpoints on a host with a login filter', type: :request 
     end
 
     it 'serves widget chat availability' do
+      Escalated::EscalatedSetting.set('widget_enabled', 'true')
+
       get '/support/widget/chat/availability'
 
       expect(response).to have_http_status(:ok)

@@ -3,15 +3,26 @@
 module Escalated
   class WidgetChatController < PublicController
     include Escalated::ApiRateLimiting
+    include Escalated::GuestThrottling
     include Escalated::WidgetCors
     include Escalated::WidgetDepartments
 
-    protect_from_forgery with: :null_session
+    # See WidgetController: CSRF is skipped only for allowed embedding sites.
+    protect_from_forgery with: :exception
+    skip_forgery_protection if: -> { widget_cross_origin.present? }
     before_action :enforce_rate_limit!
+    before_action :ensure_widget_enabled!
+    before_action :ensure_chat_enabled!, only: :start
+    # The same per-IP buckets as guest tickets and replies (Laravel's
+    # escalated-guest-submissions / -replies throttles).
+    before_action :throttle_guest_tickets!, only: :start
+    before_action :throttle_guest_replies!, only: %i[message rate]
     before_action :set_session, only: %i[message messages typing end_chat rate]
 
     # GET /widget/chat/availability
     def availability
+      return render json: { available: false, reason: 'Chat is disabled.' } unless chat_enabled?
+
       department_id = params[:department_id]
       routing = Services::ChatRoutingService.evaluate_routing(department_id: department_id)
 
@@ -63,6 +74,16 @@ module Escalated
 
     # POST /widget/chat/:session_id/message
     def message
+      if @session.ended?
+        return render json: { error: 'This chat has ended.', message: 'This chat has ended.' },
+                      status: :unprocessable_content
+      end
+
+      if params[:body].to_s.strip.blank?
+        return render json: { error: 'Message is required.', message: 'Message is required.',
+                              errors: { body: ['Message is required.'] } }, status: :unprocessable_content
+      end
+
       reply = Services::ChatSessionService.send_message(
         @session,
         body: params[:body],
@@ -136,6 +157,30 @@ module Escalated
       @session = Escalated::ChatSession.find_by!(customer_session_id: params[:session_id])
     rescue ActiveRecord::RecordNotFound
       render json: { error: 'Chat session not found' }, status: :not_found
+    end
+
+    def widget_enabled?
+      Escalated::EscalatedSetting.get_bool('widget_enabled', default: false)
+    end
+
+    def chat_enabled?
+      Escalated::EscalatedSetting.chat_enabled?
+    end
+
+    def ensure_widget_enabled!
+      return if widget_enabled?
+
+      render json: { error: 'Widget is disabled', message: 'Widget is disabled' }, status: :forbidden
+    end
+
+    def ensure_chat_enabled!
+      return if chat_enabled?
+
+      render json: { error: 'Chat is disabled.', message: 'Chat is disabled.' }, status: :forbidden
+    end
+
+    def guest_throttle_json?
+      true
     end
 
     def chat_agent(chat)

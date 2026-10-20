@@ -126,6 +126,17 @@ module Escalated
       )
     end
 
+    # The SLA fields under the names TicketSidebar reads (the ticket columns
+    # carry an `sla_` prefix the sidebar does not use).
+    def ticket_sidebar_sla_json(ticket)
+      {
+        first_response_due_at: ticket.sla_first_response_due_at&.iso8601,
+        resolution_due_at: ticket.sla_resolution_due_at&.iso8601,
+        sla_first_response_breached: ticket.sla_first_response_breached?,
+        sla_resolution_breached: ticket.sla_resolution_breached?
+      }
+    end
+
     def paginate(scope, per_page: 25)
       page = (params[:page] || 1).to_i
       per = (params[:per_page] || per_page).to_i

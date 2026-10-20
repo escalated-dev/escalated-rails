@@ -16,7 +16,8 @@ module Escalated
         result = paginate(scope)
 
         render_page 'Escalated/Customer/Index', {
-          tickets: result[:data].map { |t| ticket_json(t) },
+          # TicketList reads `tickets.data`; a bare array rendered "No tickets found".
+          tickets: paginated_page(result, result[:data].map { |t| ticket_json(t) }),
           meta: result[:meta],
           filters: {
             status: params[:status],
@@ -33,11 +34,11 @@ module Escalated
                          .chronological
                          .includes(:author, :attachments)
 
-        ticket_data = ticket_detail_json(@ticket)
+        # Customer/Show reads the thread from `ticket.replies`.
+        ticket_data = ticket_detail_json(@ticket).merge(replies: replies.map { |r| reply_json(r) })
 
         render_page 'Escalated/Customer/Show', {
           ticket: ticket_data,
-          replies: replies.map { |r| reply_json(r) },
           can_close: Escalated.configuration.allow_customer_close && @ticket.open?,
           can_reopen: %w[resolved closed].include?(@ticket.status)
         }
@@ -69,7 +70,7 @@ module Escalated
       rescue Services::AttachmentService::TooManyAttachmentsError,
              Services::AttachmentService::FileTooLargeError,
              Services::AttachmentService::InvalidFileTypeError => e
-        redirect_back_or_to(new_customer_ticket_path, alert: e.message)
+        redirect_back_or_to(new_customer_tickets_path, alert: e.message)
       end
 
       def reply
@@ -111,7 +112,10 @@ module Escalated
 
       private
 
+      # Customer/Show and TicketList link by reference; the id still works.
       def set_ticket
+        @ticket = Escalated::Ticket.find_by!(reference: params[:id])
+      rescue ActiveRecord::RecordNotFound
         @ticket = Escalated::Ticket.find(params[:id])
       end
 

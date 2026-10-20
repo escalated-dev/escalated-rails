@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- The bundled widget is now `@escalated-dev/escalated` 0.12.3. It keeps its script settings when `embed.js` is placed in the page `<head>`, and Enter no longer picks a stale mention suggestion.
+
 ### Security
 - The widget and widget chat skip CSRF only for requests from an allowed embedding site (`widget_allowed_origins`). A tokenless POST from any other origin, or from the same origin, is now refused, as with Laravel's `WidgetCsrf`.
 - The widget's article endpoints honour the knowledge-base switches: 404 while the knowledge base is off, 403 to a guest while it is not public. `/widget/config` reports `kb_enabled` the same way.

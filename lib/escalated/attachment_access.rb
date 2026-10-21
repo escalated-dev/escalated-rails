@@ -113,15 +113,20 @@ module Escalated
       ActiveSupport::SecurityUtils.secure_compare(current, secret)
     end
 
-    # A digest of the ticket's guest credential, so the link carries no
-    # credential and goes dead when the credential changes.
+    # A digest of the ticket's guest credential -- its active grant, or a
+    # legacy guest_token while those are accepted -- so the link carries no
+    # credential and goes dead when the grant is rotated, revoked or expires.
     def guest_secret(ticket)
-      token = ticket.guest_token
-      token.present? ? Digest::SHA256.hexdigest("escalated-attachment:#{token}") : nil
+      credential = if Escalated::GuestAccess.active?(ticket)
+                     ticket.guest_access_hash
+                   elsif Escalated.configuration.accept_legacy_guest_tokens
+                     ticket.guest_token
+                   end
+      credential.present? ? Digest::SHA256.hexdigest("escalated-attachment:#{credential}") : nil
     end
 
-    def guest_expires_at(_ticket)
-      nil
+    def guest_expires_at(ticket)
+      ticket.guest_access_expires_at if Escalated::GuestAccess.active?(ticket)
     end
 
     def staff?(user)

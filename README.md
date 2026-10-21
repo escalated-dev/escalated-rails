@@ -664,3 +664,5 @@ See [ticket access and routing](docs/ticket-access-and-routing.md) for opt-in
 department/account visibility and targeted SLA configuration.
 
 See [private attachments](docs/private-attachments.md) for how attachment downloads are signed and checked.
+
+See [verified guest access](docs/guest-access.md) for the email codes and expiring guest links.

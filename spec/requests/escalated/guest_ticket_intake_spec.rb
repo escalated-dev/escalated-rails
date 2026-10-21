@@ -36,15 +36,15 @@ RSpec.describe 'Guest ticket intake', type: :request do
       { name: 'Jane Doe', email: 'jane@example.com', subject: 'Order missing', description: 'It never came.' }
     end
 
-    it 'keeps the guest name, email, contact and a token on the ticket' do
-      post_json('/support/widget/tickets', payload)
+    it 'keeps the guest name, email, contact and an expiring grant on the ticket' do
+      post_json('/support/widget/tickets', payload.merge(guest_proof('jane@example.com')))
 
       expect(response).to have_http_status(:created)
-      token = response.parsed_body['guest_token']
-      expect(token).to match(/\A\h{64}\z/)
+      grant = response.parsed_body['guest_access_token']
 
       ticket = Escalated::Ticket.find_by!(reference: response.parsed_body['reference'])
-      expect(ticket).to have_attributes(guest_name: 'Jane Doe', guest_email: 'jane@example.com', guest_token: token)
+      expect(Escalated::GuestAccess.resolve(grant)).to eq(ticket)
+      expect(ticket).to have_attributes(guest_name: 'Jane Doe', guest_email: 'jane@example.com', guest_token: nil)
       expect(ticket.contact).to have_attributes(email: 'jane@example.com')
       expect(created_events).to eq([ticket])
     end
@@ -54,7 +54,7 @@ RSpec.describe 'Guest ticket intake', type: :request do
       Escalated::EscalatedSetting.set('guest_policy_mode', 'guest_user')
       Escalated::EscalatedSetting.set('guest_policy_user_id', host_user.id.to_s)
 
-      post_json('/support/widget/tickets', payload)
+      post_json('/support/widget/tickets', payload.merge(guest_proof('jane@example.com')))
 
       ticket = Escalated::Ticket.find_by!(reference: response.parsed_body['reference'])
       expect(ticket.requester).to eq(host_user)
@@ -67,19 +67,21 @@ RSpec.describe 'Guest ticket intake', type: :request do
       allow(Escalated.configuration).to receive(:sla_enabled?).and_return(true)
       policy = create(:escalated_sla_policy, is_default: true)
 
-      post '/support/guest', params: { name: 'Sam', email: 'sam@example.com', subject: 'Help',
-                                       description: 'Something broke.' }
+      proof = guest_proof('sam@example.com', 'ticket', prefix: '/support/guest')
+      post '/support/guest', params: { guest_name: 'Sam', guest_email: 'sam@example.com', subject: 'Help',
+                                       description: 'Something broke.' }.merge(proof)
 
       ticket = Escalated::Ticket.order(:id).last
       expect(ticket).to have_attributes(guest_email: 'sam@example.com', sla_policy_id: policy.id)
-      expect(ticket.guest_token).to be_present
+      expect(Escalated::GuestAccess.active?(ticket)).to be(true)
       expect(created_events).to eq([ticket])
     end
   end
 
   describe 'live chat' do
     it 'emits ticket_created for the chat ticket' do
-      post_json('/support/widget/chat/start', { name: 'Ann', email: 'ann@example.com', message: 'Hi' })
+      post_json('/support/widget/chat/start',
+                { name: 'Ann', email: 'ann@example.com', message: 'Hi' }.merge(guest_proof('ann@example.com', 'chat')))
 
       expect(response).to have_http_status(:created)
       ticket = Escalated::Ticket.find(response.parsed_body['ticket_id'])
@@ -118,7 +120,8 @@ RSpec.describe 'Guest ticket intake', type: :request do
     end
 
     it 'answers 422 JSON for an empty message and for an ended chat' do
-      post_json('/support/widget/chat/start', { name: 'Ann', email: 'ann@example.com' })
+      post_json('/support/widget/chat/start',
+                { name: 'Ann', email: 'ann@example.com' }.merge(guest_proof('ann@example.com', 'chat')))
       token = response.parsed_body['id']
 
       post_json("/support/widget/chat/#{token}/message", { body: '  ' })
@@ -150,7 +153,8 @@ RSpec.describe 'Guest ticket intake', type: :request do
     end
 
     it 'accepts a POST from an allowed embedding site without a token' do
-      post_json('/support/widget/tickets', payload, 'Origin' => shop)
+      proof = guest_proof('eve@example.com', headers: { 'Origin' => shop })
+      post_json('/support/widget/tickets', payload.merge(proof), 'Origin' => shop)
 
       expect(response).to have_http_status(:created)
     end

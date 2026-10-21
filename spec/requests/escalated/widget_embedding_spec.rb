@@ -29,9 +29,21 @@ RSpec.describe 'Widget embedding on other sites', type: :request do
   end
 
   def post_json(path, payload, origin: nil)
+    payload = with_proof(path, payload, origin)
     headers = { 'CONTENT_TYPE' => 'application/json', 'ACCEPT' => 'application/json' }
     headers['Origin'] = origin if origin
     post path, params: payload.to_json, headers: headers
+  end
+
+  # Tickets and chats need an emailed code first (docs/guest-access.md). Not
+  # for a request the forgery check is meant to refuse: asking for the code
+  # would be refused the same way.
+  def with_proof(path, payload, origin)
+    purpose = { '/support/widget/tickets' => 'ticket', '/support/widget/chat/start' => 'chat' }[path]
+    return payload unless purpose && payload[:email]
+    return payload if ActionController::Base.allow_forgery_protection && origin != shop
+
+    payload.merge(guest_proof(payload[:email], purpose, headers: origin ? { 'Origin' => origin } : {}))
   end
 
   def created_ticket
@@ -177,9 +189,9 @@ RSpec.describe 'Widget embedding on other sites', type: :request do
     before do
       signed_in = agent
       Escalated::ApplicationController.define_method(:current_user) { signed_in }
-      allow(Escalated::Services::TicketService).to receive(:create_local).and_wrap_original do |original, *args|
+      allow(Escalated::Services::TicketService).to receive(:create_local).and_wrap_original do |original, *args, **opts|
         seen << Escalated::TicketAccess.current_actor
-        original.call(*args)
+        original.call(*args, **opts)
       end
     end
 

@@ -303,7 +303,10 @@ Escalated::Engine.routes.draw do
     get :articles, as: :widget_articles
     get 'articles/:slug', action: :article, as: :widget_article
     post :tickets, action: :create_ticket, as: :widget_create_ticket
+    # A reference with the grant as a bearer token, or a legacy guest_token.
     get 'tickets/:token', action: :lookup_ticket, as: :widget_lookup_ticket
+    post :verification, action: :request_verification, as: :widget_verification
+    post :lookup, action: :lookup, as: :widget_lookup
   end
 
   # Widget chat routes (public, rate limited)
@@ -321,6 +324,8 @@ Escalated::Engine.routes.draw do
 
   # Guest routes (no authentication required)
   namespace :guest do
+    post 'verification', to: 'verifications#request_verification', as: :verification
+    post 'lookup', to: 'verifications#lookup', as: :lookup
     get 'create', to: 'tickets#create'
     post '/', to: 'tickets#store', as: :tickets
     get ':token', to: 'tickets#show', as: :ticket

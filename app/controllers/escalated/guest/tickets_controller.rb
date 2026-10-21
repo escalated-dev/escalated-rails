@@ -5,6 +5,7 @@ module Escalated
     class TicketsController < Escalated::PublicController
       include Escalated::Renderable
       include Escalated::GuestThrottling
+      include Escalated::GuestProof
 
       protect_from_forgery with: :exception
 
@@ -14,6 +15,7 @@ module Escalated
       before_action :throttle_guest_replies!, only: :reply
       before_action :set_ticket_by_token, only: %i[show reply rate]
       before_action :set_inertia_shared_data, if: -> { Escalated.configuration.ui_enabled? }
+      after_action :set_guest_privacy_headers
 
       def show
         replies = @ticket.replies
@@ -30,53 +32,33 @@ module Escalated
       end
 
       def create
-        render_page 'Escalated/Guest/Create', {
-          departments: Escalated::Department.active.ordered.map do |d|
-            { id: d.id, name: d.name }
-          end,
-          priorities: Escalated::Ticket.priorities.keys,
-          default_priority: Escalated.configuration.default_priority.to_s
-        }
+        render_page 'Escalated/Guest/Create', create_page_props
       end
 
+      # Needs a ticket-purpose proof for the email (POST /guest/verification).
+      # Redirects to the ticket page under a new, expiring grant.
       def store
         errors = validate_guest_params
+        errors[:verification_code] = 'Verify your email address first.' if missing_proof?
         if errors.any?
-          render_page 'Escalated/Guest/Create', {
-            errors: errors,
-            old: guest_ticket_params.to_h,
-            departments: Escalated::Department.active.ordered.map do |d|
-              { id: d.id, name: d.name }
-            end,
-            priorities: Escalated::Ticket.priorities.keys,
-            default_priority: Escalated.configuration.default_priority.to_s
-          }
+          render_page 'Escalated/Guest/Create', create_page_props.merge(errors: errors, old: guest_ticket_params.to_h)
           return
         end
 
-        # Apply the admin-configured guest policy (same logic as
-        # WidgetController#create_ticket — see that method for the mode
-        # reference). Always assign a guest_token so the guest-view
-        # redirect below works regardless of whether the ticket is
-        # ALSO attributed to a host user (guest_user mode).
-        guest_token = SecureRandom.hex(32) # 64-character hex string
+        email = Services::GuestEmailVerification.normalize(guest_email_param)
 
         # Dedupe repeat guests by email (Pattern B). Inline guest_*
         # fields remain populated for the backwards-compat dual-read
         # period.
-        contact = Escalated::Contact.find_or_create_by_email(
-          guest_ticket_params[:email],
-          guest_ticket_params[:name]
-        )
+        contact = Escalated::Contact.find_or_create_by_email(email, guest_name_param)
 
         attrs = {
           subject: guest_ticket_params[:subject],
           description: guest_ticket_params[:description],
-          priority: guest_ticket_params[:priority] || Escalated.configuration.default_priority,
+          priority: guest_ticket_params[:priority].presence || Escalated.configuration.default_priority,
           department_id: guest_ticket_params[:department_id].presence,
-          guest_name: guest_ticket_params[:name],
-          guest_email: guest_ticket_params[:email],
-          guest_token: guest_token,
+          guest_name: guest_name_param,
+          guest_email: email,
           contact_id: contact.id
         }
 
@@ -95,14 +77,23 @@ module Escalated
         end
 
         # Through TicketService so the ticket gets its SLA and the
-        # ticket_created event (workflows, webhooks, notifications) fires.
-        ticket = Services::TicketService.create_local(attrs)
-
-        if guest_ticket_params[:attachments].present?
-          Services::AttachmentService.attach(ticket, guest_ticket_params[:attachments])
+        # ticket_created event (workflows, webhooks, notifications) fires,
+        # once the ticket, its files and the consumed proof are committed.
+        ticket, token = Services::GuestEmailVerification.consume(
+          params[:verification_id], params[:verification_code].to_s, email, 'ticket'
+        ) do
+          created = Services::TicketService.create_local(attrs, announce: false)
+          if guest_ticket_params[:attachments].present?
+            Services::AttachmentService.attach(created, guest_ticket_params[:attachments])
+          end
+          [created, Escalated::GuestAccess.issue(created, email: email)]
         end
+        Services::TicketService.announce_created(ticket)
 
-        redirect_to "#{escalated_mount_path}/guest/#{guest_token}", notice: I18n.t('escalated.guest.created')
+        redirect_to "#{escalated_mount_path}/guest/#{token}", notice: I18n.t('escalated.guest.created')
+      rescue Services::GuestEmailVerification::InvalidCode => e
+        render_page 'Escalated/Guest/Create',
+                    create_page_props.merge(errors: { verification_code: e.message }, old: guest_ticket_params.to_h)
       rescue Services::AttachmentService::TooManyAttachmentsError,
              Services::AttachmentService::FileTooLargeError,
              Services::AttachmentService::InvalidFileTypeError => e
@@ -177,10 +168,36 @@ module Escalated
         render plain: I18n.t('escalated.commands.guest_not_enabled'), status: :not_found
       end
 
+      # An expiring grant, or a legacy guest_token while those are accepted.
       def set_ticket_by_token
-        @ticket = Escalated::Ticket.find_by!(guest_token: params[:token])
-      rescue ActiveRecord::RecordNotFound
+        @ticket = Escalated::GuestAccess.find_ticket(params[:token])
+        return if @ticket
+
         render plain: I18n.t('escalated.commands.ticket_not_found'), status: :not_found
+      end
+
+      def create_page_props
+        {
+          departments: Escalated::Department.active.ordered.map { |d| { id: d.id, name: d.name } },
+          priorities: Escalated::Ticket.priorities.keys,
+          default_priority: Escalated.configuration.default_priority.to_s,
+          verification_url: "#{escalated_mount_path}/guest/verification",
+          lookup_url: "#{escalated_mount_path}/guest/lookup"
+        }
+      end
+
+      def missing_proof?
+        params[:verification_id].blank? || params[:verification_code].blank?
+      end
+
+      # Guest/Create posts guest_name and guest_email; name and email are
+      # still read for older forms.
+      def guest_name_param
+        params[:guest_name].presence || guest_ticket_params[:name]
+      end
+
+      def guest_email_param
+        params[:guest_email].presence || guest_ticket_params[:email]
       end
 
       def set_inertia_shared_data
@@ -199,13 +216,14 @@ module Escalated
       end
 
       def guest_ticket_params
-        params.permit(:name, :email, :subject, :description, :priority, :department_id, attachments: [])
+        params.permit(:name, :email, :guest_name, :guest_email, :subject, :description, :priority, :department_id,
+                      attachments: [])
       end
 
       def validate_guest_params
         errors = {}
-        errors[:name] = I18n.t('escalated.validation.name_required') if guest_ticket_params[:name].blank?
-        errors[:email] = I18n.t('escalated.validation.email_required') if guest_ticket_params[:email].blank?
+        errors[:guest_name] = I18n.t('escalated.validation.name_required') if guest_name_param.blank?
+        errors[:guest_email] = I18n.t('escalated.validation.email_required') if guest_email_param.blank?
         errors[:subject] = I18n.t('escalated.validation.subject_required') if guest_ticket_params[:subject].blank?
         if guest_ticket_params[:description].blank?
           errors[:description] =

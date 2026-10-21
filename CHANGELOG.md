@@ -7,6 +7,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Security
+- Verified guest access ([docs/guest-access.md](docs/guest-access.md)), as in escalated-laravel.
+  - Guest tickets, widget tickets, live chats and ticket lookups need an emailed 8-digit code:
+    - it expires after 10 minutes and allows 5 guesses
+    - it can be used once
+    - sending is limited to 3 codes an hour per mailbox and client IP, and 10 an hour per mailbox
+  - New routes: `POST /guest/verification`, `POST /guest/lookup`, `POST /widget/verification` and `POST /widget/lookup`.
+  - New tickets get an expiring grant instead of a permanent `guest_token`.
+    - The ticket stores only a hash of it.
+    - It lasts `guest_access_ttl_minutes`, default 1440.
+    - Rotating it, or changing the guest email, revokes it and the attachment links issued under it.
+  - The widget create response returns `guest_access_token` and `expires_at` instead of `guest_token`.
+  - The widget status view reads `GET /widget/tickets/:reference` with `Authorization: Bearer <grant>`.
+  - `/widget/config` sends `guest_verification_required: true` and `status_lookup_enabled: true`.
+  - Guest/Create receives `verification_url` and `lookup_url`.
+  - Guest and widget responses carry `Cache-Control: no-store` and `Referrer-Policy: no-referrer`.
+
+### Fixed
+- The guest form reads the `guest_name` and `guest_email` fields Guest/Create posts. It still reads `name` and `email`.
+
+### Upgrade notes
+- Run the migrations. `065_add_verified_guest_access` adds four nullable ticket columns and a `guest_verifications` table.
+- Configure outbound mail and a shared `Rails.cache` (Redis or Memcached) across processes.
+- Use the bundled widget or `@escalated-dev/escalated` 0.12.3 or later. Older clients cannot create guest tickets or start chats without the code step.
+- Existing permanent guest links keep working while `accept_legacy_guest_tokens` is on (the default for now), until a grant is issued for the ticket. Set it to `false` to retire them. Guests can get a new link through lookup.
+- `Ticket#guest?` now also treats a ticket with a guest email and no requester as a guest.
+
+### Security
 - Attachments are private ([docs/private-attachments.md](docs/private-attachments.md)).
   - Every screen and the API link to a signed download route, `GET /support/attachments/:id?token=...`, which expires after `attachment_download_ttl_minutes` (default 10, 1 to 60). It replaces `rails_blob_path` and presigned storage URLs, which skipped the ticket-access check.
   - The download needs current access:

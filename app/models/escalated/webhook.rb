@@ -11,8 +11,15 @@ module Escalated
 
     scope :active, -> { where(active: true) }
 
+    before_save :canonicalize_events
+
     def subscribed_to?(event)
-      Array(events).include?(event.to_s)
+      subscribed_events.include?(Escalated::EventNames.canonical(event))
+    end
+
+    # The subscribed events with legacy names read as their canonical names.
+    def subscribed_events
+      Array(events).map { |name| Escalated::EventNames.canonical(name) }.uniq
     end
 
     def to_s
@@ -20,6 +27,10 @@ module Escalated
     end
 
     private
+
+    def canonicalize_events
+      self.events = subscribed_events if events.is_a?(Array)
+    end
 
     # Refuses an address inside the server's own network when the webhook is
     # saved. Every delivery checks again, because DNS can change after this.

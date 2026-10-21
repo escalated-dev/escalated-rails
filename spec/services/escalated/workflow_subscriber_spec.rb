@@ -24,12 +24,33 @@ RSpec.describe Escalated::Services::WorkflowSubscriber do
     instrument(:ticket_created, ticket: ticket)
   end
 
-  it 'maps status_changed to ticket.status_changed' do
+  it 'maps status_changed to ticket.status_changed, and a resolve to ticket.resolved as well' do
     engine = instance_double(Escalated::WorkflowEngine)
     allow(Escalated::WorkflowEngine).to receive(:new).and_return(engine)
-    expect(engine).to receive(:process_event).with('ticket.status_changed', ticket, { status: :resolved })
+    expect(engine).to receive(:process_event).with('ticket.status_changed', ticket, { status: :resolved }).ordered
+    expect(engine).to receive(:process_event).with('ticket.resolved', ticket, { status: :resolved }).ordered
 
     instrument(:status_changed, ticket: ticket, status: :resolved)
+  end
+
+  it 'maps a public reply to reply.created and an internal note to note.created' do
+    engine = instance_double(Escalated::WorkflowEngine)
+    allow(Escalated::WorkflowEngine).to receive(:new).and_return(engine)
+    public_reply = build(:escalated_reply, ticket: ticket, is_internal: false)
+    note = build(:escalated_reply, ticket: ticket, is_internal: true)
+    expect(engine).to receive(:process_event).with('reply.created', ticket, { reply: public_reply }).ordered
+    expect(engine).to receive(:process_event).with('note.created', ticket, { reply: note }).ordered
+
+    instrument(:reply_added, ticket: ticket, reply: public_reply)
+    instrument(:reply_added, ticket: ticket, reply: note)
+  end
+
+  it 'fires nothing for a notification with no canonical name' do
+    engine = instance_double(Escalated::WorkflowEngine)
+    allow(Escalated::WorkflowEngine).to receive(:new).and_return(engine)
+    expect(engine).not_to receive(:process_event)
+
+    instrument(:ticket_snoozed, ticket: ticket)
   end
 
   it 'is a no-op when payload has no ticket' do

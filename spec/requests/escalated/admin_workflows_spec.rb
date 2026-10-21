@@ -98,7 +98,7 @@ RSpec.describe 'Admin workflows', type: :request do
 
     it 'accepts a trigger this backend fires that the old list left out' do
       expect do
-        inertia_visit(:post, '/support/admin/workflows', contract_body.merge(trigger_event: 'ticket.replied'))
+        inertia_visit(:post, '/support/admin/workflows', contract_body.merge(trigger_event: 'reply.created'))
       end.to change(Escalated::Workflow, :count).by(1)
     end
 
@@ -115,7 +115,7 @@ RSpec.describe 'Admin workflows', type: :request do
 
     it 'refuses a trigger this backend never fires' do
       expect do
-        inertia_visit(:post, '/support/admin/workflows', contract_body.merge(trigger_event: 'ticket.tagged'),
+        inertia_visit(:post, '/support/admin/workflows', contract_body.merge(trigger_event: 'reply.agent_reply'),
                       referer: '/support/admin/workflows/new')
       end.not_to change(Escalated::Workflow, :count)
 
@@ -167,9 +167,9 @@ RSpec.describe 'Admin workflows', type: :request do
       expect(other.department_id).not_to eq(department.id)
     end
 
-    it 'runs a ticket.replied workflow when a reply is added' do
+    it 'runs a reply.created workflow when a reply is added' do
       inertia_visit(:post, '/support/admin/workflows',
-                    contract_body.merge(trigger_event: 'ticket.replied', conditions: { all: [] },
+                    contract_body.merge(trigger_event: 'reply.created', conditions: { all: [] },
                                         actions: [{ type: 'change_priority', value: 'urgent' }]))
       expect(Escalated::Workflow.count).to eq(1)
 
@@ -198,10 +198,8 @@ RSpec.describe 'Admin workflows', type: :request do
       expect(page['component']).to eq('Escalated/Admin/Workflows/Form')
       props = page['props']
       expect(props).to include('workflow' => nil)
-      expect(props['trigger_events']).to match_array(
-        %w[ticket.created ticket.status_changed ticket.assigned ticket.priority_changed
-           ticket.replied ticket.escalated sla.breached sla.warning]
-      )
+      expect(props['trigger_events']).to match_array(Escalated::EventNames::EMITTED)
+      expect(props['trigger_events']).to include('reply.created')
       expect(props['action_types']).to match_array(
         %w[change_status change_priority add_tag remove_tag set_department assign_agent add_note
            insert_canned_reply add_follower send_webhook set_type]

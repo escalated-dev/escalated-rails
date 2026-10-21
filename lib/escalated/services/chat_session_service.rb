@@ -32,6 +32,7 @@ module Escalated
           end
 
           TicketService.announce_created(ticket)
+          announce(:chat_started, session)
 
           # Try to auto-assign an agent
           agent_id = ChatRoutingService.find_available_agent(department_id: params[:department_id], ticket: ticket)
@@ -56,6 +57,7 @@ module Escalated
           ticket.update!(assigned_to: agent_id, status: :in_progress)
 
           Escalated::Broadcasting.chat_assigned(ticket, session, agent_id)
+          announce(:chat_assigned, session, agent_id: agent_id.to_s)
 
           session
         end
@@ -76,6 +78,7 @@ module Escalated
           CapacityService.new.decrement_load(session.agent_id, channel: 'chat') if session.agent_id
 
           Escalated::Broadcasting.chat_ended(ticket, session)
+          announce(:chat_ended, session)
 
           session
         end
@@ -99,6 +102,7 @@ module Escalated
           CapacityService.new.increment_load(new_agent_id, channel: 'chat')
 
           Escalated::Broadcasting.chat_transferred(ticket, session, old_agent_id, new_agent_id)
+          announce(:chat_transferred, session, previous_agent_id: old_agent_id&.to_s, agent_id: new_agent_id.to_s)
 
           session
         end
@@ -116,6 +120,7 @@ module Escalated
           )
 
           Escalated::Broadcasting.chat_message(ticket, session, reply)
+          announce(:chat_message, session, reply: reply)
 
           reply
         end
@@ -137,6 +142,16 @@ module Escalated
           )
 
           session
+        end
+
+        private
+
+        # chat.started, chat.assigned, chat.transferred, chat.message and
+        # chat.ended, through the dispatch tickets use, so webhooks and
+        # workflows hear about them. The session's id, never its customer
+        # token, goes in the payload.
+        def announce(event, session, extra = {})
+          NotificationService.dispatch(event, { ticket: session.ticket, chat_session_id: session.id }.merge(extra))
         end
       end
     end

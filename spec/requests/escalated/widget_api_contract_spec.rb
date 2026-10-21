@@ -37,10 +37,9 @@ RSpec.describe 'Widget API used by the shared widget', type: :request do
       body = response.parsed_body
       expect(body['departments']).to eq([{ 'id' => sales.id, 'name' => 'Sales' }])
       expect(body).to include('enabled' => true, 'kb_enabled' => true, 'guest_tickets_enabled' => true,
-                              'accepts_metadata' => true, 'status_lookup_enabled' => false)
+                              'accepts_metadata' => true, 'status_lookup_enabled' => true,
+                              'guest_verification_required' => true)
       expect(body).to include('color', 'position', 'greeting')
-      # No mailbox verification here, so the widget must not ask for it.
-      expect(body).not_to have_key('guest_verification_required')
     end
 
     it 'answers 403 with enabled false while the widget is off' do
@@ -84,7 +83,8 @@ RSpec.describe 'Widget API used by the shared widget', type: :request do
     it 'files the ticket in the chosen department and returns its reference' do
       department = create(:escalated_department)
 
-      post_json("#{base}/tickets", ticket_params.merge(department_id: department.id, metadata: nil))
+      post_json("#{base}/tickets",
+                ticket_params.merge(department_id: department.id, metadata: nil).merge(guest_proof('jane@example.com')))
 
       expect(response).to have_http_status(:created)
       reference = response.parsed_body['reference']
@@ -94,7 +94,7 @@ RSpec.describe 'Widget API used by the shared widget', type: :request do
     end
 
     it 'accepts the null department the widget sends when none is picked' do
-      post_json("#{base}/tickets", ticket_params.merge(department_id: nil))
+      post_json("#{base}/tickets", ticket_params.merge(department_id: nil).merge(guest_proof('jane@example.com')))
 
       expect(response).to have_http_status(:created)
       expect(Escalated::Ticket.find_by!(reference: response.parsed_body['reference']).department_id).to be_nil
@@ -119,7 +119,7 @@ RSpec.describe 'Widget API used by the shared widget', type: :request do
 
     def start_chat(extra = {})
       post_json("#{base}/chat/start", { name: 'John Doe', email: 'john@example.com', department_id: nil,
-                                        message: 'Hello' }.merge(extra))
+                                        message: 'Hello' }.merge(guest_proof('john@example.com', 'chat'), extra))
       response.parsed_body
     end
 

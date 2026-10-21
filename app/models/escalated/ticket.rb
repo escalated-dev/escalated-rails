@@ -75,6 +75,9 @@ module Escalated
 
     before_validation :resolve_requester_account, on: :create
     before_create :set_reference
+    # A new guest email has not been verified: its proof, grants and any
+    # legacy guest token stop working.
+    before_update :revoke_guest_access, if: :will_save_change_to_guest_email?
     validate :complete_account_identity
 
     default_scope { Escalated::TicketAccess.apply(self) }
@@ -180,7 +183,7 @@ module Escalated
     # Guest ticket helpers
 
     def guest?
-      requester_type.nil? && guest_token.present?
+      requester_type.nil? && (guest_token.present? || guest_email.present?)
     end
 
     def requester_name
@@ -292,6 +295,14 @@ module Escalated
     end
 
     private
+
+    def revoke_guest_access
+      self.guest_access_hash = nil
+      self.guest_access_expires_at = nil
+      self.guest_verified_email = nil
+      self.guest_email_verified_at = nil
+      self.guest_token = nil
+    end
 
     def resolve_requester_account
       return unless TicketAccess.accounts[:enabled]

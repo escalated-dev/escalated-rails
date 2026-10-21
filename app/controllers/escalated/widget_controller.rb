@@ -6,6 +6,7 @@ module Escalated
     include Escalated::GuestThrottling
     include Escalated::WidgetCors
     include Escalated::WidgetDepartments
+    include Escalated::GuestVerificationEndpoints
 
     # CSRF is skipped only for a request WidgetCors accepted from an allowed
     # embedding site: it runs as a guest with no session to protect. Every
@@ -18,6 +19,7 @@ module Escalated
     before_action :ensure_widget_enabled!
     before_action :ensure_knowledge_base_available!, only: %i[articles article]
     before_action :throttle_guest_tickets!, only: :create_ticket
+    after_action :set_guest_privacy_headers, only: %i[create_ticket lookup_ticket]
 
     # GET /support/widget/config
     #
@@ -35,9 +37,10 @@ module Escalated
         guest_tickets_enabled: Escalated::EscalatedSetting.guest_tickets_enabled?,
         # Tickets and chats keep host parameters sent as `metadata`.
         accepts_metadata: true,
-        # There is no mailbox verification for guests, so the widget hides its
-        # status tab; `guest_verification_required` is left out on purpose.
-        status_lookup_enabled: false
+        # Tickets, chats and status lookups need an emailed code
+        # (POST verification, then the proof with the request).
+        guest_verification_required: true,
+        status_lookup_enabled: true
       }
     end
 
@@ -78,7 +81,11 @@ module Escalated
     end
 
     # POST /support/widget/tickets
+    #
+    # Needs a ticket-purpose proof for the email (POST verification first).
+    # Answers with an expiring grant for the status lookup.
     def create_ticket
+      return render json: { message: 'Guest tickets are disabled.' }, status: :forbidden unless guest_tickets_allowed?
       return render_invalid_metadata if Escalated::Support::WidgetMetadata.invalid?(params[:metadata])
       return render_unknown_department unless widget_department_valid?(params[:department_id])
 
@@ -113,17 +120,22 @@ module Escalated
           attrs[:requester_id] = guest_user_id
         end
       end
+      email = Escalated::Services::GuestEmailVerification.normalize(params[:email])
       attrs[:guest_name] = params[:name]
-      attrs[:guest_email] = params[:email]
-      # The widget's status lookup and the guest portal find the ticket by it.
-      attrs[:guest_token] = SecureRandom.hex(32)
+      attrs[:guest_email] = email
 
-      ticket = Escalated::Services::TicketService.create_local(attrs)
+      ticket, token = with_guest_proof('ticket', email) do
+        created = Escalated::Services::TicketService.create_local(attrs, announce: false)
+        [created, Escalated::GuestAccess.issue(created, email: email)]
+      end
+      return if performed?
 
+      Escalated::Services::TicketService.announce_created(ticket)
       render json: {
         message: 'Ticket created.',
         reference: ticket.reference,
-        guest_token: ticket.guest_token
+        guest_access_token: token,
+        expires_at: ticket.guest_access_expires_at.iso8601
       }, status: :created
     rescue ActiveRecord::RecordInvalid => e
       render json: {
@@ -133,28 +145,45 @@ module Escalated
       }, status: :unprocessable_content
     end
 
-    # GET /support/widget/tickets/:token
+    # GET /support/widget/tickets/:reference with `Authorization: Bearer
+    # <grant>`, the grant from create or lookup. An email query parameter
+    # never authorizes it. Without a bearer token the path segment is read as
+    # a legacy guest_token while those are accepted.
     def lookup_ticket
-      ticket = Escalated::Ticket.find_by!(guest_token: params[:token])
+      ticket = widget_ticket
+      return render json: { error: 'Ticket not found', message: 'Ticket not found' }, status: :not_found unless ticket
 
       render json: {
         reference: ticket.reference,
         subject: ticket.subject,
         status: ticket.status,
+        status_label: ticket.status.to_s.humanize,
         created_at: ticket.created_at&.iso8601,
-        replies: ticket.replies.public_replies.chronological.map do |r|
+        department: ticket.department&.name,
+        replies: ticket.replies.public_replies.chronological.includes(:author).last(20).map do |r|
           {
             body: r.body,
+            author: r.author ? display_name(r.author) : (ticket.guest_name.presence || 'Guest'),
             is_agent: r.author.respond_to?(:escalated_agent?) ? r.author.escalated_agent? : false,
             created_at: r.created_at&.iso8601
           }
         end
       }
-    rescue ActiveRecord::RecordNotFound
-      render json: { error: 'Ticket not found' }, status: :not_found
     end
 
     private
+
+    def widget_ticket
+      bearer = request.headers['Authorization'].to_s[/\ABearer (.+)\z/, 1]
+      return Escalated::GuestAccess.legacy_ticket(params[:token]) if bearer.nil?
+
+      ticket = Escalated::GuestAccess.resolve(bearer)
+      ticket if ticket && ActiveSupport::SecurityUtils.secure_compare(ticket.reference, params[:token].to_s)
+    end
+
+    def display_name(user)
+      user.respond_to?(:name) && user.name.present? ? user.name : 'Support'
+    end
 
     def widget_enabled?
       Escalated::EscalatedSetting.get_bool('widget_enabled', default: false)

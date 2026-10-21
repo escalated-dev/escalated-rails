@@ -6,6 +6,7 @@ module Escalated
     include Escalated::GuestThrottling
     include Escalated::WidgetCors
     include Escalated::WidgetDepartments
+    include Escalated::GuestProof
 
     # See WidgetController: CSRF is skipped only for allowed embedding sites.
     protect_from_forgery with: :exception
@@ -36,6 +37,9 @@ module Escalated
     end
 
     # POST /widget/chat/start
+    #
+    # Needs a chat-purpose proof for the email (POST /widget/verification).
+    # The proof is consumed before the chat starts.
     def start
       if Escalated::Support::WidgetMetadata.invalid?(params[:metadata])
         return render json: { error: 'metadata must be an object with at most 50 keys' },
@@ -44,12 +48,16 @@ module Escalated
 
       return render_unknown_department unless widget_department_valid?(params[:department_id])
 
+      email = Services::GuestEmailVerification.normalize(params[:email])
+      with_guest_proof('chat', email) { true }
+      return if performed?
+
       host_metadata = Escalated::Support::WidgetMetadata.sanitize(params[:metadata], origin: widget_cross_origin)
       result = Services::ChatSessionService.start_chat(
         subject: params[:subject] || 'Live Chat',
         message: params[:message],
         name: params[:name],
-        email: params[:email],
+        email: email,
         department_id: params[:department_id].presence,
         metadata: (host_metadata || {}).merge('user_agent' => request.user_agent, 'ip' => request.remote_ip),
         session_metadata: host_metadata
@@ -64,7 +72,6 @@ module Escalated
         session_id: result[:session].id,
         customer_session_id: result[:session].customer_session_id,
         status: result[:session].status,
-        guest_token: result[:ticket].guest_token,
         messages: [],
         agent: chat_agent(chat)
       }, status: :created

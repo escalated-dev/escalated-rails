@@ -19,6 +19,9 @@ RSpec.describe 'Guest endpoint rate limit', type: :request do
     allow(Escalated.configuration).to receive(:notification_channels).and_return([])
     allow(Escalated::EscalatedSetting).to receive(:guest_tickets_enabled?).and_return(true)
     Escalated::EscalatedSetting.set('widget_enabled', '1')
+    # Every ticket here needs a fresh emailed code for the same mailbox.
+    allow(Escalated.configuration).to receive_messages(guest_codes_per_client_per_hour: 100,
+                                                       guest_codes_per_mailbox_per_hour: 100)
   end
 
   after { Rails.cache.clear }
@@ -32,12 +35,14 @@ RSpec.describe 'Guest endpoint rate limit', type: :request do
   end
 
   def widget_ticket(ip: '203.0.113.1')
-    post '/support/widget/tickets', params: ticket_params, env: { 'REMOTE_ADDR' => ip }
+    post '/support/widget/tickets', params: ticket_params.merge(guest_proof('guest@example.com')),
+                                    env: { 'REMOTE_ADDR' => ip }
     response.status
   end
 
   def guest_form_ticket(ip: '203.0.113.1')
-    post '/support/guest', params: ticket_params, env: { 'REMOTE_ADDR' => ip }
+    proof = guest_proof('guest@example.com', prefix: '/support/guest')
+    post '/support/guest', params: ticket_params.merge(proof), env: { 'REMOTE_ADDR' => ip }
     response.status
   end
 

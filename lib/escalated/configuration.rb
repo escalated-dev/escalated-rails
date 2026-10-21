@@ -72,6 +72,11 @@ module Escalated
                   :api_rate_limit,
                   # Per-client-IP limits on the guest ticket and reply endpoints
                   :guest_rate_limit,
+                  # Verified guest access (docs/guest-access.md)
+                  :guest_access_ttl_minutes,
+                  :guest_codes_per_client_per_hour,
+                  :guest_codes_per_mailbox_per_hour,
+                  :accept_legacy_guest_tokens,
                   # Sites that may embed the widget (docs/embedding-the-widget.md)
                   :widget_allowed_origins,
                   :widget_preflight_max_age,
@@ -202,6 +207,13 @@ module Escalated
       # Origins (scheme://host[:port], or https://*.example.com) whose pages may
       # call the widget routes cross-origin. Combined with the
       # widget_allowed_origins admin setting. Empty: no cross-origin access.
+      # How long a guest grant lives, clamped to 5 minutes .. 7 days.
+      @guest_access_ttl_minutes = 1440
+      @guest_codes_per_client_per_hour = 3
+      @guest_codes_per_mailbox_per_hour = 10
+      # Permanent guest_token links from before verified access keep working
+      # until a grant is issued for the ticket. Turn off to retire them all.
+      @accept_legacy_guest_tokens = true
       @widget_allowed_origins = ENV.fetch('ESCALATED_WIDGET_ALLOWED_ORIGINS', '').split(',').map(&:strip)
                                    .reject(&:empty?)
       @widget_preflight_max_age = 600

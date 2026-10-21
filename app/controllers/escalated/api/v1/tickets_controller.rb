@@ -337,7 +337,8 @@ module Escalated
                       { name: 'System', is_agent: true }
                     end,
             attachments: reply.attachments.map do |a|
-              { id: a.id, filename: a.filename, size: a.human_size, content_type: a.content_type }
+              { id: a.id, filename: a.filename, size: a.human_size, content_type: a.content_type,
+                url: Services::AttachmentService.url_for(a) }
             end,
             created_at: reply.created_at&.iso8601
           }

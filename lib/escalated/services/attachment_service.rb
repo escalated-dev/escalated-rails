@@ -63,17 +63,12 @@ module Escalated
           end
         end
 
-        def url_for(attachment, expires_in: 5.minutes)
+        # The signed, expiring download route (Escalated::AttachmentAccess),
+        # never a storage URL: those skip the ticket-access check.
+        def url_for(attachment, guest_ticket: nil)
           return nil unless attachment.file.attached?
 
-          if Escalated.configuration.storage_service == :local
-            Rails.application.routes.url_helpers.rails_blob_path(
-              attachment.file,
-              only_path: true
-            )
-          else
-            attachment.file.url(expires_in: expires_in)
-          end
+          Escalated::AttachmentAccess.url(attachment, guest_ticket: guest_ticket)
         end
 
         private

@@ -126,7 +126,7 @@ module Escalated
       def workflow_json(workflow)
         {
           id: workflow.id, name: workflow.name,
-          trigger_event: workflow.trigger_event, trigger: workflow.trigger,
+          trigger_event: workflow.canonical_trigger_event, trigger: workflow.canonical_trigger_event,
           conditions: workflow.conditions, actions: workflow.actions,
           is_active: workflow.is_active, position: workflow.position,
           created_at: workflow.created_at&.iso8601, updated_at: workflow.updated_at&.iso8601

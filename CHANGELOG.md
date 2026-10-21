@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- One event vocabulary for webhooks and workflow triggers (escalated-developer-context ADR 2026-10-21). See `Escalated::EventNames`.
+  - Internal notes are sent to webhooks as `note.created` (was `internal_note.added`).
+  - The workflow reply trigger is `reply.created` (was `ticket.replied`), and it fires on public replies only. An internal note fires `note.created`. Before, a `ticket.replied` workflow also ran on internal notes.
+  - Workflows can now be triggered by every event the engine emits: `ticket.updated`, `ticket.unassigned`, `ticket.department_changed`, `ticket.resolved`, `ticket.closed`, `ticket.reopened`, `ticket.tag_added`, `ticket.tag_removed`, `note.created` and the chat events, as well as the ones offered before.
+- Live chat emits `chat.started`, `chat.assigned`, `chat.transferred`, `chat.message` and `chat.ended` to webhooks and workflows. The payload carries the chat session's `id`, never the visitor's session token.
+
+### Upgrade notes
+- Nothing to migrate. Workflows stored with `ticket.replied` and webhook subscriptions stored with `internal_note.added`, `tag.added`, `ticket.tagged`, `tag.removed`, `ticket.untagged`, `chat.session_started` or `chat.session_ended` keep working: they are read as their canonical names, shown in the admin forms under those names, and rewritten to them the next time they are saved.
+- A receiver that matched `internal_note.added` in the `X-Escalated-Event` header or the `event` field should match `note.created` instead.
+
 ## [0.7.2] - 2026-10-20
 
 ### Changed

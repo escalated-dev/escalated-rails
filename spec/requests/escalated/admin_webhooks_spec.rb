@@ -239,7 +239,7 @@ RSpec.describe 'Admin webhooks', type: :request do
     end
 
     it 'delivers a reply and an internal note as their own events' do
-      webhook = create_webhook(events: %w[reply.created internal_note.added])
+      webhook = create_webhook(events: %w[reply.created note.created])
       stub_request(:post, hook_url).to_return(status: 200)
       ticket = create_ticket
       agent = create(:user, :agent)
@@ -249,7 +249,7 @@ RSpec.describe 'Admin webhooks', type: :request do
         Escalated::Services::TicketService.reply(ticket, body: 'Check the toner.', author: agent, is_internal: true)
       end
 
-      expect(webhook.deliveries.order(:id).pluck(:event)).to eq(%w[reply.created internal_note.added])
+      expect(webhook.deliveries.order(:id).pluck(:event)).to eq(%w[reply.created note.created])
     end
 
     it 'sends nothing to a webhook that is inactive or subscribed to something else' do

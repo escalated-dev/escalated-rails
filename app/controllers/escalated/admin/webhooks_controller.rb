@@ -107,7 +107,7 @@ module Escalated
         {
           id: webhook.id,
           url: webhook.url,
-          events: Array(webhook.events),
+          events: webhook.subscribed_events,
           active: webhook.active,
           has_secret: webhook.secret.present?,
           deliveries_count: webhook.deliveries.count,

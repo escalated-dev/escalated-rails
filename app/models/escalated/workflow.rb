@@ -4,19 +4,18 @@ module Escalated
   class Workflow < ApplicationRecord
     self.table_name = Escalated.table_name('workflows')
 
-    # The triggers a workflow can be given: the NotificationService events that
-    # WorkflowSubscriber maps and that something actually dispatches. The admin
-    # form offers exactly this list, so a workflow cannot be saved against an
-    # event that never fires.
-    TRIGGER_EVENTS = %w[
-      ticket.created ticket.status_changed ticket.assigned ticket.priority_changed
-      ticket.replied ticket.escalated sla.breached sla.warning
-    ].freeze
+    # The triggers a workflow can be given: every canonical event this engine
+    # emits (Escalated::EventNames), which WorkflowSubscriber fires workflows
+    # on. The admin form offers exactly this list, so a workflow cannot be
+    # saved against an event that never fires. A legacy name (ticket.replied)
+    # is stored as its canonical name and still matched when read.
+    TRIGGER_EVENTS = Escalated::EventNames::EMITTED
 
     has_many :workflow_logs, dependent: :destroy
     has_many :delayed_actions, dependent: :destroy
 
     before_validation :default_conditions
+    before_validation :canonicalize_trigger_event
 
     validates :name, presence: true
     validates :trigger_event, presence: true, inclusion: { in: TRIGGER_EVENTS }
@@ -24,7 +23,8 @@ module Escalated
     validate :actions_must_be_present
 
     scope :active, -> { where(is_active: true).order(position: :asc) }
-    scope :for_event, ->(event) { active.where(trigger_event: event) }
+    # A legacy trigger stored before the vocabulary changed still matches.
+    scope :for_event, ->(event) { active.where(trigger_event: Escalated::EventNames.aliases(event)) }
     scope :ordered, -> { order(position: :asc, name: :asc) }
 
     # Alias for frontend compatibility: the frontend uses `trigger` instead of `trigger_event`
@@ -32,7 +32,17 @@ module Escalated
       trigger_event
     end
 
+    # The trigger as the builder offers it: a stored legacy name reads as its
+    # canonical name.
+    def canonical_trigger_event
+      trigger_event && Escalated::EventNames.canonical(trigger_event)
+    end
+
     private
+
+    def canonicalize_trigger_event
+      self.trigger_event = canonical_trigger_event
+    end
 
     # Omitted conditions match every ticket.
     def default_conditions

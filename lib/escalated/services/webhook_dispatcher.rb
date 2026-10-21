@@ -9,45 +9,12 @@ module Escalated
     class WebhookDispatcher
       MAX_ATTEMPTS = 3
 
-      # The webhook event each NotificationService event is delivered as.
-      # reply_added and status_changed depend on the payload; see .events_for.
-      EVENTS = {
-        ticket_created: 'ticket.created',
-        ticket_updated: 'ticket.updated',
-        ticket_assigned: 'ticket.assigned',
-        ticket_unassigned: 'ticket.unassigned',
-        priority_changed: 'ticket.priority_changed',
-        department_changed: 'ticket.department_changed',
-        ticket_escalated: 'ticket.escalated',
-        tag_added: 'ticket.tag_added',
-        tag_removed: 'ticket.tag_removed',
-        sla_breached: 'sla.breached',
-        sla_warning: 'sla.warning'
-      }.freeze
-
-      STATUS_EVENTS = {
-        'resolved' => 'ticket.resolved', 'closed' => 'ticket.closed', 'reopened' => 'ticket.reopened'
-      }.freeze
-
-      # What an admin can subscribe a webhook to: exactly what .events_for
-      # produces, so the form never offers an event that is not sent.
-      AVAILABLE_EVENTS = %w[
-        ticket.created ticket.updated ticket.status_changed ticket.resolved ticket.closed ticket.reopened
-        ticket.assigned ticket.unassigned ticket.priority_changed ticket.department_changed ticket.escalated
-        ticket.tag_added ticket.tag_removed
-        reply.created internal_note.added sla.breached sla.warning
-      ].freeze
+      # What an admin can subscribe a webhook to: exactly the canonical names
+      # this engine emits, so the form never offers an event that is not sent.
+      AVAILABLE_EVENTS = Escalated::EventNames::EMITTED
 
       def self.events_for(event, payload)
-        case event.to_sym
-        when :reply_added
-          reply = payload[:reply]
-          [reply.respond_to?(:is_internal) && reply.is_internal ? 'internal_note.added' : 'reply.created']
-        when :status_changed
-          ['ticket.status_changed', STATUS_EVENTS[payload[:status].to_s]].compact
-        else
-          Array(EVENTS[event.to_sym])
-        end
+        Escalated::EventNames.for_notification(event, payload)
       end
 
       def dispatch(event, payload)

@@ -3,20 +3,14 @@
 require 'rails_helper'
 
 RSpec.describe Escalated::Workflow do
-  # The events NotificationService actually dispatches that WorkflowSubscriber
-  # maps to a trigger.
-  fired = %w[ticket.created ticket.status_changed ticket.assigned ticket.priority_changed
-             ticket.replied ticket.escalated sla.breached sla.warning]
-
   describe 'trigger_event' do
-    fired.each do |event|
+    Escalated::EventNames::EMITTED.each do |event|
       it "accepts #{event}, which the subscriber fires" do
         expect(build(:escalated_workflow, trigger_event: event)).to be_valid
       end
     end
 
-    %w[ticket.updated ticket.tagged ticket.department_changed reply.created reply.agent_reply
-       ticket.reopened].each do |event|
+    %w[reply.agent_reply ticket.merged ticket_created].each do |event|
       it "refuses #{event}, which nothing fires" do
         workflow = build(:escalated_workflow, trigger_event: event)
 
@@ -25,12 +19,15 @@ RSpec.describe Escalated::Workflow do
       end
     end
 
-    it 'offers the form exactly the triggers the subscriber fires' do
-      expect(described_class::TRIGGER_EVENTS).to match_array(
-        %w[ticket.created ticket.status_changed ticket.assigned ticket.priority_changed
-           ticket.replied ticket.escalated sla.breached sla.warning]
-      )
-      expect(described_class::TRIGGER_EVENTS - Escalated::Services::WorkflowSubscriber::EVENT_MAP.values).to be_empty
+    it 'stores a legacy trigger under its canonical name' do
+      workflow = create(:escalated_workflow, trigger_event: 'ticket.replied')
+
+      expect(workflow.reload.trigger_event).to eq('reply.created')
+    end
+
+    it 'offers the form exactly the canonical events this engine emits' do
+      expect(described_class::TRIGGER_EVENTS).to match_array(Escalated::EventNames::EMITTED)
+      expect(described_class::TRIGGER_EVENTS & Escalated::EventNames::LEGACY.keys).to be_empty
     end
   end
 

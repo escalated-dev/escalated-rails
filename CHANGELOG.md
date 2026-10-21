@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.3] - 2026-10-21
+
+### Upgrading
+- Run the migrations. `065_add_verified_guest_access` adds four nullable ticket columns and a `guest_verifications` table.
+- Configure outbound mail and a shared `Rails.cache` (Redis or Memcached) across processes.
+- Use the bundled widget or `@escalated-dev/escalated` 0.12.3 or later. Older clients cannot create guest tickets or start chats without the code step.
+- Existing permanent guest links keep working while `accept_legacy_guest_tokens` is on (the default for now), until a grant is issued for the ticket. Set it to `false` to retire them. Guests can get a new link through lookup.
+- `Ticket#guest?` now also treats a ticket with a guest email and no requester as a guest.
+- Old `rails_blob_path` links do not expire. If the host does not use ActiveStorage's own routes for anything else, set `config.active_storage.draw_routes = false` to retire them. Keep cloud buckets private.
+- `AttachmentService.url_for` returns the new route. Its `expires_in:` keyword is replaced by `guest_ticket:`.
+- Nothing to migrate. Workflows stored with `ticket.replied` and webhook subscriptions stored with `internal_note.added`, `tag.added`, `ticket.tagged`, `tag.removed`, `ticket.untagged`, `chat.session_started` or `chat.session_ended` keep working: they are read as their canonical names, shown in the admin forms under those names, and rewritten to them the next time they are saved.
+- A receiver that matched `internal_note.added` in the `X-Escalated-Event` header or the `event` field should match `note.created` instead.
+
 ### Security
 - Verified guest access ([docs/guest-access.md](docs/guest-access.md)), as in escalated-laravel.
   - Guest tickets, widget tickets, live chats and ticket lookups need an emailed 8-digit code:
@@ -22,18 +35,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - `/widget/config` sends `guest_verification_required: true` and `status_lookup_enabled: true`.
   - Guest/Create receives `verification_url` and `lookup_url`.
   - Guest and widget responses carry `Cache-Control: no-store` and `Referrer-Policy: no-referrer`.
-
-### Fixed
-- The guest form reads the `guest_name` and `guest_email` fields Guest/Create posts. It still reads `name` and `email`.
-
-### Upgrade notes
-- Run the migrations. `065_add_verified_guest_access` adds four nullable ticket columns and a `guest_verifications` table.
-- Configure outbound mail and a shared `Rails.cache` (Redis or Memcached) across processes.
-- Use the bundled widget or `@escalated-dev/escalated` 0.12.3 or later. Older clients cannot create guest tickets or start chats without the code step.
-- Existing permanent guest links keep working while `accept_legacy_guest_tokens` is on (the default for now), until a grant is issued for the ticket. Set it to `false` to retire them. Guests can get a new link through lookup.
-- `Ticket#guest?` now also treats a ticket with a guest email and no requester as a guest.
-
-### Security
 - Attachments are private ([docs/private-attachments.md](docs/private-attachments.md)).
   - Every screen and the API link to a signed download route, `GET /support/attachments/:id?token=...`, which expires after `attachment_download_ttl_minutes` (default 10, 1 to 60). It replaces `rails_blob_path` and presigned storage URLs, which skipped the ticket-access check.
   - The download needs current access:
@@ -43,9 +44,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - Downloads are sent as `attachment` with a sanitised name, `nosniff` and `private, no-store`. Types other than PNG, JPEG, GIF, WebP and PDF are sent as `application/octet-stream`.
   - API replies now include each attachment's `url`.
 
-### Upgrade notes
-- Old `rails_blob_path` links do not expire. If the host does not use ActiveStorage's own routes for anything else, set `config.active_storage.draw_routes = false` to retire them. Keep cloud buckets private.
-- `AttachmentService.url_for` returns the new route. Its `expires_in:` keyword is replaced by `guest_ticket:`.
+### Fixed
+- The guest form reads the `guest_name` and `guest_email` fields Guest/Create posts. It still reads `name` and `email`.
 
 ### Changed
 - One event vocabulary for webhooks and workflow triggers (escalated-developer-context ADR 2026-10-21). See `Escalated::EventNames`.
@@ -53,10 +53,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - The workflow reply trigger is `reply.created` (was `ticket.replied`), and it fires on public replies only. An internal note fires `note.created`. Before, a `ticket.replied` workflow also ran on internal notes.
   - Workflows can now be triggered by every event the engine emits: `ticket.updated`, `ticket.unassigned`, `ticket.department_changed`, `ticket.resolved`, `ticket.closed`, `ticket.reopened`, `ticket.tag_added`, `ticket.tag_removed`, `note.created` and the chat events, as well as the ones offered before.
 - Live chat emits `chat.started`, `chat.assigned`, `chat.transferred`, `chat.message` and `chat.ended` to webhooks and workflows. The payload carries the chat session's `id`, never the visitor's session token.
-
-### Upgrade notes
-- Nothing to migrate. Workflows stored with `ticket.replied` and webhook subscriptions stored with `internal_note.added`, `tag.added`, `ticket.tagged`, `tag.removed`, `ticket.untagged`, `chat.session_started` or `chat.session_ended` keep working: they are read as their canonical names, shown in the admin forms under those names, and rewritten to them the next time they are saved.
-- A receiver that matched `internal_note.added` in the `X-Escalated-Event` header or the `event` field should match `note.created` instead.
 
 ## [0.7.2] - 2026-10-20
 

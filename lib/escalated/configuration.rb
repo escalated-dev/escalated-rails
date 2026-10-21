@@ -26,6 +26,7 @@ module Escalated
                   :auto_close_resolved_after_days,
                   :max_attachments,
                   :max_attachment_size_kb,
+                  :attachment_download_ttl_minutes,
                   :default_priority,
                   :sla,
                   :notification_channels,
@@ -130,6 +131,8 @@ module Escalated
       @auto_close_resolved_after_days = 7
       @max_attachments = 5
       @max_attachment_size_kb = 10_240
+      # How long a signed attachment download link lives (1 to 60 minutes).
+      @attachment_download_ttl_minutes = 10
       @default_priority = :medium
       @sla = {
         enabled: true,

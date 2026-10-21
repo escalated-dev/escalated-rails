@@ -240,7 +240,7 @@ module Escalated
           updated_at: ticket.updated_at&.iso8601,
           attachments: ticket.attachments.map do |a|
             { id: a.id, filename: a.filename, size: a.human_size, content_type: a.content_type,
-              url: Services::AttachmentService.url_for(a) }
+              url: Services::AttachmentService.url_for(a, guest_ticket: ticket) }
           end,
           satisfaction_rating: if ticket.satisfaction_rating
                                  {
@@ -303,7 +303,7 @@ module Escalated
           },
           attachments: reply.attachments.map do |a|
             { id: a.id, filename: a.filename, size: a.human_size, content_type: a.content_type,
-              url: Services::AttachmentService.url_for(a) }
+              url: Services::AttachmentService.url_for(a, guest_ticket: @ticket) }
           end,
           created_at: reply.created_at&.iso8601,
           is_system: reply.is_system

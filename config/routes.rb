@@ -13,6 +13,10 @@ Escalated::Engine.routes.draw do
   # X-Escalated-Signature, not by a session, so no host auth filters apply.
   post 'cloud/webhook', to: 'cloud_webhook#receive', as: :cloud_webhook
 
+  # Attachment downloads: a signed, expiring link plus a ticket-access check
+  # (Escalated::AttachmentAccess). Core, so API-only hosts can download too.
+  get 'attachments/:id', to: 'attachments#show', as: :attachment_download
+
   # SDK plugin routes are registered dynamically at boot time by
   # Escalated::Bridge::RouteRegistrar based on each plugin's manifest.
   # They appear as:

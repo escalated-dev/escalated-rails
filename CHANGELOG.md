@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Security
+- Attachments are private ([docs/private-attachments.md](docs/private-attachments.md)).
+  - Every screen and the API link to a signed download route, `GET /support/attachments/:id?token=...`, which expires after `attachment_download_ttl_minutes` (default 10, 1 to 60). It replaces `rails_blob_path` and presigned storage URLs, which skipped the ticket-access check.
+  - The download needs current access:
+    - agents and admins who can see the ticket
+    - the requester, except for internal-note files
+    - a guest, through a capability on the guest page's links that is bound to the ticket's guest token
+  - Downloads are sent as `attachment` with a sanitised name, `nosniff` and `private, no-store`. Types other than PNG, JPEG, GIF, WebP and PDF are sent as `application/octet-stream`.
+  - API replies now include each attachment's `url`.
+
+### Upgrade notes
+- Old `rails_blob_path` links do not expire. If the host does not use ActiveStorage's own routes for anything else, set `config.active_storage.draw_routes = false` to retire them. Keep cloud buckets private.
+- `AttachmentService.url_for` returns the new route. Its `expires_in:` keyword is replaced by `guest_ticket:`.
+
 ### Changed
 - One event vocabulary for webhooks and workflow triggers (escalated-developer-context ADR 2026-10-21). See `Escalated::EventNames`.
   - Internal notes are sent to webhooks as `note.created` (was `internal_note.added`).

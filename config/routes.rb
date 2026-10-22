@@ -32,6 +32,11 @@ Escalated::Engine.routes.draw do
 
   # Customer-facing routes
   namespace :customer do
+    # The knowledge base reader (published articles only).
+    get 'kb', to: 'knowledge_base#index', as: :kb
+    get 'kb/:slug', to: 'knowledge_base#show', as: :kb_article
+    post 'kb/:slug/feedback', to: 'knowledge_base#feedback', as: :kb_feedback
+
     # The controller's `create` renders the form and `store` saves it (the
     # Laravel names). `resources ... only: :create` sent POST /tickets to the
     # form action, and `get :new, action: :create` was drawn at /tickets
@@ -182,7 +187,7 @@ Escalated::Engine.routes.draw do
         post :reorder
       end
     end
-    resources :articles, only: %i[index create update destroy]
+    resources :articles, only: %i[index new create edit update destroy]
     resources :kb_categories, only: %i[index create update destroy]
 
     # Phase 3

@@ -2,7 +2,13 @@
 
 module Escalated
   class ImportJob < ApplicationRecord
+    include Escalated::HidesSecrets
+
     self.table_name = Escalated.table_name('import_jobs')
+
+    # The source platform's credentials are used server-side by the import run
+    # and never serialized to a page or JSON response.
+    hides_secrets :credentials
 
     # Carried here rather than as a column default: MySQL forbids a default on a
     # JSON column, so a database default made the engine impossible to install
@@ -16,7 +22,7 @@ module Escalated
              dependent: :destroy
 
     # Encrypted JSON under a key derived from secret_key_base. Never sent to
-    # the browser: see Escalated::Admin::ImportsController#job_json.
+    # the browser: see #to_page_props.
     serialize :credentials, coder: Escalated::Support::ImportCredentials
 
     # The primary key is a uuid on PostgreSQL and a 36-character string
@@ -95,6 +101,28 @@ module Escalated
         'timestamp' => Time.current.iso8601
       }
       update!(error_log: log)
+    end
+
+    # The fields the admin import pages read. Built from an explicit list so a
+    # column added later is not sent to the browser by default.
+    def to_page_props
+      log = error_log || []
+
+      {
+        id: id,
+        user_id: user_id,
+        platform: platform,
+        status: status,
+        field_mappings: field_mappings || {},
+        progress: progress || {},
+        error_log: log.last(50),
+        error_count: log.size,
+        resumable: resumable?,
+        started_at: started_at&.iso8601,
+        completed_at: completed_at&.iso8601,
+        created_at: created_at&.iso8601,
+        updated_at: updated_at&.iso8601
+      }
     end
 
     def purge_credentials!

@@ -2,7 +2,12 @@
 
 module Escalated
   class ApiToken < ApplicationRecord
+    include Escalated::HidesSecrets
+
     self.table_name = Escalated.table_name('api_tokens')
+
+    # The token hash is only for lookups; never serialized.
+    hides_secrets :token
 
     # Carried here rather than as a column default: MySQL forbids a default on a
     # JSON column, so a database default made the engine impossible to install

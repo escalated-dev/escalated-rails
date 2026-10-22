@@ -4,6 +4,7 @@ module Escalated
   class ReportingService
     # The figures the report screens read, in the shape they read them.
     include Escalated::ReportingService::ScreenMetrics
+    include Escalated::ReportingService::SubReports
 
     def initialize(from:, to:)
       @from = from

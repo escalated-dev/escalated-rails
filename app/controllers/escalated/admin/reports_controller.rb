@@ -61,31 +61,91 @@ module Escalated
         }
       end
 
+      # The dashboard's tabs (Overview, Agents, SLA, CSAT), as escalated-laravel
+      # sends them. This used to send today/this_week counts under names the
+      # component does not declare, so every tab rendered its defaults.
       def dashboard
-        today = Time.current.all_day
-        this_week = 1.week.ago.beginning_of_day..Time.current.end_of_day
-
         render_page 'Escalated/Admin/Reports/Dashboard', {
-          today: {
-            created: Escalated::Ticket.where(created_at: today).count,
-            resolved: Escalated::Ticket.where(resolved_at: today).count,
-            closed: Escalated::Ticket.where(closed_at: today).count,
-            first_replies: Escalated::Ticket.where(first_response_at: today).count
+          period_days: period_days,
+          volume: window.daily_volume,
+          by_status: window.status_counts,
+          by_priority: window.priority_counts,
+          avg_response_hours: window.average_response_hours,
+          avg_resolution_hours: window.average_resolution_hours,
+          sla_compliance: window.sla_compliance_rate,
+          csat_average: window.csat_average,
+          agent_performance: window.agent_performance_rows
+        }
+      end
+
+      def agents
+        render_page 'Escalated/Admin/Reports/AgentMetrics', {
+          period_days: period_days,
+          agents: window.agent_performance_rows
+        }
+      end
+
+      def sla
+        render_page 'Escalated/Admin/Reports/SlaReport', {
+          period_days: period_days,
+          compliance_rate: window.sla_compliance_rate,
+          compliance_by_policy: window.sla_compliance_by_policy,
+          breaches: window.sla_breach_details
+        }
+      end
+
+      def csat
+        tickets = window.tickets_count
+        total_ratings = window.ratings_count
+
+        render_page 'Escalated/Admin/Reports/CsatReport', {
+          period_days: period_days,
+          csat_average: window.csat_average,
+          response_rate: tickets.positive? ? (total_ratings.to_f / tickets * 100).round(1) : 0,
+          total_ratings: total_ratings,
+          by_agent: window.csat_by_agent,
+          over_time: window.csat_over_time
+        }
+      end
+
+      # One agent over the period, against the period of the same length before
+      # it, under the names Reports/AgentDetail declares.
+      def agent_detail
+        agent = Escalated.configuration.user_model.find(params[:id])
+        current = window.agent_figures(agent.id)
+        previous = Escalated::ReportingService.new(from: period_start - period_days.days, to: period_start)
+                                              .agent_figures(agent.id)
+
+        render_page 'Escalated/Admin/Reports/AgentDetail', {
+          period_days: period_days,
+          agent: {
+            id: agent.id,
+            name: agent.respond_to?(:name) && agent.name.present? ? agent.name : agent.email,
+            email: agent.email
           },
-          this_week: {
-            created: Escalated::Ticket.where(created_at: this_week).count,
-            resolved: Escalated::Ticket.where(resolved_at: this_week).count
-          },
-          open_by_priority: Escalated::Ticket.priorities.keys.index_with do |priority|
-            Escalated::Ticket.by_open.where(priority: priority).count
-          end,
-          sla_breaches_today: Escalated::Ticket.where(sla_breached: true).where(updated_at: today).count,
-          unassigned_open: Escalated::Ticket.by_open.unassigned.count,
-          csat_this_week: calculate_csat_stats(1.week.ago.beginning_of_day, Time.current.end_of_day)
+          **current,
+          prev_total_tickets: previous[:total_tickets],
+          prev_resolved_tickets: previous[:resolved_tickets],
+          prev_avg_frt: previous[:avg_frt],
+          prev_avg_resolution: previous[:avg_resolution],
+          prev_csat_score: previous[:csat_score]
         }
       end
 
       private
+
+      # The screens send the period as `days` (default 30, at most a year).
+      def period_days
+        @period_days ||= (params[:days].presence || 30).to_i.clamp(1, 365)
+      end
+
+      def period_start
+        @period_start ||= period_days.days.ago
+      end
+
+      def window
+        @window ||= Escalated::ReportingService.new(from: period_start, to: Time.current)
+      end
 
       def parse_date(value)
         return nil if value.blank?

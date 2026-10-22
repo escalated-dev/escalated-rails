@@ -7,10 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- The report pages `Reports/AgentMetrics`, `SlaReport`, `CsatReport` and `AgentDetail`, at `GET /admin/reports/agents`, `/sla`, `/csat` and `/agent/:id/detail` (Laravel's paths), with the props escalated-laravel sends. AgentDetail sends what the component declares: this period against the one before, response-time percentiles, and daily productivity and workload. Each takes the period as `days` (default 30).
 - The admin Form pages for statuses, roles, business hours, custom fields and custom objects, plus the custom object Records page, now render with the props escalated-laravel sends them. New routes: `GET /admin/{statuses,roles,business_hours,custom_fields,custom_objects}/new` and `/:id/edit`, and `POST /admin/custom_objects/:id/records`.
 - The knowledge base pages: the admin article form (`GET /admin/articles/new` and `/:id/edit`) and the customer reader, `Customer/KnowledgeBase/Index` and `Article` (`GET /customer/kb`, `GET /customer/kb/:slug`, `POST /customer/kb/:slug/feedback`). Props and behaviour follow escalated-laravel. Only published articles are shown, and each read counts a view. A disabled knowledge base answers 404. A private one answers 403 to signed-out visitors. Feedback answers 404 while it is turned off.
 
 ### Fixed
+- `Reports/Dashboard` rendered every tab empty. It was sent today/this-week counts under names the component does not declare. It now gets Laravel's props: `volume`, `by_status`, `by_priority`, average response and resolution hours, `sla_compliance`, `csat_average` and `agent_performance`, over `days`.
 - The roles, business hours and custom objects lists failed with a 500 error. The custom fields and custom objects screens, and the role list, read and wrote columns these tables do not have.
 - These screens now take the bodies the shared forms post: fields at the top level, role `permissions`, schedule `holidays` with `recurring`, custom field `type`, and custom object `slug` and `fields_schema`. They are validated the way escalated-laravel validates them. A refused save goes back to the form with the errors on their fields.
 - The article admin takes the body the shared form posts. A blank slug is derived from the title. Publishing stamps `published_at` once. The list sends `view_count`, `helpful_count` and `category_id`, and no longer sends `statuses`, which the page does not read.

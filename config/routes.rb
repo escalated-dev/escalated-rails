@@ -127,6 +127,10 @@ Escalated::Engine.routes.draw do
     end
     get :reports, to: 'reports#index'
     get 'reports/dashboard', to: 'reports#dashboard', as: :reports_dashboard
+    get 'reports/agents', to: 'reports#agents', as: :reports_agents
+    get 'reports/sla', to: 'reports#sla', as: :reports_sla
+    get 'reports/csat', to: 'reports#csat', as: :reports_csat
+    get 'reports/agent/:id/detail', to: 'reports#agent_detail', as: :reports_agent_detail
 
     # Advanced reporting endpoints
     scope 'reports/advanced', controller: :advanced_reports do

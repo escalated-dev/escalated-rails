@@ -47,6 +47,30 @@ module PageNameParity
     'Escalated/Admin/Settings/Csat'
   ].freeze
 
+  # Shipped pages this engine does not render yet. It is the to-do list:
+  # render a page and its name must leave the list, and a page the frontend
+  # adds must be rendered or listed here.
+  NOT_YET_RENDERED = %w[
+    Escalated/Admin/Import/Connect
+    Escalated/Admin/Import/Mapping
+    Escalated/Admin/Import/Review
+    Escalated/Admin/KnowledgeBase/Articles/Form
+    Escalated/Admin/Reports/AgentDetail
+    Escalated/Admin/Reports/AgentMetrics
+    Escalated/Admin/Reports/CsatReport
+    Escalated/Admin/Reports/SlaReport
+    Escalated/Admin/Settings/CsatSettings
+    Escalated/Admin/Settings/DataRetention
+    Escalated/Admin/Settings/DatabaseConnection
+    Escalated/Admin/Settings/EmailSettings
+    Escalated/Admin/Settings/Sandbox
+    Escalated/Admin/Workflows/Builder
+    Escalated/Auth/TwoFactorChallenge
+    Escalated/Customer/KnowledgeBase/Article
+    Escalated/Customer/KnowledgeBase/Index
+    Escalated/Plugin/Page
+  ].freeze
+
   PAGE_NAME = %r{'(Escalated/[A-Za-z0-9/_]+)'}
 
   module_function
@@ -90,6 +114,22 @@ RSpec.describe 'page name parity' do # rubocop:disable RSpec/DescribeClass
     missing = (rendered_pages.keys - shipped_pages - PageNameParity::KNOWN_BLANK).sort
 
     expect(missing).to eq([]), -> { explain(missing) }
+  end
+
+  it 'lists exactly the shipped pages it does not render yet' do
+    listed = PageNameParity::NOT_YET_RENDERED
+
+    expect(listed.uniq).to eq(listed), 'NOT_YET_RENDERED lists a page twice'
+
+    now_rendered = listed.select { |name| rendered_pages.key?(name) }
+    expect(now_rendered).to eq([]), "these are rendered now, remove them from NOT_YET_RENDERED:
+  #{now_rendered.join("
+  ")}"
+
+    unlisted = shipped_pages.reject { |name| rendered_pages.key?(name) || listed.include?(name) }
+    expect(unlisted).to eq([]), "these ship but are neither rendered nor listed in NOT_YET_RENDERED:
+  #{unlisted.join("
+  ")}"
   end
 
   it 'has a manifest that is present and looks like one' do

@@ -3,8 +3,10 @@
 module Escalated
   module Admin
     class CustomFieldsController < Escalated::ApplicationController
+      include Escalated::InertiaForms
+
       before_action :require_admin!
-      before_action :set_field, only: %i[update destroy]
+      before_action :set_field, only: %i[edit update destroy]
 
       def index
         fields = Escalated::CustomField.ordered
@@ -14,21 +16,39 @@ module Escalated
         }
       end
 
-      def create
-        field = Escalated::CustomField.new(field_params)
+      def new
+        render_page 'Escalated/Admin/CustomFields/Form', { field: nil, contexts: Escalated::CustomField::CONTEXTS }
+      end
 
+      def edit
+        render_page 'Escalated/Admin/CustomFields/Form', {
+          field: field_json(@field),
+          contexts: Escalated::CustomField::CONTEXTS
+        }
+      end
+
+      def create
+        attributes = field_params
+        errors = validate(attributes)
+        return redirect_back_with_form_errors(errors, escalated.new_admin_custom_field_path) if errors.any?
+
+        field = Escalated::CustomField.new(attributes)
         if field.save
           redirect_to escalated.admin_custom_fields_path, notice: I18n.t('escalated.admin.custom_field.created')
         else
-          redirect_back_or_to(escalated.admin_custom_fields_path, alert: field.errors.full_messages.join(', '))
+          redirect_back_with_form_errors(record_errors(field), escalated.new_admin_custom_field_path)
         end
       end
 
       def update
-        if @field.update(field_params)
+        attributes = field_params
+        errors = validate(attributes)
+        return redirect_back_with_form_errors(errors, escalated.edit_admin_custom_field_path(@field)) if errors.any?
+
+        if @field.update(attributes)
           redirect_to escalated.admin_custom_fields_path, notice: I18n.t('escalated.admin.custom_field.updated')
         else
-          redirect_back_or_to(escalated.admin_custom_fields_path, alert: @field.errors.full_messages.join(', '))
+          redirect_back_with_form_errors(record_errors(@field), escalated.edit_admin_custom_field_path(@field))
         end
       end
 
@@ -58,26 +78,44 @@ module Escalated
         @field = Escalated::CustomField.find(params[:id])
       end
 
+      # The body the shared form posts, as escalated-laravel reads it. The
+      # column behind `type` is field_type.
       def field_params
-        params.expect(
-          custom_field: [:label, :key, :field_type, :applies_to, :position,
-                         :is_required, :is_agent_only, :description,
-                         { options: [] }]
-        )
+        permitted = params.permit(:name, :type, :context, :required, :placeholder, :description, :position, :active,
+                                  options: [], validation_rules: {}).to_h.symbolize_keys
+        attributes = permitted.except(:type)
+        attributes[:field_type] = permitted[:type] if permitted.key?(:type)
+        %i[required active].each { |key| attributes[key] = boolean_param(attributes[key]) if attributes.key?(key) }
+        attributes[:options] = Array(attributes[:options]) if attributes.key?(:options)
+        attributes
+      end
+
+      def validate(attributes)
+        errors = {}
+        errors['name'] = 'The name field is required.' if attributes[:name].blank?
+        unless Escalated::CustomField::FIELD_TYPES.include?(attributes[:field_type].to_s)
+          errors['type'] = "The type must be one of: #{Escalated::CustomField::FIELD_TYPES.join(', ')}."
+        end
+        unless Escalated::CustomField::CONTEXTS.include?(attributes[:context].to_s)
+          errors['context'] = "The context must be one of: #{Escalated::CustomField::CONTEXTS.join(', ')}."
+        end
+        errors
       end
 
       def field_json(field)
         {
           id: field.id,
-          label: field.label,
-          key: field.key,
-          field_type: field.field_type,
-          applies_to: field.applies_to,
-          position: field.position,
-          is_required: field.is_required,
-          is_agent_only: field.is_agent_only,
+          name: field.name,
+          slug: field.slug,
+          type: field.field_type,
+          context: field.context,
+          options: field.options || [],
+          required: field.required,
+          placeholder: field.placeholder,
           description: field.description,
-          options: field.options,
+          validation_rules: field.validation_rules,
+          position: field.position,
+          active: field.active,
           created_at: field.created_at&.iso8601,
           updated_at: field.updated_at&.iso8601
         }

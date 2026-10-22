@@ -195,7 +195,8 @@ RSpec.describe 'Admin import wizard', type: :request do
         expect(job).to have_attributes(status: 'completed', credentials: nil)
         expect(job.completed_at).to be_present
         expect(job.progress['tickets']).to include('total' => 3, 'processed' => 3, 'skipped' => 0, 'failed' => 0)
-        expect(job.progress.keys).to eq(%w[contacts tags tickets replies])
+        # MySQL keeps JSON object keys in its own order.
+        expect(job.progress.keys).to match_array(%w[contacts tags tickets replies])
         expect(Escalated::ImportSourceMap.where(import_job_id: job.id, entity_type: 'tickets').count).to eq(3)
       end
 

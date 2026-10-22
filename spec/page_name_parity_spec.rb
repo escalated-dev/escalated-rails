@@ -56,7 +56,6 @@ module PageNameParity
     Escalated/Admin/Import/Review
     Escalated/Admin/Settings/CsatSettings
     Escalated/Admin/Settings/DataRetention
-    Escalated/Admin/Settings/DatabaseConnection
     Escalated/Admin/Settings/EmailSettings
     Escalated/Admin/Settings/Sandbox
     Escalated/Admin/Workflows/Builder

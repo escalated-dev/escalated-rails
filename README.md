@@ -345,6 +345,14 @@ every 1.week do
 end
 ```
 
+`Escalated::PurgeExpiredDataJob` (also `rake escalated:purge_expired`, with `DRY_RUN=1` to only count) applies the retention periods set on the admin Data Retention screen. Every period defaults to `never`, so until one is set it only clears expired guest verification codes. Purged tickets are destroyed, not soft-deleted:
+
+```ruby
+every 1.day do
+  runner "Escalated::PurgeExpiredDataJob.perform_now"
+end
+```
+
 ## Routes
 
 Routes are automatically mounted when the engine loads. By default they mount at `/support`.

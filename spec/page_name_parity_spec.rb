@@ -54,7 +54,6 @@ module PageNameParity
     Escalated/Admin/Import/Connect
     Escalated/Admin/Import/Mapping
     Escalated/Admin/Import/Review
-    Escalated/Admin/KnowledgeBase/Articles/Form
     Escalated/Admin/Reports/AgentDetail
     Escalated/Admin/Reports/AgentMetrics
     Escalated/Admin/Reports/CsatReport
@@ -66,8 +65,6 @@ module PageNameParity
     Escalated/Admin/Settings/Sandbox
     Escalated/Admin/Workflows/Builder
     Escalated/Auth/TwoFactorChallenge
-    Escalated/Customer/KnowledgeBase/Article
-    Escalated/Customer/KnowledgeBase/Index
     Escalated/Plugin/Page
   ].freeze
 

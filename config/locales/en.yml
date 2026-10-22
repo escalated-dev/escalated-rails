@@ -71,6 +71,10 @@ en:
         created: "Custom field created."
         updated: "Custom field updated."
         deleted: "Custom field deleted."
+      article:
+        created: "Article created."
+        updated: "Article updated."
+        deleted: "Article deleted."
       custom_object:
         created: "Custom object created."
         updated: "Custom object updated."
@@ -90,6 +94,8 @@ en:
         composer_delete: "Composer plugins cannot be deleted. Remove the package via Composer instead."
         deleted: "Plugin deleted successfully."
         delete_failed: "Failed to delete plugin: %{error}"
+    knowledge_base:
+      feedback_thanks: "Thank you for your feedback!"
     middleware:
       not_admin: "Access denied."
       not_agent: "Access denied."

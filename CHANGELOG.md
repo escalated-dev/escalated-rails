@@ -8,11 +8,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ### Added
 - The admin Form pages for statuses, roles, business hours, custom fields and custom objects, plus the custom object Records page, now render with the props escalated-laravel sends them. New routes: `GET /admin/{statuses,roles,business_hours,custom_fields,custom_objects}/new` and `/:id/edit`, and `POST /admin/custom_objects/:id/records`.
+- The knowledge base pages: the admin article form (`GET /admin/articles/new` and `/:id/edit`) and the customer reader, `Customer/KnowledgeBase/Index` and `Article` (`GET /customer/kb`, `GET /customer/kb/:slug`, `POST /customer/kb/:slug/feedback`). Props and behaviour follow escalated-laravel. Only published articles are shown, and each read counts a view. A disabled knowledge base answers 404. A private one answers 403 to signed-out visitors. Feedback answers 404 while it is turned off.
 
 ### Fixed
 - The roles, business hours and custom objects lists failed with a 500 error. The custom fields and custom objects screens, and the role list, read and wrote columns these tables do not have.
 - These screens now take the bodies the shared forms post: fields at the top level, role `permissions`, schedule `holidays` with `recurring`, custom field `type`, and custom object `slug` and `fields_schema`. They are validated the way escalated-laravel validates them. A refused save goes back to the form with the errors on their fields.
-- The admin flash messages for statuses, roles, business hours, custom fields and custom objects had no English text.
+- The article admin takes the body the shared form posts. A blank slug is derived from the title. Publishing stamps `published_at` once. The list sends `view_count`, `helpful_count` and `category_id`, and no longer sends `statuses`, which the page does not read.
+- The admin flash messages for statuses, roles, business hours, custom fields, custom objects and articles had no English text.
 
 ### Upgrading
 - `GET /admin/custom_objects/:id/records` now renders the Records page. Send `Accept: application/json` to keep getting the JSON list.

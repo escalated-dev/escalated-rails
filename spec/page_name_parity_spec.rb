@@ -32,20 +32,11 @@ module PageNameParity
   # Save posts fields the controller ignores -- worse than blank, because it
   # looks like it works.
   #
-  #   Settings/Csat
-  #     Not a naming problem and not a prop-shape one either. This engine has a
-  #     SatisfactionRating model and a customer-facing controller to submit one,
-  #     but nothing that asks for a rating: no survey is sent, and the three
-  #     settings this screen saves -- csat_enabled, csat_send_after_hours,
-  #     csat_message -- are read nowhere in app/ or lib/. Pointing the name at
-  #     CsatSettings would give an admin a working-looking form for a delivery
-  #     that does not happen, which is worse than a blank screen. It is closed
-  #     by building the survey, not by renaming anything.
+  # Settings/Csat, the last entry, went when the CSAT screen moved to
+  # Settings/CsatSettings with escalated-laravel's settings.
   #
   # This list may shrink. It must never grow.
-  KNOWN_BLANK = [
-    'Escalated/Admin/Settings/Csat'
-  ].freeze
+  KNOWN_BLANK = [].freeze
 
   # Shipped pages this engine does not render yet. It is the to-do list:
   # render a page and its name must leave the list, and a page the frontend
@@ -54,9 +45,6 @@ module PageNameParity
     Escalated/Admin/Import/Connect
     Escalated/Admin/Import/Mapping
     Escalated/Admin/Import/Review
-    Escalated/Admin/Settings/CsatSettings
-    Escalated/Admin/Settings/DataRetention
-    Escalated/Admin/Settings/EmailSettings
     Escalated/Admin/Settings/Sandbox
     Escalated/Admin/Workflows/Builder
     Escalated/Auth/TwoFactorChallenge

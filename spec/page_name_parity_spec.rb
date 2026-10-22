@@ -54,10 +54,6 @@ module PageNameParity
     Escalated/Admin/Import/Connect
     Escalated/Admin/Import/Mapping
     Escalated/Admin/Import/Review
-    Escalated/Admin/Reports/AgentDetail
-    Escalated/Admin/Reports/AgentMetrics
-    Escalated/Admin/Reports/CsatReport
-    Escalated/Admin/Reports/SlaReport
     Escalated/Admin/Settings/CsatSettings
     Escalated/Admin/Settings/DataRetention
     Escalated/Admin/Settings/DatabaseConnection

@@ -266,6 +266,10 @@ Escalated::Engine.routes.draw do
     post 'settings/csat', to: 'settings#update_csat', as: :settings_update_csat
     get 'settings/public_tickets', to: 'settings#public_tickets', as: :settings_public_tickets
     put 'settings/public_tickets', to: 'settings#update_public_tickets', as: :settings_update_public_tickets
+    # Which database Escalated's tables live on (read-only: set in config).
+    get 'settings/database', to: 'database_connection#show', as: :settings_database
+    post 'settings/database/test', to: 'database_connection#check', as: :settings_database_test
+    post 'settings/database', to: 'database_connection#update', as: :settings_database_update
     resources :custom_objects, only: %i[index new create edit update destroy] do
       member do
         get :records

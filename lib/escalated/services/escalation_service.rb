@@ -5,6 +5,8 @@ module Escalated
     class EscalationService
       class << self
         def evaluate_all
+          return [] if Escalated::Support::ImportContext.importing?
+
           rules = Escalated::EscalationRule.active.ordered
           tickets = Escalated::Ticket.by_open
           escalated_tickets = []
@@ -23,6 +25,8 @@ module Escalated
         end
 
         def evaluate_ticket(ticket)
+          return nil if Escalated::Support::ImportContext.importing?
+
           rules = Escalated::EscalationRule.active.ordered
 
           rules.each do |rule|

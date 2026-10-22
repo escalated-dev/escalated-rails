@@ -236,9 +236,13 @@ module Escalated
 
         user_model = Escalated.configuration.user_model
 
+        subject = record['title'].presence || 'Imported ticket'
         ticket = Escalated::Ticket.new(
-          subject: record['title'].presence || 'Imported ticket',
-          description: record['description'].presence || record['body'].presence || '',
+          subject: subject,
+          # A description is required here, and many sources keep the first
+          # message as a reply instead: fall back to the subject rather than
+          # refusing the ticket.
+          description: record['description'].presence || record['body'].presence || subject,
           status: normalise_ticket_status(record['status']),
           priority: normalise_ticket_priority(record['priority']),
           assigned_to: assignee_id,

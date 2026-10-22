@@ -2,108 +2,189 @@
 
 module Escalated
   module Admin
+    # The admin import wizard, after escalated-laravel's Admin\ImportController:
+    #
+    #   Index    GET  /admin/import                       adapters, recent jobs
+    #   Connect  GET  /admin/import/:platform/connect     credential form
+    #            POST /admin/import/:platform/test-connection  JSON { success[, error] }
+    #   Mapping  GET  /admin/import/:platform/mapping     defaults + source fields
+    #   Review   POST /admin/import/:platform/review      echo of the choices, nothing written
+    #            POST /admin/import/:platform/start       creates the job, queues the run
+    #   Progress GET  /admin/import/progress/:job_id
+    #            GET  /admin/import/status/:job_id        JSON poll
+    #            POST /admin/import/{pause,resume,cancel}/:job_id
+    #
+    # Sources come from the "import.adapters" filter; core ships none. Tested
+    # credentials are kept in the session, encrypted, until the import starts,
+    # and never sent back to the browser.
     class ImportsController < Escalated::ApplicationController
       before_action :require_admin!
-      before_action :set_import_job, only: %i[show start pause resume destroy]
+      before_action :set_import_job, only: %i[show start pause resume cancel destroy progress status]
+      before_action :set_adapter, only: %i[connect test_connection mapping launch]
 
-      # GET /admin/imports
+      # GET /admin/import (and the older /admin/imports)
       def index
-        jobs = Escalated::ImportJob
-               .order(created_at: :desc)
-               .limit(100)
+        jobs = Escalated::ImportJob.order(created_at: :desc).limit(20)
 
         render_page 'Escalated/Admin/Import/Index', {
-          jobs: jobs.map { |j| job_json(j) },
-          adapters: import_service.available_adapters.map { |a| adapter_json(a) }
+          adapters: import_service.available_adapters.map { |a| adapter_json(a) },
+          jobs: jobs.map { |j| job_json(j) }
         }
       end
 
-      # GET /admin/imports/:id
-      def show
-        render_page 'Escalated/Admin/Import/Progress', {
-          job: job_json(@job),
-          adapters: import_service.available_adapters.map { |a| adapter_json(a) }
+      # GET /admin/import/:platform/connect
+      def connect
+        render_page 'Escalated/Admin/Import/Connect', {
+          platform: @adapter.name,
+          display_name: @adapter.display_name,
+          credential_fields: @adapter.credential_fields
         }
       end
 
-      # POST /admin/imports
-      def create
+      # POST /admin/import/:platform/test-connection
+      def test_connection
+        credentials = credentials_param
+        success = @adapter.test_connection(credentials) ? true : false
+        session[session_key] = Escalated::Support::ImportCredentials.encrypt(credentials) if success
+
+        render json: { success: success }
+      rescue StandardError => e
+        render json: { success: false, error: e.message }, status: :unprocessable_content
+      end
+
+      # GET /admin/import/:platform/mapping
+      def mapping
+        credentials = session_credentials
+        return redirect_to_connect unless credentials
+
+        entity_types = @adapter.entity_types
+        mappings = entity_types.index_with do |type|
+          {
+            defaults: @adapter.default_field_mappings(type),
+            source_fields: @adapter.available_source_fields(type, credentials)
+          }
+        end
+
+        render_page 'Escalated/Admin/Import/Mapping', {
+          platform: @adapter.name,
+          display_name: @adapter.display_name,
+          entity_types: entity_types,
+          mappings: mappings
+        }
+      end
+
+      # POST /admin/import/:platform/review
+      #
+      # The dry run: shows what will be imported and how, and writes nothing.
+      def review
+        render_page 'Escalated/Admin/Import/Review', {
+          platform: params[:platform],
+          field_mappings: hash_param(:field_mappings),
+          entity_types: Array(params[:entity_types]).map(&:to_s)
+        }
+      end
+
+      # POST /admin/import/:platform/start
+      def launch
+        credentials = session_credentials
+        return redirect_to_connect unless credentials
+
         job = Escalated::ImportJob.create!(
-          platform: params.require(:platform),
-          status: 'pending',
-          credentials: params[:credentials]&.to_unsafe_h || {},
-          field_mappings: params[:field_mappings]&.to_unsafe_h || {},
-          progress: {},
-          error_log: []
+          user_id: current_user&.id,
+          platform: @adapter.name,
+          status: 'mapping',
+          credentials: credentials,
+          field_mappings: hash_param(:field_mappings)
         )
 
-        redirect_to escalated.admin_import_path(job),
-                    notice: I18n.t('escalated.import.created')
-      rescue ActionController::ParameterMissing => e
-        redirect_to escalated.admin_imports_path,
-                    alert: e.message
+        # The job holds them now, encrypted.
+        session.delete(session_key)
+
+        run_import_in_background(job)
+
+        redirect_to escalated.admin_import_progress_path(job.id)
       end
 
-      # POST /admin/imports/:id/start
-      def start
-        unless @job.status == 'pending'
-          return redirect_to escalated.admin_import_path(@job),
-                             alert: I18n.t('escalated.import.already_started')
+      # GET /admin/import/progress/:job_id (and the older /admin/imports/:id)
+      def progress
+        render_page 'Escalated/Admin/Import/Progress', { job: job_json(@job) }
+      end
+      alias show progress
+
+      # GET /admin/import/status/:job_id
+      def status
+        render json: {
+          status: @job.status,
+          progress: @job.progress || {},
+          error_log: (@job.error_log || []).last(50),
+          started_at: @job.started_at&.iso8601,
+          completed_at: @job.completed_at&.iso8601
+        }
+      end
+
+      # POST /admin/import/pause/:job_id
+      def pause
+        @job.update!(status: 'paused') if @job.status == 'importing'
+
+        redirect_to_progress notice: I18n.t('escalated.import.paused')
+      end
+
+      # POST /admin/import/resume/:job_id
+      def resume
+        if @job.resumable?
+          @job.transition_to!('mapping') if @job.status == 'failed'
+          run_import_in_background(@job)
         end
+
+        redirect_to_progress notice: I18n.t('escalated.import.resumed')
+      end
+
+      # POST /admin/import/cancel/:job_id
+      def cancel
+        @job.update!(status: 'failed', completed_at: Time.current)
+        @job.purge_credentials!
+
+        redirect_to_progress notice: I18n.t('escalated.import.cancelled')
+      end
+
+      # POST /admin/imports -- the older one-step create, kept for existing callers.
+      def create
+        job = Escalated::ImportJob.create!(
+          user_id: current_user&.id,
+          platform: params.require(:platform),
+          status: 'pending',
+          credentials: hash_param(:credentials),
+          field_mappings: hash_param(:field_mappings)
+        )
+
+        redirect_to escalated.admin_import_progress_path(job.id), notice: I18n.t('escalated.import.created')
+      rescue ActionController::ParameterMissing => e
+        redirect_to escalated.admin_import_index_path, alert: e.message
+      end
+
+      # POST /admin/imports/:id/start -- starts a job made by #create.
+      def start
+        return redirect_to_progress alert: I18n.t('escalated.import.already_started') unless @job.status == 'pending'
 
         @job.transition_to!('authenticating')
 
-        if import_service.test_connection(@job)
-          @job.transition_to!('mapping')
-          @job.transition_to!('importing')
-        else
+        unless import_service.test_connection(@job)
           @job.transition_to!('failed')
-          return redirect_to escalated.admin_import_path(@job),
-                             alert: I18n.t('escalated.import.connection_failed')
+          return redirect_to_progress alert: I18n.t('escalated.import.connection_failed')
         end
 
+        @job.transition_to!('mapping')
         run_import_in_background(@job)
 
-        redirect_to escalated.admin_import_path(@job),
-                    notice: I18n.t('escalated.import.started')
+        redirect_to_progress notice: I18n.t('escalated.import.started')
       rescue ArgumentError, RuntimeError => e
-        redirect_to escalated.admin_import_path(@job), alert: e.message
-      end
-
-      # POST /admin/imports/:id/pause
-      def pause
-        unless @job.status == 'importing'
-          return redirect_to escalated.admin_import_path(@job),
-                             alert: I18n.t('escalated.import.cannot_pause')
-        end
-
-        @job.update!(status: 'paused')
-
-        redirect_to escalated.admin_import_path(@job),
-                    notice: I18n.t('escalated.import.paused')
-      end
-
-      # POST /admin/imports/:id/resume
-      def resume
-        unless @job.resumable?
-          return redirect_to escalated.admin_import_path(@job),
-                             alert: I18n.t('escalated.import.not_resumable')
-        end
-
-        @job.transition_to!('importing')
-        run_import_in_background(@job)
-
-        redirect_to escalated.admin_import_path(@job),
-                    notice: I18n.t('escalated.import.resumed')
-      rescue ArgumentError, RuntimeError => e
-        redirect_to escalated.admin_import_path(@job), alert: e.message
+        redirect_to_progress alert: e.message
       end
 
       # DELETE /admin/imports/:id
       def destroy
         @job.destroy!
-        redirect_to escalated.admin_imports_path,
-                    notice: I18n.t('escalated.import.deleted')
+        redirect_to escalated.admin_import_index_path, notice: I18n.t('escalated.import.deleted')
       end
 
       # GET /admin/imports/:id/source_maps
@@ -134,47 +215,67 @@ module Escalated
       private
 
       def set_import_job
-        @job = Escalated::ImportJob.find(params[:id])
+        @job = Escalated::ImportJob.find(params[:job_id] || params[:id])
+      end
+
+      def set_adapter
+        @adapter = import_service.resolve_adapter(params[:platform].to_s)
+        raise ActiveRecord::RecordNotFound, "Import adapter not found: #{params[:platform]}" unless @adapter
       end
 
       def import_service
         @import_service ||= Escalated::Services::ImportService.new
       end
 
-      # Runs the import in a background thread so the HTTP response can return
-      # immediately. In production you would replace this with a proper job queue
-      # (Sidekiq, GoodJob, etc.) via the "import.run_async" hook.
+      def session_key
+        "escalated.import.#{@adapter.name}.credentials"
+      end
+
+      def session_credentials
+        Escalated::Support::ImportCredentials.decrypt(session[session_key])
+      end
+
+      def redirect_to_connect
+        redirect_to escalated.admin_import_connect_path(@adapter.name),
+                    alert: I18n.t('escalated.import.credentials_expired')
+      end
+
+      def redirect_to_progress(flash_message)
+        redirect_to escalated.admin_import_progress_path(@job.id), flash_message
+      end
+
+      def credentials_param
+        hash_param(:credentials).transform_values(&:to_s)
+      end
+
+      def hash_param(key)
+        value = params[key]
+        return {} unless value.respond_to?(:to_unsafe_h)
+
+        value.to_unsafe_h.to_h
+      end
+
+      # Queues the run as Escalated::RunImportJob. A host can take it over with
+      # the "import.run_async" action, e.g. to route it to a dedicated queue.
       def run_import_in_background(job)
         if Escalated.hooks.has_action?('import.run_async')
           Escalated.hooks.do_action('import.run_async', job)
         else
-          Thread.new do
-            # Escalated's own pool, not the host's primary: with a separate
-            # database configured, a checkout from ActiveRecord::Base would
-            # hold the wrong connection open for the whole import.
-            Escalated::ApplicationRecord.connection_pool.with_connection do
-              import_service.run(job)
-            rescue StandardError => e
-              backtrace = e.backtrace.first(10).join("\n")
-              Rails.logger.error(
-                "[Escalated::Import] Job #{job.id} failed: #{e.message}\n#{backtrace}"
-              )
-              begin
-                job.update(status: 'failed')
-              rescue StandardError
-                nil
-              end
-            end
-          end
+          Escalated::RunImportJob.perform_later(job.id)
         end
       end
 
+      # Laravel sends the job model as is. Its credentials are left out here:
+      # they are a secret, and the screen never reads them.
       def job_json(job)
         {
           id: job.id,
+          user_id: job.user_id,
           platform: job.platform,
           status: job.status,
+          field_mappings: job.field_mappings || {},
           progress: job.progress || {},
+          error_log: job.error_log || [],
           error_count: (job.error_log || []).size,
           resumable: job.resumable?,
           started_at: job.started_at&.iso8601,
@@ -188,8 +289,7 @@ module Escalated
         {
           name: adapter.name,
           display_name: adapter.display_name,
-          credential_fields: adapter.credential_fields,
-          entity_types: adapter.entity_types
+          credential_fields: adapter.credential_fields
         }
       end
     end

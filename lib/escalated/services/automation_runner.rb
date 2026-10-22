@@ -4,6 +4,8 @@ module Escalated
   module Services
     class AutomationRunner
       def run
+        return 0 if Escalated::Support::ImportContext.importing?
+
         affected = 0
 
         Escalated::Automation.active.each do |automation|

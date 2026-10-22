@@ -304,7 +304,23 @@ Escalated::Engine.routes.draw do
       post ':id/typing', action: :typing, as: :chat_typing
     end
 
-    # Import framework
+    # Import wizard, on escalated-laravel's paths (escalated.admin.import.*):
+    # Index -> Connect -> Mapping -> Review -> Progress.
+    scope 'import', controller: :imports, as: :import do
+      get '/', action: :index, as: :index
+      get 'progress/:job_id', action: :progress, as: :progress
+      get 'status/:job_id', action: :status, as: :status
+      post 'pause/:job_id', action: :pause, as: :pause
+      post 'resume/:job_id', action: :resume, as: :resume
+      post 'cancel/:job_id', action: :cancel, as: :cancel
+      get ':platform/connect', action: :connect, as: :connect
+      post ':platform/test-connection', action: :test_connection, as: :test_connection
+      get ':platform/mapping', action: :mapping, as: :mapping
+      post ':platform/review', action: :review, as: :review
+      post ':platform/start', action: :launch, as: :start
+    end
+
+    # Import framework (the earlier REST surface, kept for existing callers)
     resources :imports, only: %i[index show create destroy] do
       member do
         post :start

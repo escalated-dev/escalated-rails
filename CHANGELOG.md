@@ -7,6 +7,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- The admin Import wizard, on escalated-laravel's routes and props: `Admin/Import/Index` (`GET /admin/import`), `Connect` (`GET /admin/import/:platform/connect`, with `POST .../test-connection` answering `{ success[, error] }`), `Mapping` (`GET .../mapping`), `Review` (`POST .../review`, which writes nothing), `start` (`POST .../start`), and `Progress` (`GET /admin/import/progress/:job_id`, polled through `GET /admin/import/status/:job_id`, with `POST /admin/import/{pause,resume,cancel}/:job_id`). Sources are still the adapters registered on the `import.adapters` filter; core ships none. Tested credentials wait in the session, encrypted, until the import starts, and are never sent to the browser.
+- `Escalated::RunImportJob` runs an import on the `escalated` queue. The `import.run_async` action still replaces it.
+- Import jobs record the admin who started them (`user_id`).
 - `Admin/Settings/DatabaseConnection` at `GET /admin/settings/database`. It shows the connection Escalated's tables use and every connection in `database.yml`, each probed for whether it is reachable, carries Escalated's tables, and how many tickets it holds. `POST /admin/settings/database/test` probes one. The connection is still set only by `config.database_connection`, so the screen is read-only, like Laravel's when the connection is pinned by config. `POST /admin/settings/database` is refused.
 - The report pages `Reports/AgentMetrics`, `SlaReport`, `CsatReport` and `AgentDetail`, at `GET /admin/reports/agents`, `/sla`, `/csat` and `/agent/:id/detail` (Laravel's paths), with the props escalated-laravel sends. AgentDetail sends what the component declares: this period against the one before, response-time percentiles, and daily productivity and workload. Each takes the period as `days` (default 30).
 - The admin Form pages for statuses, roles, business hours, custom fields and custom objects, plus the custom object Records page, now render with the props escalated-laravel sends them. New routes: `GET /admin/{statuses,roles,business_hours,custom_fields,custom_objects}/new` and `/:id/edit`, and `POST /admin/custom_objects/:id/records`.
@@ -15,6 +18,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `Escalated::PurgeExpiredDataJob` and `rake escalated:purge_expired` (`DRY_RUN=1` only counts) apply the data retention settings: closed tickets closed before the cutoff, attachments and audit logs created before theirs, and expired guest verification codes. Every retention defaults to `never`, so it purges nothing else until an admin picks a period. Schedule it daily (see the README).
 
 ### Fixed
+- Imports never ran from the admin screens. The plugin bridge registers a callback on every documented action, `import.run_async` included, so the engine always handed the run to that hook, which only forwarded it to the Node runtime.
+- Saving an import job raised in an app without Active Record encryption keys. Its credentials are now encrypted with a key derived from `secret_key_base`.
+- An imported ticket with no description failed validation. It now falls back to the subject, as Laravel's tickets need no description.
+- Import mode now also holds back @mention notifications for imported replies, SLA policy attachment and breach checks, escalation rules and automations, as Laravel's ImportContext does.
 - `Reports/Dashboard` rendered every tab empty. It was sent today/this-week counts under names the component does not declare. It now gets Laravel's props: `volume`, `by_status`, `by_priority`, average response and resolution hours, `sla_compliance`, `csat_average` and `agent_performance`, over `days`.
 - The roles, business hours and custom objects lists failed with a 500 error. The custom fields and custom objects screens, and the role list, read and wrote columns these tables do not have.
 - These screens now take the bodies the shared forms post: fields at the top level, role `permissions`, schedule `holidays` with `recurring`, custom field `type`, and custom object `slug` and `fields_schema`. They are validated the way escalated-laravel validates them. A refused save goes back to the form with the errors on their fields.
@@ -23,6 +30,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `Admin/Settings/PublicTickets` saves from the `POST` the page sends (PUT still works), at Laravel's path `/admin/settings/public-tickets`, and validates like Laravel: a guest-user policy needs a user, and an unknown mode is refused with the error on its field. The old `/admin/settings/public_tickets` path still works.
 
 ### Upgrading
+- Run the migrations. `066_add_user_id_to_escalated_import_jobs` adds a nullable `user_id` column.
+- An import job written under Active Record encryption reads back with no credentials. Cancel and restart a paused one.
+- The import screens moved to Laravel's paths. The `/admin/imports` routes still answer; their pause, resume and start redirect to the new Progress path. The Progress page no longer receives `adapters`, which it does not read.
 - `GET /admin/custom_objects/:id/records` now renders the Records page. Send `Accept: application/json` to keep getting the JSON list.
 - The record actions answer an Inertia request with a redirect back to the Records page. Other requests still get JSON.
 - The old nested bodies (`ticket_status`, `role`, `business_schedule`) still work.

@@ -6,6 +6,7 @@ module Escalated
       class << self
         def attach_policy(ticket, policy = nil)
           return unless Escalated.configuration.sla_enabled?
+          return if Escalated::Support::ImportContext.importing?
 
           policy ||= find_policy_for(ticket)
           return unless policy
@@ -20,6 +21,7 @@ module Escalated
 
         def check_breaches
           return unless Escalated.configuration.sla_enabled?
+          return [] if Escalated::Support::ImportContext.importing?
 
           breached_tickets = []
 

@@ -15,7 +15,9 @@ module Escalated
              class_name: 'Escalated::ImportSourceMap',
              dependent: :destroy
 
-    encrypts :credentials
+    # Encrypted JSON under a key derived from secret_key_base. Never sent to
+    # the browser: see Escalated::Admin::ImportsController#job_json.
+    serialize :credentials, coder: Escalated::Support::ImportCredentials
 
     # The primary key is a uuid on PostgreSQL and a 36-character string
     # elsewhere, because MySQL has no uuid type. Generating it here means the

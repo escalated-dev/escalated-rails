@@ -46,6 +46,10 @@ module Escalated
     end
 
     def process_mentions
+      # An imported reply's @mentions were made, and answered, in the old
+      # system: notifying for them now would be noise.
+      return if Escalated::Support::ImportContext.importing?
+
       Escalated::MentionService.new.process_mentions(self)
     end
   end

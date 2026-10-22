@@ -96,6 +96,16 @@ en:
         delete_failed: "Failed to delete plugin: %{error}"
     knowledge_base:
       feedback_thanks: "Thank you for your feedback!"
+    import:
+      created: "Import created."
+      started: "Import started."
+      already_started: "This import has already been started."
+      connection_failed: "Could not connect with those credentials."
+      credentials_expired: "Credentials expired. Please reconnect."
+      paused: "Import paused."
+      resumed: "Import resumed."
+      cancelled: "Import cancelled."
+      deleted: "Import deleted."
     middleware:
       not_admin: "Access denied."
       not_agent: "Access denied."

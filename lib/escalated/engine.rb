@@ -186,10 +186,19 @@ module Escalated
     # HookRegistry.  Each callback forwards the event to the Node.js runtime
     # via PluginBridge#dispatch_action.  This method is idempotent — it only
     # adds callbacks once and is safe to call multiple times.
+    # Hooks that are host override points rather than events. A callback on
+    # one changes what the engine does -- "import.run_async" replaces how an
+    # import is queued -- so a forwarding callback here would switch the
+    # default off for every host: imports were handed to the bridge and never
+    # ran.
+    BRIDGE_SKIPPED_ACTIONS = %w[import.run_async].freeze
+
     def self.register_bridge_hooks
       return if @bridge_hooks_registered
 
       Escalated::Services::HookRegistry.actions.each_key do |hook|
+        next if BRIDGE_SKIPPED_ACTIONS.include?(hook)
+
         Escalated.hooks.add_action(hook, priority: 100) do |*args|
           bridge = Escalated.plugin_bridge
           next unless bridge.booted?

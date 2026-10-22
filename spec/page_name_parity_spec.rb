@@ -42,9 +42,6 @@ module PageNameParity
   # render a page and its name must leave the list, and a page the frontend
   # adds must be rendered or listed here.
   NOT_YET_RENDERED = %w[
-    Escalated/Admin/Import/Connect
-    Escalated/Admin/Import/Mapping
-    Escalated/Admin/Import/Review
     Escalated/Admin/Settings/Sandbox
     Escalated/Admin/Workflows/Builder
     Escalated/Auth/TwoFactorChallenge

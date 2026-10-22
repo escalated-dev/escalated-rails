@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The report pages `Reports/AgentMetrics`, `SlaReport`, `CsatReport` and `AgentDetail`, at `GET /admin/reports/agents`, `/sla`, `/csat` and `/agent/:id/detail` (Laravel's paths), with the props escalated-laravel sends. AgentDetail sends what the component declares: this period against the one before, response-time percentiles, and daily productivity and workload. Each takes the period as `days` (default 30).
 - The admin Form pages for statuses, roles, business hours, custom fields and custom objects, plus the custom object Records page, now render with the props escalated-laravel sends them. New routes: `GET /admin/{statuses,roles,business_hours,custom_fields,custom_objects}/new` and `/:id/edit`, and `POST /admin/custom_objects/:id/records`.
 - The knowledge base pages: the admin article form (`GET /admin/articles/new` and `/:id/edit`) and the customer reader, `Customer/KnowledgeBase/Index` and `Article` (`GET /customer/kb`, `GET /customer/kb/:slug`, `POST /customer/kb/:slug/feedback`). Props and behaviour follow escalated-laravel. Only published articles are shown, and each read counts a view. A disabled knowledge base answers 404. A private one answers 403 to signed-out visitors. Feedback answers 404 while it is turned off.
+- The settings pages `Admin/Settings/CsatSettings` (`GET`/`POST /admin/settings/csat`), `DataRetention` (`/admin/settings/data-retention`) and `EmailSettings` (`/admin/settings/email`), with escalated-laravel's props and validation, stored in the settings table. As in Laravel, the CSAT and email settings are stored only: surveys are not sent from them, and outbound mail keeps its configured from address.
+- `Escalated::PurgeExpiredDataJob` and `rake escalated:purge_expired` (`DRY_RUN=1` only counts) apply the data retention settings: closed tickets closed before the cutoff, attachments and audit logs created before theirs, and expired guest verification codes. Every retention defaults to `never`, so it purges nothing else until an admin picks a period. Schedule it daily (see the README).
 
 ### Fixed
 - Imports never ran from the admin screens. The plugin bridge registers a callback on every documented action, `import.run_async` included, so the engine always handed the run to that hook, which only forwarded it to the Node runtime.
@@ -25,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - These screens now take the bodies the shared forms post: fields at the top level, role `permissions`, schedule `holidays` with `recurring`, custom field `type`, and custom object `slug` and `fields_schema`. They are validated the way escalated-laravel validates them. A refused save goes back to the form with the errors on their fields.
 - The article admin takes the body the shared form posts. A blank slug is derived from the title. Publishing stamps `published_at` once. The list sends `view_count`, `helpful_count` and `category_id`, and no longer sends `statuses`, which the page does not read.
 - The admin flash messages for statuses, roles, business hours, custom fields, custom objects and articles had no English text.
+- `Admin/Settings/PublicTickets` saves from the `POST` the page sends (PUT still works), at Laravel's path `/admin/settings/public-tickets`, and validates like Laravel: a guest-user policy needs a user, and an unknown mode is refused with the error on its field. The old `/admin/settings/public_tickets` path still works.
 
 ### Upgrading
 - Run the migrations. `066_add_user_id_to_escalated_import_jobs` adds a nullable `user_id` column.
@@ -33,6 +36,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `GET /admin/custom_objects/:id/records` now renders the Records page. Send `Accept: application/json` to keep getting the JSON list.
 - The record actions answer an Inertia request with a redirect back to the Records page. Other requests still get JSON.
 - The old nested bodies (`ticket_status`, `role`, `business_schedule`) still work.
+- The CSAT screen renders `Settings/CsatSettings` with `csat_question_text`, `csat_scale`, `csat_delivery_trigger` and `csat_delay_hours`. The old `Settings/Csat` name had no component in the frontend, and its keys (`csat_enabled`, `csat_send_after_hours`, `csat_message`) were read nowhere, so they are no longer shown or saved.
+- Retention purges are permanent: tickets have no soft delete in this engine, so where Laravel soft-deletes a closed ticket and removes it 30 days later, `PurgeExpiredDataJob` destroys it with its replies, attachments, activities and workflow logs. Try `rake escalated:purge_expired DRY_RUN=1` first.
 
 ## [0.7.3] - 2026-10-21
 

@@ -262,10 +262,20 @@ Escalated::Engine.routes.draw do
     post 'settings/two_factor/disable', to: 'settings#two_factor_disable', as: :settings_two_factor_disable
     get 'settings/sso', to: 'settings#sso', as: :settings_sso
     post 'settings/sso', to: 'settings#update_sso', as: :settings_update_sso
-    get 'settings/csat', to: 'settings#csat', as: :settings_csat
-    post 'settings/csat', to: 'settings#update_csat', as: :settings_update_csat
-    get 'settings/public_tickets', to: 'settings#public_tickets', as: :settings_public_tickets
-    put 'settings/public_tickets', to: 'settings#update_public_tickets', as: :settings_update_public_tickets
+    # Settings sub-pages, at escalated-laravel's paths.
+    get 'settings/csat', to: 'csat_settings#show', as: :settings_csat
+    post 'settings/csat', to: 'csat_settings#update', as: :settings_update_csat
+    get 'settings/data-retention', to: 'data_retention#show', as: :settings_data_retention
+    post 'settings/data-retention', to: 'data_retention#update', as: :settings_update_data_retention
+    get 'settings/email', to: 'email_settings#show', as: :settings_email
+    post 'settings/email', to: 'email_settings#update', as: :settings_update_email
+    # The page posts; Laravel registers PUT. Both are accepted.
+    get 'settings/public-tickets', to: 'public_tickets_settings#show', as: :settings_public_tickets
+    match 'settings/public-tickets', to: 'public_tickets_settings#update', via: %i[post put],
+                                     as: :settings_update_public_tickets
+    # The older underscore paths, kept for existing links.
+    get 'settings/public_tickets', to: 'public_tickets_settings#show'
+    put 'settings/public_tickets', to: 'public_tickets_settings#update'
     # Which database Escalated's tables live on (read-only: set in config).
     get 'settings/database', to: 'database_connection#show', as: :settings_database
     post 'settings/database/test', to: 'database_connection#check', as: :settings_database_test

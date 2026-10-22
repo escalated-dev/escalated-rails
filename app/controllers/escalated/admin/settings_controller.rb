@@ -6,11 +6,12 @@ module Escalated
       before_action :require_admin!
 
       SENSITIVE_KEYS = %w[mailgun_signing_key postmark_inbound_token imap_password].freeze
+      SSO_SECRET_KEYS = %w[sso_jwt_secret].freeze
 
       def index
         settings = Escalated::EscalatedSetting.all_as_hash
         SENSITIVE_KEYS.each do |key|
-          settings[key] = mask_secret(settings[key]) if settings.key?(key)
+          settings[key] = Escalated::Support::SecretMask.mask(settings[key]) if settings.key?(key)
         end
 
         render_page 'Escalated/Admin/Settings', {
@@ -80,14 +81,22 @@ module Escalated
       # it does consult. So the form saved values nothing used and hid the ones
       # that mattered, and it rendered under a page name the frontend does not
       # ship, which meant the whole screen came up blank anyway.
+      #
+      # Stored secrets reach the page only as a mask ('' when unset).
       def sso
+        settings = sso_service.get_config
+        SSO_SECRET_KEYS.each { |key| settings[key] = Escalated::Support::SecretMask.mask(settings[key]) }
+
         render_page 'Escalated/Admin/Settings/SsoSettings', {
-          settings: sso_service.get_config
+          settings: settings
         }
       end
 
       def update_sso
-        sso_service.save_config(params.permit(*Escalated::Services::SsoService::CONFIG_KEYS).to_h)
+        data = params.permit(*Escalated::Services::SsoService::CONFIG_KEYS).to_h
+        # The page posts the mask back for a secret the admin did not change.
+        SSO_SECRET_KEYS.each { |key| data.delete(key) if Escalated::Support::SecretMask.masked?(data[key]) }
+        sso_service.save_config(data)
 
         redirect_to escalated.admin_settings_sso_path, notice: I18n.t('escalated.admin.settings.updated')
       rescue Escalated::Services::SsoValidationError => e
@@ -200,7 +209,7 @@ module Escalated
           next unless params.key?(key)
 
           raw = params[key].to_s.strip
-          next if SENSITIVE_KEYS.include?(key) && masked_value?(raw)
+          next if SENSITIVE_KEYS.include?(key) && Escalated::Support::SecretMask.masked?(raw)
 
           Escalated::EscalatedSetting.set(key, raw)
         end
@@ -220,21 +229,6 @@ module Escalated
 
       def sso_service
         @sso_service ||= Escalated::Services::SsoService.new
-      end
-
-      def mask_secret(value)
-        return '' if value.blank?
-
-        len = value.length
-        return '*' * len if len <= 6
-
-        value[0, 3] + ('*' * [len - 3, 12].min)
-      end
-
-      def masked_value?(value)
-        return false if value.blank?
-
-        value.match?(/\A.{0,3}\*{3,}\z/)
       end
 
       def admin_settings_path

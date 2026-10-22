@@ -38,6 +38,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - The old nested bodies (`ticket_status`, `role`, `business_schedule`) still work.
 - The CSAT screen renders `Settings/CsatSettings` with `csat_question_text`, `csat_scale`, `csat_delivery_trigger` and `csat_delay_hours`. The old `Settings/Csat` name had no component in the frontend, and its keys (`csat_enabled`, `csat_send_after_hours`, `csat_message`) were read nowhere, so they are no longer shown or saved.
 - Retention purges are permanent: tickets have no soft delete in this engine, so where Laravel soft-deletes a closed ticket and removes it 30 days later, `PurgeExpiredDataJob` destroys it with its replies, attachments, activities and workflow logs. Try `rake escalated:purge_expired DRY_RUN=1` first.
+- Saving a webhook with the secret left blank (or left out) keeps the stored secret, as before, because the form never receives it. Send `clear_secret: true` to remove it.
+- The SSO settings page receives `sso_jwt_secret` as the mask `********` ('' when unset) and posts it back for a secret the admin did not change; a posted mask is ignored and any other value replaces the stored secret, as before. The general settings page now masks the Mailgun signing key, Postmark inbound token and IMAP password as `********`; the older `abc*****` mask is still recognised when posted back.
+- `Escalated::Webhook`, `ImportJob`, `TwoFactor` and `ApiToken` leave their secrets out of `as_json`/`to_json`/`serializable_hash` (and `inspect`). Host code that serialized one of these models and read the secret from the result must read the attribute directly. `Webhook#as_json` carries `has_secret`.
+
+### Security
+- **Stored secrets are no longer sent to admin pages.** The SSO settings page received `sso_jwt_secret` in full, and the general settings page showed the first three characters of the Mailgun signing key, Postmark inbound token and IMAP password. Both now show only the mask `********`. The models that store secrets (`Webhook` `secret`, `ImportJob` `credentials`, `TwoFactor` `secret` and `recovery_codes`, `ApiToken` `token` hash) now leave them out of serialization, so a page or JSON response built from the model cannot carry them; the import run and webhook signing still read them server-side. The import and webhook pages already sent explicit field lists without these secrets; the import pages now build theirs from `ImportJob#to_page_props` and send at most the last 50 errors. Webhook updates accept `clear_secret: true`.
 
 ## [0.7.3] - 2026-10-21
 

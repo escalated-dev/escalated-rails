@@ -40,8 +40,12 @@ module Escalated
       def update
         attributes = webhook_params
         # The form is never handed the stored secret, so a blank one means
-        # "leave it as it is", not "remove it".
-        attributes.delete(:secret) if attributes[:secret].blank?
+        # "leave it as it is", not "remove it". `clear_secret` removes it.
+        if ActiveModel::Type::Boolean.new.cast(params[:clear_secret])
+          attributes[:secret] = nil
+        elsif attributes[:secret].blank?
+          attributes.delete(:secret)
+        end
 
         if @webhook.update(attributes)
           redirect_to escalated.admin_webhooks_path, notice: I18n.t('escalated.admin.webhook.updated')
@@ -109,7 +113,7 @@ module Escalated
           url: webhook.url,
           events: webhook.subscribed_events,
           active: webhook.active,
-          has_secret: webhook.secret.present?,
+          has_secret: webhook.secret?,
           deliveries_count: webhook.deliveries.count,
           deliveries: latest ? [delivery_json(latest)] : [],
           created_at: webhook.created_at&.iso8601,

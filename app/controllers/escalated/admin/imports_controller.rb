@@ -28,7 +28,7 @@ module Escalated
 
         render_page 'Escalated/Admin/Import/Index', {
           adapters: import_service.available_adapters.map { |a| adapter_json(a) },
-          jobs: jobs.map { |j| job_json(j) }
+          jobs: jobs.map(&:to_page_props)
         }
       end
 
@@ -107,7 +107,7 @@ module Escalated
 
       # GET /admin/import/progress/:job_id (and the older /admin/imports/:id)
       def progress
-        render_page 'Escalated/Admin/Import/Progress', { job: job_json(@job) }
+        render_page 'Escalated/Admin/Import/Progress', { job: @job.to_page_props }
       end
       alias show progress
 
@@ -263,26 +263,6 @@ module Escalated
         else
           Escalated::RunImportJob.perform_later(job.id)
         end
-      end
-
-      # Laravel sends the job model as is. Its credentials are left out here:
-      # they are a secret, and the screen never reads them.
-      def job_json(job)
-        {
-          id: job.id,
-          user_id: job.user_id,
-          platform: job.platform,
-          status: job.status,
-          field_mappings: job.field_mappings || {},
-          progress: job.progress || {},
-          error_log: job.error_log || [],
-          error_count: (job.error_log || []).size,
-          resumable: job.resumable?,
-          started_at: job.started_at&.iso8601,
-          completed_at: job.completed_at&.iso8601,
-          created_at: job.created_at&.iso8601,
-          updated_at: job.updated_at&.iso8601
-        }
       end
 
       def adapter_json(adapter)

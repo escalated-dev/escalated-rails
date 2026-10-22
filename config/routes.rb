@@ -148,9 +148,9 @@ Escalated::Engine.routes.draw do
     post :settings, to: 'settings#update'
 
     # Phase 1
-    resources :statuses, only: %i[index create update destroy]
-    resources :business_hours, only: %i[index create update destroy]
-    resources :roles, only: %i[index create update destroy]
+    resources :statuses, only: %i[index new create edit update destroy]
+    resources :business_hours, only: %i[index new create edit update destroy]
+    resources :roles, only: %i[index new create edit update destroy]
     resources :audit_logs, only: [:index]
 
     # Users (host User model: list + grant/revoke admin/agent flags)
@@ -158,7 +158,7 @@ Escalated::Engine.routes.draw do
     patch 'users/:user_id/role', to: 'users#update_role', as: :user_role
 
     # Phase 2
-    resources :custom_fields, only: %i[index create update destroy] do
+    resources :custom_fields, only: %i[index new create edit update destroy] do
       collection do
         post :reorder
       end
@@ -257,9 +257,12 @@ Escalated::Engine.routes.draw do
     post 'settings/csat', to: 'settings#update_csat', as: :settings_update_csat
     get 'settings/public_tickets', to: 'settings#public_tickets', as: :settings_public_tickets
     put 'settings/public_tickets', to: 'settings#update_public_tickets', as: :settings_update_public_tickets
-    resources :custom_objects, only: %i[index create update destroy] do
+    resources :custom_objects, only: %i[index new create edit update destroy] do
       member do
         get :records
+        # The Records page posts new records here (Laravel's path); the older
+        # store_record path stays for existing callers.
+        post :records, action: :store_record, as: :create_record
         post :store_record
         put 'records/:record_id', action: :update_record, as: :update_record
         delete 'records/:record_id', action: :destroy_record, as: :destroy_record

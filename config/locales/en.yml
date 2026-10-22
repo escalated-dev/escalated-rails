@@ -54,6 +54,30 @@ en:
         created: "SLA Policy created."
         updated: "SLA Policy updated."
         deleted: "SLA Policy deleted."
+      status:
+        created: "Status created."
+        updated: "Status updated."
+        deleted: "Status deleted."
+      role:
+        created: "Role created."
+        updated: "Role updated."
+        deleted: "Role deleted."
+        cannot_delete_system: "System roles cannot be deleted."
+      business_hours:
+        created: "Business schedule created."
+        updated: "Business schedule updated."
+        deleted: "Business schedule deleted."
+      custom_field:
+        created: "Custom field created."
+        updated: "Custom field updated."
+        deleted: "Custom field deleted."
+      custom_object:
+        created: "Custom object created."
+        updated: "Custom object updated."
+        deleted: "Custom object deleted."
+        record_created: "Record created."
+        record_updated: "Record updated."
+        record_deleted: "Record deleted."
       settings:
         updated: "Settings updated successfully."
       plugin:

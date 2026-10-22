@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- The admin Form pages for statuses, roles, business hours, custom fields and custom objects, plus the custom object Records page, now render with the props escalated-laravel sends them. New routes: `GET /admin/{statuses,roles,business_hours,custom_fields,custom_objects}/new` and `/:id/edit`, and `POST /admin/custom_objects/:id/records`.
+
+### Fixed
+- The roles, business hours and custom objects lists failed with a 500 error. The custom fields and custom objects screens, and the role list, read and wrote columns these tables do not have.
+- These screens now take the bodies the shared forms post: fields at the top level, role `permissions`, schedule `holidays` with `recurring`, custom field `type`, and custom object `slug` and `fields_schema`. They are validated the way escalated-laravel validates them. A refused save goes back to the form with the errors on their fields.
+- The admin flash messages for statuses, roles, business hours, custom fields and custom objects had no English text.
+
+### Upgrading
+- `GET /admin/custom_objects/:id/records` now renders the Records page. Send `Accept: application/json` to keep getting the JSON list.
+- The record actions answer an Inertia request with a redirect back to the Records page. Other requests still get JSON.
+- The old nested bodies (`ticket_status`, `role`, `business_schedule`) still work.
+
 ## [0.7.3] - 2026-10-21
 
 ### Upgrading

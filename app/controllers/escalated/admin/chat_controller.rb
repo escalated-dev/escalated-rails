@@ -47,14 +47,30 @@ module Escalated
 
       # POST /admin/chat/:id/transfer
       def transfer
-        new_agent_id = params[:agent_id]
-        unless new_agent_id
-          render json: { error: 'agent_id is required' }, status: :unprocessable_content
+        # The body is {"agent_id", "department_id"} (either or both), as
+        # escalated-laravel reads it; the older {"type", "id"} is read too.
+        # `id` comes from the body, not the path.
+        body = request.request_parameters
+        agent_id = body['agent_id'].presence
+        department_id = body['department_id'].presence
+        case body['type']
+        when 'agent' then agent_id ||= body['id'].presence
+        when 'department' then department_id ||= body['id'].presence
+        end
+
+        unless agent_id || department_id
+          render json: { error: 'Provide an agent_id or department_id.' }, status: :unprocessable_content
+          return
+        end
+        if department_id && !Escalated::Department.exists?(id: department_id)
+          render json: { error: 'The selected department_id is invalid.' }, status: :unprocessable_content
           return
         end
 
-        Services::ChatSessionService.transfer_chat(@session, new_agent_id)
+        Services::ChatSessionService.transfer_chat(@session, agent_id, department_id: department_id)
         render json: { session: session_json(@session.reload) }
+      rescue ArgumentError => e
+        render json: { error: e.message }, status: :unprocessable_content
       end
 
       # POST /admin/chat/update_status

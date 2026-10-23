@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Fixed
+- **Chat transfer reads `department_id`.** `POST /admin/chat/:id/transfer`
+  took only `agent_id`, so the shared ticket view's Transfer menu (which offers
+  departments and posts `{"department_id"}`) was refused with 422. It now reads
+  `agent_id` and/or `department_id`, as escalated-laravel does: a department
+  takes the ticket, and without an agent the chat goes back to the queue
+  (unassigned, waiting) and is routed again for that department. The older
+  `{"type", "id"}` body is read too, and `agent_id` alone behaves as before.
+  An unknown department, or an agent who cannot see the ticket, is a 422 (the
+  latter was a 500). `ChatSessionService.transfer_chat(session, agent_id = nil,
+  department_id: nil)` keeps its positional agent argument.
+
 ## [0.7.4] - 2026-10-22
 
 ### Upgrading

@@ -128,7 +128,7 @@ module Escalated
         )
         broadcast(chat_channel(ticket), :chat_transferred, data)
         broadcast(agent_channel(old_agent_id), :chat_transferred, data) if old_agent_id
-        broadcast(agent_channel(new_agent_id), :chat_transferred, data)
+        broadcast(agent_channel(new_agent_id), :chat_transferred, data) if new_agent_id
         broadcast(agent_channel, :chat_transferred, data)
       end
 

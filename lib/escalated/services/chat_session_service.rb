@@ -83,26 +83,41 @@ module Escalated
           session
         end
 
-        def transfer_chat(session, new_agent_id)
-          unless TicketAccess.eligible_agent?(new_agent_id, session.ticket)
+        # As escalated-laravel's ChatSessionService::transferChat: an agent
+        # takes the chat and its ticket; a department takes the ticket, and
+        # without an agent the chat goes back to the queue (unassigned,
+        # waiting) and is routed again for that department.
+        def transfer_chat(session, new_agent_id = nil, department_id: nil)
+          new_agent_id = new_agent_id.presence
+          department_id = department_id.presence
+          raise ArgumentError, 'Provide an agent or a department' if new_agent_id.nil? && department_id.nil?
+          if new_agent_id && !TicketAccess.eligible_agent?(new_agent_id, session.ticket)
             raise ArgumentError, 'Agent cannot access this ticket'
           end
 
           old_agent_id = session.agent_id
-
-          session.update!(
-            agent_id: new_agent_id,
-            status: 'active'
-          )
-
           ticket = session.ticket
-          ticket.update!(assigned_to: new_agent_id)
+          ticket.update!(department_id: department_id) if department_id
 
-          CapacityService.new.decrement_load(old_agent_id, channel: 'chat') if old_agent_id
-          CapacityService.new.increment_load(new_agent_id, channel: 'chat')
+          capacity = CapacityService.new
+          capacity.decrement_load(old_agent_id, channel: 'chat') if old_agent_id
+          if new_agent_id
+            session.update!(agent_id: new_agent_id, status: 'active')
+            ticket.update!(assigned_to: new_agent_id)
+            capacity.increment_load(new_agent_id, channel: 'chat')
+          else
+            session.update!(agent_id: nil, status: 'waiting')
+            ticket.update!(assigned_to: nil)
+          end
 
           Escalated::Broadcasting.chat_transferred(ticket, session, old_agent_id, new_agent_id)
-          announce(:chat_transferred, session, previous_agent_id: old_agent_id&.to_s, agent_id: new_agent_id.to_s)
+          announce(:chat_transferred, session, previous_agent_id: old_agent_id&.to_s, agent_id: new_agent_id&.to_s,
+                                               department_id: department_id&.to_s)
+
+          unless new_agent_id
+            routed = ChatRoutingService.find_available_agent(department_id: department_id, ticket: ticket)
+            assign_agent(session, routed) if routed
+          end
 
           session
         end

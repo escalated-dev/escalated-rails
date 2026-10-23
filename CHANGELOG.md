@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.5] - 2026-10-22
+
 ### Fixed
 - **Chat transfer reads `department_id`.** `POST /admin/chat/:id/transfer`
   took only `agent_id`, so the shared ticket view's Transfer menu (which offers

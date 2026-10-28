@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.6] - 2026-10-28
+
 ### Upgrading
 - `POST /widget/chat/start` now answers exactly as escalated-laravel: `201
   { id, session_id, expires_at, ticket_reference, status, agent_name }` with

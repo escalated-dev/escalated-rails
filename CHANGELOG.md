@@ -7,6 +7,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Upgrading
+- `POST /widget/chat/start` now answers exactly as escalated-laravel: `201
+  { id, session_id, expires_at, ticket_reference, status, agent_name }` with
+  `id` and `session_id` both the chat token (plus `customer_session_id`,
+  `messages` and `agent`). The numeric `session_id` and `ticket_id` are no
+  longer returned; use `id` for the widget chat routes and `ticket_reference`
+  to name the ticket.
 - Run `bin/rails db:migrate`: migration 067 adds a nullable
   `customer_token_expires_at` to `escalated_chat_sessions`. Chats already in
   progress keep working: the next widget request with their token stores the

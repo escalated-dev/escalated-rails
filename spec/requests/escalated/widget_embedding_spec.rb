@@ -278,7 +278,9 @@ RSpec.describe 'Widget embedding on other sites', type: :request do
 
       expect(response).to have_http_status(:created)
       expect(response.headers['Access-Control-Allow-Origin']).to eq(shop)
-      session = Escalated::ChatSession.find(response.parsed_body['session_id'])
+      session = Escalated::ChatSession.find_by!(
+        customer_session_id: Escalated::ChatSession.digest(response.parsed_body['id'])
+      )
       expect(session.metadata).to eq(
         'page_url' => 'https://shop.example.com/cart', 'cart_total' => 129.5, 'ip' => '10.0.0.1',
         'embedded_on' => shop

@@ -84,7 +84,7 @@ RSpec.describe 'Guest ticket intake', type: :request do
                 { name: 'Ann', email: 'ann@example.com', message: 'Hi' }.merge(guest_proof('ann@example.com', 'chat')))
 
       expect(response).to have_http_status(:created)
-      ticket = Escalated::Ticket.find(response.parsed_body['ticket_id'])
+      ticket = Escalated::Ticket.find_by!(reference: response.parsed_body['ticket_reference'])
       expect(ticket).to have_attributes(channel: 'chat', guest_email: 'ann@example.com')
       expect(ticket.contact).to be_present
       expect(created_events).to eq([ticket])

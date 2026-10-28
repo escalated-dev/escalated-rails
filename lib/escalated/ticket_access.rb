@@ -173,9 +173,9 @@ module Escalated
       return Escalated::TicketPolicy.new(user, ticket).show? if user
       return false if guest_session.blank?
 
-      session = with_actor(nil) { Escalated::ChatSession.find_by(ticket_id: ticket.id) }
-      session && session.customer_session_id.present? &&
-        ActiveSupport::SecurityUtils.secure_compare(session.customer_session_id.to_s, guest_session.to_s)
+      with_actor(nil) do
+        Escalated::ChatSession.for_visitor_token(guest_session, Escalated::ChatSession.where(ticket_id: ticket.id))
+      end.present?
     end
 
     def eligible_agent?(agent_id, ticket)

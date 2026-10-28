@@ -6,6 +6,8 @@ require 'rails_helper'
 # talks to these routes. Each example sends the request the widget sends and
 # checks the fields the widget reads.
 RSpec.describe 'Widget API used by the shared widget', type: :request do
+  include ActiveSupport::Testing::TimeHelpers
+
   let(:base) { '/support/widget' }
 
   before do
@@ -128,7 +130,7 @@ RSpec.describe 'Widget API used by the shared widget', type: :request do
 
       expect(response).to have_http_status(:created)
       session = Escalated::ChatSession.find(body['session_id'])
-      expect(body['id']).to eq(session.customer_session_id)
+      expect(session.customer_session_id).to eq(Escalated::ChatSession.digest(body['id']))
       expect(body['id']).to match(/\A\h{32}\z/)
       expect(body['status']).to eq('waiting')
       expect(body['messages']).to eq([])
@@ -153,7 +155,7 @@ RSpec.describe 'Widget API used by the shared widget', type: :request do
 
     it 'sends and lists messages through the id path' do
       id = start_chat['id']
-      session = Escalated::ChatSession.find_by!(customer_session_id: id)
+      session = Escalated::ChatSession.for_visitor_token(id)
 
       post_json("#{base}/chat/#{id}/messages", { body: 'Is anyone there?' })
       expect(response).to have_http_status(:ok)
@@ -177,7 +179,7 @@ RSpec.describe 'Widget API used by the shared widget', type: :request do
 
     it 'types, ends and rates through the id path' do
       id = start_chat['id']
-      session = Escalated::ChatSession.find_by!(customer_session_id: id)
+      session = Escalated::ChatSession.for_visitor_token(id)
 
       post_json("#{base}/chat/#{id}/typing")
       expect(response).to have_http_status(:success)
@@ -213,9 +215,72 @@ RSpec.describe 'Widget API used by the shared widget', type: :request do
       expect(response).to have_http_status(:not_found)
     end
 
+    it 'issues an expiring token and stores only its hash' do
+      freeze_time do
+        body = start_chat
+
+        expect(Time.zone.parse(body['expires_at'])).to eq(Escalated::GuestAccess.ttl.from_now.change(usec: 0))
+        expect(Escalated::ChatSession.find_by(customer_session_id: body['id'])).to be_nil
+        session = Escalated::ChatSession.find_by!(customer_session_id: Escalated::ChatSession.digest(body['id']))
+        expect(session.customer_token_expires_at).to eq(Escalated::GuestAccess.ttl.from_now)
+      end
+    end
+
+    it 'follows guest_access_ttl_minutes for the token lifetime' do
+      allow(Escalated.configuration).to receive(:guest_access_ttl_minutes).and_return(30)
+      freeze_time do
+        expect(Time.zone.parse(start_chat['expires_at'])).to eq(30.minutes.from_now.change(usec: 0))
+      end
+    end
+
+    it 'answers 404 on every chat route once the token has expired' do
+      id = start_chat['id']
+
+      travel(Escalated::GuestAccess.ttl + 1.minute) do
+        %w[messages message typing end rate].each do |action|
+          post_json("#{base}/chat/#{id}/#{action}", { body: 'x', rating: 5 })
+          expect(response).to have_http_status(:not_found), action
+        end
+        get_json("#{base}/chat/#{id}/messages")
+        expect(response).to have_http_status(:not_found)
+      end
+    end
+
+    it 'keeps a chat started before tokens expired working, with a full lifetime' do
+      id = start_chat['id']
+      # The shape such a chat has after the migration: plain token, no expiry.
+      Escalated::ChatSession.for_visitor_token(id).update_columns(customer_session_id: id,
+                                                                  customer_token_expires_at: nil)
+
+      freeze_time do
+        get_json("#{base}/chat/#{id}/messages")
+        expect(response).to have_http_status(:ok)
+        session = Escalated::ChatSession.find_by!(customer_session_id: Escalated::ChatSession.digest(id))
+        expect(session.customer_token_expires_at).to eq(Escalated::GuestAccess.ttl.from_now)
+      end
+    end
+
+    it 'closes an ended chat to messages, typing and a second end, but keeps it readable and rateable' do
+      id = start_chat['id']
+
+      post_json("#{base}/chat/#{id}/rate", { rating: 5 })
+      expect(response).to have_http_status(:unprocessable_content)
+
+      post_json("#{base}/chat/#{id}/end")
+      expect(response).to have_http_status(:ok)
+      %w[messages typing end].each do |action|
+        post_json("#{base}/chat/#{id}/#{action}", { body: 'late' })
+        expect(response).to have_http_status(:unprocessable_content), action
+      end
+      get_json("#{base}/chat/#{id}/messages")
+      expect(response.parsed_body['ended']).to be(true)
+      post_json("#{base}/chat/#{id}/rate", { rating: 5 })
+      expect(response).to have_http_status(:ok)
+    end
+
     it 'never shows internal notes to the guest' do
       id = start_chat['id']
-      session = Escalated::ChatSession.find_by!(customer_session_id: id)
+      session = Escalated::ChatSession.for_visitor_token(id)
       Escalated::Services::ChatSessionService.send_message(session, body: 'secret', author: agent, is_internal: true)
 
       get_json("#{base}/chat/#{id}/messages")

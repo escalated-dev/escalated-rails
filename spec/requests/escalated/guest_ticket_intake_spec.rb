@@ -128,7 +128,7 @@ RSpec.describe 'Guest ticket intake', type: :request do
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body['message']).to be_present
 
-      Escalated::ChatSession.find_by!(customer_session_id: token).update!(status: 'ended', ended_at: Time.current)
+      Escalated::ChatSession.for_visitor_token(token).update!(status: 'ended', ended_at: Time.current)
       post_json("/support/widget/chat/#{token}/message", { body: 'Still there?' })
       expect(response).to have_http_status(:unprocessable_content)
     end

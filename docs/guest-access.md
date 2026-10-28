@@ -131,7 +131,8 @@ Hosts that want to retire old links now can set
 
 - Laravel stops honouring legacy tokens at once. Here they keep working until
   the switch above is turned off.
-- Live chat needs a chat-purpose proof. The chat token is still the
-  server-generated session id, not an expiring grant. That id was never chosen
-  by the browser.
+- Live chat needs a chat-purpose proof. The chat token is a random token
+  stored as its SHA-256 that expires `guest_access_ttl_minutes` after the chat
+  starts, like Laravel's chat grant; it is not a sealed grant, so it does not
+  share the ticket's `guest_access_hash` and is not rotated by a ticket link.
 - There is no mobile guest API in this port, so there is no mobile prefix.

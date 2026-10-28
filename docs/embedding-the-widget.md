@@ -117,7 +117,7 @@ All paths are under `{route_prefix}/widget`.
 | `POST /tickets` | 201 with `message`, `reference`, `guest_access_token`, `expires_at`. Takes `name`, `email`, `subject`, `description`, `verification_id`, `verification_code`, optional `department_id` (an active department, else 422 with `errors.department_id`) and `metadata`. |
 | `POST /lookup` | `{ data: [{ reference, subject, guest_access_token, expires_at }] }`. Takes `email`, `reference` and a `lookup` proof. |
 | `GET /tickets/:reference` | With `Authorization: Bearer <guest_access_token>`: `reference`, `subject`, `status`, `status_label`, `department`, `replies`. |
-| `POST /chat/start` | Takes a `chat` proof. 201 with `id`, the random token the chat paths below use (also returned as `customer_session_id`), `expires_at`, `session_id`, `status`, `messages`, `agent`. |
+| `POST /chat/start` | Takes a `chat` proof. 201 with `id`, the random token the chat paths below use (also returned as `session_id` and `customer_session_id`, as in escalated-laravel), `expires_at`, `ticket_reference`, `status`, `agent_name`, `messages`, `agent`. |
 | `GET /chat/:id/messages` | `messages: [{ id, body, is_agent, author: { name }, created_at }]` (no internal notes), `agent`, `typing` (the agent's name for 5 seconds after they type), `ended` |
 | `POST /chat/:id/messages` | Sends `{ body }`. `POST /chat/:id/message` still works. |
 | `POST /chat/:id/typing`, `/end`, `/rate` | `rate` takes `{ rating: 1-5, comment }`. |

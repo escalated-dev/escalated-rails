@@ -129,11 +129,27 @@ RSpec.describe 'Widget API used by the shared widget', type: :request do
       body = start_chat
 
       expect(response).to have_http_status(:created)
-      session = Escalated::ChatSession.find(body['session_id'])
-      expect(session.customer_session_id).to eq(Escalated::ChatSession.digest(body['id']))
+      session = Escalated::ChatSession.find_by!(customer_session_id: Escalated::ChatSession.digest(body['id']))
       expect(body['id']).to match(/\A\h{32}\z/)
       expect(body['status']).to eq('waiting')
       expect(body['messages']).to eq([])
+      expect(session).to be_present
+    end
+
+    it 'answers start with the same fields as escalated-laravel' do
+      body = start_chat
+      ticket = Escalated::Ticket.last
+
+      expect(response).to have_http_status(:created)
+      # `id` and `session_id` are both the chat token, as in Laravel.
+      expect(body['session_id']).to eq(body['id'])
+      expect(Time.iso8601(body['expires_at'])).to be > Time.current
+      expect(body['ticket_reference']).to eq(ticket.reference)
+      expect(body['status']).to eq('waiting')
+      expect(body).to have_key('agent_name')
+      expect(body['agent_name']).to be_nil
+      # The internal numeric ids the token replaced are not exposed.
+      expect(body).not_to have_key('ticket_id')
     end
 
     it 'never lets the browser choose the chat token' do

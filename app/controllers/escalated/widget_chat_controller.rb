@@ -64,18 +64,21 @@ module Escalated
       )
 
       chat = result[:session]
+      agent = chat_agent(chat)
+      # As in escalated-laravel: `id` and `session_id` are both the chat token;
+      # the numeric session and ticket ids stay internal.
       render json: {
         # The token every later chat request names in its path.
         id: chat.visitor_token,
-        ticket_id: result[:ticket].id,
-        ticket_reference: result[:ticket].reference,
-        session_id: result[:session].id,
+        session_id: chat.visitor_token,
         customer_session_id: chat.visitor_token,
         # The token stops working after this; the visitor starts a new chat.
         expires_at: chat.customer_token_expires_at.iso8601,
-        status: result[:session].status,
+        ticket_reference: result[:ticket].reference,
+        status: chat.status,
+        agent_name: agent&.dig(:name),
         messages: [],
-        agent: chat_agent(chat)
+        agent: agent
       }, status: :created
     rescue ActiveRecord::RecordInvalid => e
       render json: { error: e.record.errors.full_messages.join(', ') }, status: :unprocessable_content

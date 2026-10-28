@@ -97,6 +97,21 @@ RSpec.describe 'Guest endpoint rate limit', type: :request do
 
       expect(Array.new(20) { guest_form_ticket }).not_to include(429)
     end
+
+    # The widget's own create_ticket throttle once replaced this one (Rails
+    # keeps one callback per method name), so widget code requests went
+    # uncounted.
+    it 'counts widget and guest-form code requests in the ticket bucket' do
+      guest_rate_limit(tickets_per_minute: 2)
+      headers = { 'CONTENT_TYPE' => 'application/json', 'ACCEPT' => 'application/json' }
+      statuses = %w[/support/widget /support/guest /support/widget].map do |prefix|
+        post "#{prefix}/verification", params: { email: 'guest@example.com', purpose: 'ticket' }.to_json,
+                                       headers: headers, env: { 'REMOTE_ADDR' => '203.0.113.5' }
+        response.status
+      end
+
+      expect(statuses).to eq([202, 202, 429])
+    end
   end
 
   describe 'guest replies' do

@@ -26,6 +26,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   `result[:session].visitor_token`. `customer_session_id` now holds its
   SHA-256, so agent payloads and broadcasts no longer carry the visitor's token.
 
+### Added
+- **Mobile guest API.** While `api_enabled` is on, five JSON routes under
+  `<api_prefix>/mobile/guest` (default `/support/api/v1/mobile/guest`) let a
+  mobile app file, read and reply to a guest ticket:
+  `POST verification`, `POST lookup`, `POST tickets`, `GET tickets/:token` and
+  `POST tickets/:token/replies`, per the canonical contract
+  (escalated-developer-context `domain-model/mobile-guest-api.md`). They reuse
+  the guest pages' and widget's email codes, grants, verification and lookup
+  handlers and per-IP guest budgets, so a grant from any surface works on the
+  others. Hosts with `api_enabled` off get no new routes.
+- `guest_rate_limit` has a `requests_per_minute` budget (default 60), counted
+  on every mobile guest request.
+
+### Fixed
+- `POST /widget/verification` and `POST /widget/lookup` were not counted
+  against the per-IP guest budgets: the widget's own ticket throttle replaced
+  the shared one (Rails keeps one callback per method name). Widget code
+  requests now count as submissions and widget lookups as replies, as the
+  guest pages' always did.
+
 ### Security
 - **Widget chat tokens are stored hashed and expire.** The token returned by
   `POST /widget/chat/start` (`id`, also `customer_session_id`) was stored in

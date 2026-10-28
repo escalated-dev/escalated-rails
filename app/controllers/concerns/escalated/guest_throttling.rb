@@ -6,7 +6,8 @@ module Escalated
   # uncapped endpoint lets anyone flood the helpdesk and the mail provider.
   #
   # Limits come from Escalated.configuration.guest_rate_limit (defaults: 5
-  # ticket submissions and 10 replies per IP per minute, in separate buckets).
+  # ticket submissions and 10 replies per IP per minute, in separate buckets,
+  # plus 60 requests per IP per minute on the mobile guest routes).
   # Over the limit the action is halted with 429 and Retry-After.
   #
   # The client IP is request.remote_ip. Behind a reverse proxy or load
@@ -19,6 +20,11 @@ module Escalated
     extend ActiveSupport::Concern
 
     GUEST_THROTTLE_WINDOW = 60 # seconds
+    GUEST_THROTTLE_LIMITS = {
+      ticket: :tickets_per_minute,
+      reply: :replies_per_minute,
+      request: :requests_per_minute
+    }.freeze
 
     private
 
@@ -30,11 +36,16 @@ module Escalated
       throttle_guest!(:reply)
     end
 
+    # Every request to a guest route (the mobile guest API).
+    def throttle_guest_requests!
+      throttle_guest!(:request)
+    end
+
     def throttle_guest!(scope)
       settings = Escalated.configuration.guest_rate_limit_settings
       return unless settings[:enabled]
 
-      limit = settings[scope == :ticket ? :tickets_per_minute : :replies_per_minute].to_i
+      limit = settings[GUEST_THROTTLE_LIMITS.fetch(scope)].to_i
       store = settings[:cache_store] || Rails.cache
 
       # A fixed window aligned to the clock keeps the counter a single atomic

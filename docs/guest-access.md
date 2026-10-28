@@ -31,6 +31,7 @@ Each prefix has `POST verification` and `POST lookup`:
 | --- | --- |
 | Guest pages | `/support/guest` |
 | Widget | `/support/widget` |
+| Mobile API (when `api_enabled`) | `/<api_prefix>/mobile/guest` |
 
 ### Requesting a code
 
@@ -111,6 +112,57 @@ guest_access_token, expires_at }] }`.
   email. It issues each one a grant, which retires that ticket's permanent
   token.
 
+## Mobile guest API
+
+The routes a mobile app uses to let a guest file a ticket, read it, reply to it
+and get back into it. The canonical contract is
+[mobile-guest-api](https://github.com/escalated-dev/escalated-developer-context/blob/main/domain-model/mobile-guest-api.md);
+this section lists only what is specific to this port.
+
+They are drawn with the REST API, so only while `config.api_enabled` is true
+(default false), under `<api_prefix>/mobile` (default
+`/support/api/v1/mobile`). Hosts that never enabled the API get no new routes.
+
+| Method | Path | Guest budget |
+| --- | --- | --- |
+| POST | `/guest/verification` | tickets |
+| POST | `/guest/lookup` | replies |
+| POST | `/guest/tickets` | tickets |
+| GET | `/guest/tickets/:token` | requests only |
+| POST | `/guest/tickets/:token/replies` | replies |
+
+- `verification` and `lookup` are the same handlers as on the guest pages and
+  the widget. `:token` is the grant, the same one those surfaces issue: a grant
+  from any of them opens the others.
+- A bad, expired, rotated, revoked, malformed or chat grant is a 404. Legacy
+  `guest_token` values are not accepted here.
+- `POST tickets` takes JSON or `multipart/form-data` (`attachments[]`). It
+  answers 403 while guest tickets are off, then 422 for field errors, then 422
+  on `verification_code` for a bad proof, with nothing created. The contact,
+  ticket (channel `web`), attachments, grant and spent code commit together;
+  `ticket_created` fires afterwards. Status, assignee, metadata and external
+  references cannot be set.
+- `POST tickets/:token/replies` answers 404 for a bad grant, 422 on a closed
+  ticket, 422 for field errors, and 403 when `email` (compared trimmed and
+  lower-cased) is not the ticket's guest email. The reply is public, has no
+  author and goes through `TicketService.reply`.
+- Ticket answers are allow-listed: `metadata` is always `{}`, staff appear by
+  display name only, and internal notes never appear. Attachment `url`s are the
+  signed guest download links for the grant.
+
+Rate limits, all per client IP:
+
+- The API limiter (`api_rate_limit`, 60 a minute) covers every mobile route,
+  with `X-RateLimit-Limit` and `X-RateLimit-Remaining`, and answers
+  `429 { message: "Too many requests.", retry_after }`.
+- `guest_rate_limit`: `requests_per_minute` (60) on every mobile guest route,
+  plus the `tickets_per_minute` (5) and `replies_per_minute` (10) budgets the
+  guest pages and widget share. Over a budget: 429 with `Retry-After`.
+
+Every answer, errors and 429s included, carries `Cache-Control: private,
+no-store` and `Referrer-Policy: no-referrer`. Keep the `:token` path segment
+out of access logs.
+
 ## Tickets created before this release
 
 Their permanent `guest_token` links keep working while
@@ -135,4 +187,8 @@ Hosts that want to retire old links now can set
   stored as its SHA-256 that expires `guest_access_ttl_minutes` after the chat
   starts, like Laravel's chat grant; it is not a sealed grant, so it does not
   share the ticket's `guest_access_hash` and is not rotated by a ticket link.
-- There is no mobile guest API in this port, so there is no mobile prefix.
+- The mobile guest routes' attachment limit is 10 or `max_attachments`
+  (default 5), whichever is lower.
+- The `requests_per_minute` budget is counted on the mobile guest routes only;
+  the guest pages and widget keep their ticket and reply budgets.
+- Lookup matches the ticket `reference` only.

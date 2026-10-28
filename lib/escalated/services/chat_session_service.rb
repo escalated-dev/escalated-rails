@@ -23,12 +23,15 @@ module Escalated
                                                   metadata: (params[:metadata] || {}).merge('source' => 'chat')
                                                 }, announce: false)
 
+            token, digest, expires_at = Escalated::ChatSession.issue_visitor_token
             session = Escalated::ChatSession.create!(
               ticket: ticket,
-              customer_session_id: params[:session_id] || SecureRandom.hex(16),
+              customer_session_id: digest,
+              customer_token_expires_at: expires_at,
               status: 'waiting',
               metadata: params[:session_metadata]
             )
+            session.visitor_token = token
           end
 
           TicketService.announce_created(ticket)

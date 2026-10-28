@@ -6,6 +6,33 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Upgrading
+- Run `bin/rails db:migrate`: migration 067 adds a nullable
+  `customer_token_expires_at` to `escalated_chat_sessions`. Chats already in
+  progress keep working: the next widget request with their token stores the
+  token's hash in place of the plain value and gives it a full lifetime.
+- Widget chat tokens now expire `guest_access_ttl_minutes` after the chat
+  starts (default 1440, clamped to 5 minutes .. 7 days), as in
+  escalated-laravel. After that every `/widget/chat/:token/*` route answers 404
+  and the visitor starts a new chat.
+- `ChatSessionService.start_chat` no longer accepts a caller-chosen
+  `session_id`; the token is always random. Read it once from
+  `result[:session].visitor_token`. `customer_session_id` now holds its
+  SHA-256, so agent payloads and broadcasts no longer carry the visitor's token.
+
+### Security
+- **Widget chat tokens are stored hashed and expire.** The token returned by
+  `POST /widget/chat/start` (`id`, also `customer_session_id`) was stored in
+  plain text and never expired. Only its SHA-256 is stored now, the start
+  response carries `expires_at`, and an unknown or expired token is a 404 on
+  every chat route. The guest's websocket chat check uses the same lookup.
+
+### Changed
+- An ended chat answers 422 to `typing` (was 204) and to a second `end` (was
+  200), and `rate` answers 422 until the chat has ended, as in
+  escalated-laravel. Its transcript (`ended: true`) and rating stay available
+  until the token expires.
+
 ## [0.7.5] - 2026-10-22
 
 ### Fixed

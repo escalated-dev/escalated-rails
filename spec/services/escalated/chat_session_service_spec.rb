@@ -32,7 +32,12 @@ RSpec.describe Escalated::Services::ChatSessionService do
       result = described_class.start_chat(params)
       expect(result[:session]).to be_a(Escalated::ChatSession)
       expect(result[:session].status).to eq('waiting')
-      expect(result[:session].customer_session_id).to eq('abc123')
+      # A caller-supplied session_id is ignored: the token is always random,
+      # and only its hash is stored.
+      expect(result[:session].visitor_token).to match(/\A\h{32}\z/)
+      expect(result[:session].customer_session_id)
+        .to eq(Escalated::ChatSession.digest(result[:session].visitor_token))
+      expect(result[:session].customer_token_expires_at).to be > 23.hours.from_now
     end
 
     it 'sets ticket metadata with chat source' do

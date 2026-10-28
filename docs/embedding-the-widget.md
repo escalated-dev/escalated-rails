@@ -117,12 +117,12 @@ All paths are under `{route_prefix}/widget`.
 | `POST /tickets` | 201 with `message`, `reference`, `guest_access_token`, `expires_at`. Takes `name`, `email`, `subject`, `description`, `verification_id`, `verification_code`, optional `department_id` (an active department, else 422 with `errors.department_id`) and `metadata`. |
 | `POST /lookup` | `{ data: [{ reference, subject, guest_access_token, expires_at }] }`. Takes `email`, `reference` and a `lookup` proof. |
 | `GET /tickets/:reference` | With `Authorization: Bearer <guest_access_token>`: `reference`, `subject`, `status`, `status_label`, `department`, `replies`. |
-| `POST /chat/start` | Takes a `chat` proof. 201 with `id`, the random token the chat paths below use (also kept as `customer_session_id`), `session_id`, `status`, `messages`, `agent`. |
+| `POST /chat/start` | Takes a `chat` proof. 201 with `id`, the random token the chat paths below use (also returned as `customer_session_id`), `expires_at`, `session_id`, `status`, `messages`, `agent`. |
 | `GET /chat/:id/messages` | `messages: [{ id, body, is_agent, author: { name }, created_at }]` (no internal notes), `agent`, `typing` (the agent's name for 5 seconds after they type), `ended` |
 | `POST /chat/:id/messages` | Sends `{ body }`. `POST /chat/:id/message` still works. |
 | `POST /chat/:id/typing`, `/end`, `/rate` | `rate` takes `{ rating: 1-5, comment }`. |
 
-An unknown chat token answers 404. Tickets, chats and status lookups need an
+An unknown or expired chat token answers 404. The token expires `guest_access_ttl_minutes` after the chat starts and only its SHA-256 is stored. An ended chat answers 422 to messages, typing and a second end; its transcript and rating stay available until the token expires. Tickets, chats and status lookups need an
 emailed code first; see [verified guest access](guest-access.md).
 `GET /tickets/:token` without a bearer token still finds a ticket by a legacy
 guest token while `accept_legacy_guest_tokens` is on.

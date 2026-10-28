@@ -66,11 +66,13 @@ module Escalated
       chat = result[:session]
       render json: {
         # The token every later chat request names in its path.
-        id: chat.customer_session_id,
+        id: chat.visitor_token,
         ticket_id: result[:ticket].id,
         ticket_reference: result[:ticket].reference,
         session_id: result[:session].id,
-        customer_session_id: result[:session].customer_session_id,
+        customer_session_id: chat.visitor_token,
+        # The token stops working after this; the visitor starts a new chat.
+        expires_at: chat.customer_token_expires_at.iso8601,
         status: result[:session].status,
         messages: [],
         agent: chat_agent(chat)
@@ -132,18 +134,24 @@ module Escalated
 
     # POST /widget/chat/:session_id/typing
     def typing
+      return render_ended('This chat has ended.') if @session.ended?
+
       Services::ChatSessionService.update_typing(@session, is_agent: false)
       head :no_content
     end
 
     # POST /widget/chat/:session_id/end
     def end_chat
+      return render_ended('Chat has already ended.') if @session.ended?
+
       Services::ChatSessionService.end_chat(@session)
       render json: { status: 'ended' }
     end
 
     # POST /widget/chat/:session_id/rate
     def rate
+      return render_ended('Chat must be ended before rating.') unless @session.ended?
+
       unless params[:rating].present? && (1..5).cover?(params[:rating].to_i)
         render json: { error: 'Rating must be between 1 and 5' }, status: :unprocessable_content
         return
@@ -160,10 +168,16 @@ module Escalated
 
     private
 
+    # Unknown and expired tokens are both 404, as in escalated-laravel.
     def set_session
-      @session = Escalated::ChatSession.find_by!(customer_session_id: params[:session_id])
-    rescue ActiveRecord::RecordNotFound
-      render json: { error: 'Chat session not found' }, status: :not_found
+      @session = Escalated::ChatSession.for_visitor_token(params[:session_id])
+      return if @session
+
+      render json: { error: 'Chat session not found', message: 'Chat session not found' }, status: :not_found
+    end
+
+    def render_ended(message)
+      render json: { error: message, message: message }, status: :unprocessable_content
     end
 
     def widget_enabled?

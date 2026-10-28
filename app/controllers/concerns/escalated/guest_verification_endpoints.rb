@@ -10,8 +10,11 @@ module Escalated
     LOOKUP_LIMIT = 20
 
     included do
-      before_action :throttle_guest_tickets!, only: :request_verification
-      before_action :throttle_guest_replies!, only: :lookup
+      # Their own names: Rails keeps one callback per method name, so a
+      # controller's own `before_action :throttle_guest_tickets!, only: ...`
+      # would otherwise replace these and leave the codes unthrottled.
+      before_action :throttle_verification_submissions!, only: :request_verification
+      before_action :throttle_lookup_replies!, only: :lookup
       # Its own name: a controller's after_action :set_guest_privacy_headers
       # would otherwise replace this one and its :only list.
       after_action :verification_privacy_headers, only: %i[request_verification lookup]
@@ -66,6 +69,14 @@ module Escalated
                          .where(tickets[:guest_email].lower.eq(email))
                          .order(created_at: :desc).limit(LOOKUP_LIMIT).to_a
       end
+    end
+
+    def throttle_verification_submissions!
+      throttle_guest_tickets!
+    end
+
+    def throttle_lookup_replies!
+      throttle_guest_replies!
     end
 
     def verification_privacy_headers

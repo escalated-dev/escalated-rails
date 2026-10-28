@@ -6,6 +6,8 @@ module Escalated
       enabled: true,
       tickets_per_minute: 5,
       replies_per_minute: 10,
+      # Every mobile guest route (docs/guest-access.md "Mobile guest API").
+      requests_per_minute: 60,
       cache_store: nil
     }.freeze
 

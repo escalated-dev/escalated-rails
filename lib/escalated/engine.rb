@@ -99,6 +99,16 @@ module Escalated
             get 'canned-responses', to: 'resources#canned_responses'
             get 'macros', to: 'resources#macros'
             get 'realtime/config', to: 'resources#realtime_config'
+
+            # The mobile guest API (escalated-developer-context
+            # domain-model/mobile-guest-api.md). {token} is the guest grant.
+            scope 'mobile/guest', controller: 'mobile_guest', as: 'mobile_guest', format: false do
+              post 'verification', action: :request_verification, as: :verification
+              post 'lookup', action: :lookup, as: :lookup
+              post 'tickets', action: :create_ticket, as: :tickets
+              get 'tickets/:token', action: :show_ticket, as: :ticket, constraints: { token: %r{[^/]+} }
+              post 'tickets/:token/replies', action: :reply, as: :ticket_replies, constraints: { token: %r{[^/]+} }
+            end
           end
         end
       end

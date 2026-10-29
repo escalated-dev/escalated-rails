@@ -7,9 +7,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Upgrading
+- **SDK plugin cron schedules run** when the host schedules `rake escalated:plugins:cron` every minute (cron, `whenever`, Solid Queue or sidekiq-cron). Without it, SDK plugins' `cron` handlers still never run.
 - **Plugin UI extensions are shared as `escalated.plugins`** (`menuItems`, `pageComponents`, `dashboardWidgets`), the shape the shared frontend reads; before, they were shared as a top-level `plugin_ui` prop that no page read, so plugin menus, widgets and slots never appeared. Admin menu items go to admins only, items with a `permission` the viewer lacks are left out, and SDK plugins' `widgets` and `components` are included. With nothing to show, `escalated.plugins` is `{}`. The `plugin_ui` prop is gone.
 - **Plugins receive the canonical domain events.** `ticket.created`, `reply.created`, `note.created`, `ticket.status_changed` and the rest of the event vocabulary go to Ruby plugins (`Escalated.hooks.add_action('ticket.created') { |payload| ... }`) and SDK plugins, with the payload of the plugin contract (the ticket flat and under `ticket`, plus the event's extras; replies flat plus `reply` and `ticket`). The Ruby hook names (`ticket_created`, `reply_added`, ...) still fire for Ruby plugins but are no longer forwarded to the SDK runtime, which now sees only dotted names. A raising plugin is logged and never fails the change.
 - **`ctx.tickets.query` and `ctx.replies.query` only accept the plugin contract's filter keys.** Tickets: `id`, `reference`, `status`, `priority`, `channel`, `ticket_type`, `department_id`, `requester_id`, `contact_id`, `assigned_to`. Replies: `ticket_id`, `is_internal`, `type` (`reply`, `note` or `system`). Any other key, or a non-scalar value, raises instead of becoming a column name. Results are capped at 500 rows.
+
+### Added
+- SDK plugin cron schedules: `rake escalated:plugins:cron` sends each five-field (UTC) schedule of each SDK plugin that is due that minute to the plugin runtime as `cron`, as no user, within 30 s; an unreadable schedule is logged and skipped, and a failing one never stops the others.
+- SDK plugin widget badges: widgets with a `badge` function carry its answer in `escalated.plugins.dashboardWidgets[].badge`, asked as the viewer (`ctx.currentUser` is the signed-in user for that call) within 5 s, `null` when it fails.
 
 ### Security
 - Plugin ticket and reply queries passed the filter's keys to `where` as column names, so an SDK plugin could filter on any column (such as the guest access hash). Keys are now whitelisted.

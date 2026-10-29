@@ -19,9 +19,14 @@ module Escalated
       # Reference back to the bridge for ctx.emit support.
       attr_writer :bridge
 
+      # The user a call is served for (a widget badge is asked as the
+      # viewer); nil means no user.
+      attr_accessor :acting_user
+
       def initialize
         @current_plugin = ''
         @bridge         = nil
+        @acting_user    = nil
       end
 
       # Dispatch a ctx.* method call from the runtime to the appropriate handler.
@@ -498,10 +503,14 @@ module Escalated
       end
 
       def current_user
-        # ActionController::Base.helpers has no request context here; this is
-        # called during a background RPC cycle.  The plugin can pass a user_id
-        # via the event payload instead.  Return nil as a safe default.
-        nil
+        user = @acting_user
+        return nil unless user
+
+        {
+          'id' => user.id,
+          'name' => user.respond_to?(:name) ? user.name : nil,
+          'email' => user.respond_to?(:email) ? user.email : nil
+        }
       end
     end
   end

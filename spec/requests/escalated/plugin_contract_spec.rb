@@ -99,6 +99,32 @@ RSpec.describe 'Plugin contract', type: :request do
     end
   end
 
+  describe 'widget badges' do
+    let(:viewer) { agent }
+
+    it 'asks the badge of each SDK widget with a badge function, as the viewer' do
+      bridge = fake_sdk_bridge('@acme/plugin-crm' => {
+                                 'widgets' => [
+                                   { 'component' => 'Plain', 'label' => 'Plain', 'order' => 1, 'hasBadge' => false },
+                                   { 'component' => 'Inbox', 'label' => 'Inbox', 'order' => 2, 'hasBadge' => true },
+                                   { 'component' => 'Count', 'label' => 'Count', 'order' => 3, 'hasBadge' => true },
+                                   { 'component' => 'Broken', 'label' => 'Broken', 'order' => 4, 'hasBadge' => true }
+                                 ]
+                               })
+      allow(bridge).to receive(:badge) do |_plugin, component, user:|
+        { 'Inbox' => "for #{user&.id}", 'Count' => 7 }[component]
+      end
+
+      widgets = shared_plugins['dashboardWidgets'].index_by { |w| w['component'] }
+
+      expect(widgets['Inbox']['badge']).to eq("for #{agent.id}")
+      expect(widgets['Count']['badge']).to eq(7)
+      expect(widgets['Broken']).to include('badge' => nil)
+      expect(widgets['Plain']).not_to have_key('badge')
+      expect(bridge).to have_received(:badge).with('@acme/plugin-crm', anything, user: agent).exactly(3).times
+    end
+  end
+
   describe 'canonical events' do
     let(:viewer) { requester }
 

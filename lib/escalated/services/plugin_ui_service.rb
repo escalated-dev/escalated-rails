@@ -194,13 +194,15 @@ module Escalated
       #
       # @param admin [Boolean] whether the viewer is an admin
       # @param permissions [Array<String>] the viewer's permission slugs
+      # @param viewer [Object, nil] the signed-in user; SDK widget badges are
+      #   asked as this user
       # @return [Hash]
-      def shared_extensions(admin: false, permissions: [])
+      def shared_extensions(admin: false, permissions: [], viewer: nil)
         allows = ->(ability) { ability.blank? || admin || Array(permissions).include?(ability.to_s) }
         menu = shared_menu_items(admin, allows)
         widgets = shared_widgets(admin, allows)
         slots = shared_page_components(allows)
-        add_sdk_extensions(widgets, slots, allows)
+        add_sdk_extensions(widgets, slots, allows, viewer)
 
         return {} if menu.empty? && widgets.empty? && slots.empty?
 
@@ -274,17 +276,21 @@ module Escalated
       end
 
       # SDK plugins' widget and slot declarations. Their pages are not
-      # mounted by this engine yet, so their menu entries are not shared.
-      def add_sdk_extensions(widgets, slots, allows)
+      # mounted by this engine yet, so their menu entries are not shared. A
+      # widget with a badge function (`hasBadge`) carries the plugin's answer
+      # as `badge`, asked as the viewer (nil when it fails).
+      def add_sdk_extensions(widgets, slots, allows, viewer)
         sdk_manifests.each do |name, manifest|
           slug = self.class.slug(name)
           Array(manifest['widgets']).each do |widget|
             next if widget['component'].blank? || !allows.call(widget['capability'])
 
-            widgets << {
+            item = {
               id: "#{slug}.#{widget['component']}", title: widget['label'], component: widget['component'],
               plugin: slug, position: widget['order'] || 100, width: widget['size'] || 'half'
             }
+            item[:badge] = sdk_badge(name, widget['component'], viewer) if widget['hasBadge'] == true
+            widgets << item
           end
           Array(manifest['components']).each do |component|
             next if component.values_at('page', 'slot', 'component').any?(&:blank?)
@@ -296,6 +302,12 @@ module Escalated
             }
           end
         end
+      end
+
+      def sdk_badge(name, component, viewer)
+        Escalated.plugin_bridge.badge(name, component, user: viewer)
+      rescue StandardError
+        nil
       end
 
       def sdk_manifests

@@ -120,7 +120,8 @@ RSpec.describe 'Ticket lifecycle hooks' do # rubocop:disable RSpec/DescribeClass
       Escalated::Engine.instance_variable_set(:@bridge_hooks_registered, true)
     end
 
-    it 'sends ticket_created to a booted runtime' do
+    # SDK plugins see the canonical name only (domain-model/plugin-contract.md).
+    it 'sends ticket.created, not the Ruby hook name, to a booted runtime' do
       bridge = instance_double(Escalated::Bridge::PluginBridge, booted?: true)
       allow(Escalated).to receive(:plugin_bridge).and_return(bridge)
       allow(bridge).to receive(:dispatch_action)
@@ -128,7 +129,8 @@ RSpec.describe 'Ticket lifecycle hooks' do # rubocop:disable RSpec/DescribeClass
       ticket = Escalated::Services::TicketService.create(subject: 'Printer on fire', description: 'Smoke.',
                                                          requester: requester)
 
-      expect(bridge).to have_received(:dispatch_action).with('ticket_created', { 'args' => [ticket.as_json] })
+      expect(bridge).to have_received(:dispatch_action).with('ticket.created', hash_including('id' => ticket.id))
+      expect(bridge).not_to have_received(:dispatch_action).with('ticket_created', anything)
     end
   end
 end

@@ -275,15 +275,37 @@ module Escalated
         ticket&.as_json
       end
 
-      def tickets_query(params)
-        filter = params['filter'] || {}
-        query  = Escalated::Ticket.all
+      # ctx.tickets.query filter keys (plugin contract) and the column each
+      # reads. Any other key is an error, never a column name.
+      TICKET_FILTERS = {
+        'id' => :id, 'reference' => :reference, 'status' => :status, 'priority' => :priority,
+        'channel' => :channel, 'ticket_type' => :ticket_type, 'department_id' => :department_id,
+        'requester_id' => :requester_id, 'contact_id' => :contact_id, 'assigned_to' => :assigned_to
+      }.freeze
 
-        filter.each do |column, value|
-          query = query.where(column => value)
+      # The most rows a ticket or reply query hands back.
+      QUERY_LIMIT = 500
+
+      def tickets_query(params)
+        query = Escalated::Ticket.all
+        contract_filter(params['filter'], TICKET_FILTERS.keys, 'ctx.tickets.query').each do |key, value|
+          query = query.where(TICKET_FILTERS.fetch(key) => value)
         end
 
-        query.map(&:as_json)
+        query.order(:id).limit(QUERY_LIMIT).map(&:as_json)
+      end
+
+      # Equality filters on whitelisted keys, single values only.
+      def contract_filter(filter, keys, method)
+        filter ||= {}
+        raise ArgumentError, "#{method} requires an object filter" unless filter.is_a?(Hash)
+
+        filter.to_h { |key, value| [key.to_s, value] }.each do |key, value|
+          raise ArgumentError, "#{method} cannot filter by \"#{key}\"" unless keys.include?(key)
+          unless value.nil? || value.is_a?(String) || value.is_a?(Numeric) || [true, false].include?(value)
+            raise ArgumentError, "#{method} filter \"#{key}\" must be a single value"
+          end
+        end
       end
 
       def tickets_create(params)
@@ -311,15 +333,28 @@ module Escalated
         reply&.as_json
       end
 
+      # ctx.replies.query filters on ticket_id, is_internal and type
+      # (reply, note or system: this engine stores the type as two flags).
       def replies_query(params)
-        filter = params['filter'] || {}
-        query  = Escalated::Reply.all
-
-        filter.each do |column, value|
-          query = query.where(column => value)
+        query = Escalated::Reply.all
+        contract_filter(params['filter'], %w[ticket_id is_internal type], 'ctx.replies.query').each do |key, value|
+          query = case key
+                  when 'ticket_id' then query.where(ticket_id: value)
+                  when 'is_internal' then query.where(is_internal: [true, 1, '1', 'true'].include?(value))
+                  else reply_type_scope(query, value.to_s)
+                  end
         end
 
-        query.map(&:as_json)
+        query.order(:id).limit(QUERY_LIMIT).map(&:as_json)
+      end
+
+      def reply_type_scope(query, type)
+        case type
+        when 'note' then query.where(is_internal: true)
+        when 'system' then query.where(is_internal: false, is_system: true)
+        when 'reply' then query.where(is_internal: false, is_system: false)
+        else query.none
+        end
       end
 
       def replies_create(params)
@@ -435,6 +470,13 @@ module Escalated
       def ctx_emit(params)
         hook = params['hook'] or raise ArgumentError, 'ctx.emit requires hook'
         data = params['data'] || {}
+
+        # A plugin may not impersonate a host event or lifecycle action.
+        if Escalated::Services::PluginActions.reserved?(hook)
+          Rails.logger.warn("[Escalated::ContextHandler] dropped ctx.emit of reserved hook #{hook} " \
+                            "from #{@current_plugin}")
+          return nil
+        end
 
         @bridge&.dispatch_action(hook, data)
         nil

@@ -208,6 +208,10 @@ module Escalated
 
       Escalated::Services::HookRegistry.actions.each_key do |hook|
         next if BRIDGE_SKIPPED_ACTIONS.include?(hook)
+        # SDK plugins see dotted names only (plugin contract). The Ruby hook
+        # names (ticket_created, reply_added, ...) stay for Ruby plugins; the
+        # canonical events reach the runtime through PluginActions.
+        next unless hook.include?('.')
 
         Escalated.hooks.add_action(hook, priority: 100) do |*args|
           bridge = Escalated.plugin_bridge

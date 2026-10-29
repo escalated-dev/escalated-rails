@@ -18,6 +18,7 @@ module Escalated
           notify_followers(event, payload) if should_notify_followers?(event)
           instrument_event(event, payload)
           fire_hooks(event, payload)
+          PluginActions.deliver(event, payload)
         end
 
         def send_webhook(event, payload)

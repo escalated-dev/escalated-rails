@@ -57,8 +57,12 @@ module Escalated
         }
       }
 
-      # Share plugin UI data when plugin system is enabled
-      shared[:plugin_ui] = Escalated.plugin_ui.to_shared_data if Escalated.configuration.plugins_enabled?
+      # Plugin menus, slots and widgets, in the shape the shared frontend's
+      # usePluginExtensions() reads (domain-model/plugin-contract.md).
+      shared[:escalated][:plugins] = Escalated.plugin_ui.shared_extensions(
+        admin: current_user_data&.dig(:is_admin) ? true : false,
+        permissions: shared[:escalated][:permissions]
+      )
 
       inertia_share(**shared)
     end

@@ -343,6 +343,11 @@ end
 every 1.week do
   runner "Escalated::PurgeActivitiesJob.perform_now"
 end
+
+# SDK plugins' cron schedules (only with the plugin runtime)
+every 1.minute do
+  rake "escalated:plugins:cron"
+end
 ```
 
 `Escalated::PurgeExpiredDataJob` (also `rake escalated:purge_expired`, with `DRY_RUN=1` to only count) applies the retention periods set on the admin Data Retention screen. Every period defaults to `never`, so until one is set it only clears expired guest verification codes. Purged tickets are destroyed, not soft-deleted:

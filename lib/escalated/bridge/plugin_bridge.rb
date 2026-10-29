@@ -141,6 +141,48 @@ module Escalated
         end
       end
 
+      # Run one of a plugin's cron schedules, as no user, within the action
+      # timeout. Fire-and-forget: a failure is logged, never raised.
+      #
+      # @return [Boolean] whether the runtime ran it
+      def cron(plugin, schedule)
+        return false unless ensure_alive
+
+        begin
+          @context_handler.current_plugin = plugin
+          @context_handler.acting_user = nil
+          @rpc.call('cron', { 'plugin' => plugin, 'schedule' => schedule }, TIMEOUT_ACTION, @context_handler)
+          true
+        rescue StandardError => e
+          Rails.logger.warn("[Escalated::Bridge] #{plugin} cron \"#{schedule}\" failed: #{e.message}")
+          handle_crash
+          false
+        end
+      end
+
+      # Ask a widget's badge, as +user+ (ctx.currentUser is that user for the
+      # call), within the filter timeout.
+      #
+      # @return [Numeric, String, nil] nil when the runtime fails or answers
+      #   anything else
+      def badge(plugin, component, user: nil)
+        return nil unless ensure_alive
+
+        begin
+          @context_handler.current_plugin = plugin
+          @context_handler.acting_user = user
+          answer = @rpc.call('badge', { 'plugin' => plugin, 'component' => component }, TIMEOUT_FILTER,
+                             @context_handler)
+          answer.is_a?(Numeric) || answer.is_a?(String) ? answer : nil
+        rescue StandardError => e
+          Rails.logger.warn("[Escalated::Bridge] #{plugin} badge #{component} failed: #{e.message}")
+          handle_crash
+          nil
+        ensure
+          @context_handler.acting_user = nil
+        end
+      end
+
       # Call a plugin's data endpoint.
       #
       # @param plugin  [String]

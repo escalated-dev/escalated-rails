@@ -237,6 +237,25 @@ Escalated.plugin_ui.add_page_component(
 )
 ```
 
+## SDK plugins: cron schedules and widget badges
+
+SDK plugins (`definePlugin()` from `@escalated-dev/plugin-sdk`, run by the
+Node plugin runtime) can declare `cron` schedules and widgets with a `badge`
+function (domain-model/plugin-contract.md in escalated-developer-context).
+
+- **Cron.** Schedule `rake escalated:plugins:cron` every minute (cron,
+  `whenever`, Solid Queue recurring tasks, sidekiq-cron). Each run sends every
+  schedule of every SDK plugin that is due that minute to the runtime, as no
+  user, within 30 s. Schedules are five-field cron expressions evaluated in
+  UTC (`@hourly`, `@daily`, ... also work). An unreadable schedule is logged
+  and skipped, and a failing one never stops the others. `AT=2026-10-29T09:00:00Z`
+  runs a given minute instead of now.
+- **Badges.** While `escalated.plugins.dashboardWidgets` is built for a page,
+  each SDK widget with a badge function is asked for its badge as the viewer
+  (`ctx.currentUser` is the signed-in user) within 5 s. The answer (a number,
+  a string or `null` when it fails) is the item's `badge`. Widgets without a
+  badge function carry no `badge` key.
+
 ## Full Example: Slack Notifier Plugin
 
 ```

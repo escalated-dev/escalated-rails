@@ -61,7 +61,8 @@ module Escalated
       # usePluginExtensions() reads (domain-model/plugin-contract.md).
       shared[:escalated][:plugins] = Escalated.plugin_ui.shared_extensions(
         admin: current_user_data&.dig(:is_admin) ? true : false,
-        permissions: shared[:escalated][:permissions]
+        permissions: shared[:escalated][:permissions],
+        viewer: escalated_current_user
       )
 
       inertia_share(**shared)

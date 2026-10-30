@@ -14,6 +14,7 @@ screen or stored setting changes them.
 |---|---|---|
 | Roles & permissions | `config.access = { roles_permissions: true }` | `ESCALATED_ROLES_PERMISSIONS` |
 | Two-factor authentication | `config.access = { two_factor: true }` | `ESCALATED_TWO_FACTOR` |
+| Single sign-on | `config.access = { sso: true }` | `ESCALATED_SSO` |
 
 ```ruby
 Escalated.configure do |config|
@@ -129,3 +130,67 @@ enrolment.
 
 The enrolment and challenge routes answer 404 and nobody is challenged.
 Enrolments are kept.
+
+## Single sign-on
+
+### Turning it on
+
+1. Run the migrations (`069` creates `escalated_sso_message_ids`).
+2. Choose the provider in **Admin > Settings > SSO** and give the identity
+   provider the endpoints that page lists.
+3. Decide how users are signed in: Devise's `sign_in` is used when the
+   controller has it, else `config.sso[:sign_in]` (a callable taking the
+   controller and the user).
+4. Set `config.access = { sso: true }` or `ESCALATED_SSO=true`.
+
+| `config.sso` key | Env var | Default |
+|---|---|---|
+| `sp_entity_id` | `ESCALATED_SSO_SP_ENTITY_ID` | the SP metadata URL |
+| `allow_idp_initiated` | `ESCALATED_SSO_ALLOW_IDP_INITIATED` | false |
+| `jwt_audience` | `ESCALATED_SSO_JWT_AUDIENCE` | the app's root URL |
+| `clock_skew` | `ESCALATED_SSO_CLOCK_SKEW` | 120 (max 300) |
+| `create_users` | `ESCALATED_SSO_CREATE_USERS` | false |
+| `sync_roles` | `ESCALATED_SSO_SYNC_ROLES` | false |
+| `redirect_to` | `ESCALATED_SSO_REDIRECT_TO` | the agent dashboard |
+| `sign_in` | | Devise `sign_in` |
+
+### Routes
+
+| Route | Use |
+|---|---|
+| `GET /support/sso/login` | Start sign-in with the configured provider (404 while it is `none`) |
+| `GET /support/sso/saml/metadata` | SP metadata; its URL is the default SP entity ID |
+| `POST /support/sso/saml/acs` | SAML assertion consumer (HTTP-POST binding) |
+| `GET /support/sso/oauth/callback` | OAuth 2 / OIDC redirect URI |
+| `GET\|POST /support/sso/jwt/callback` | JWT hand-off (`jwt` parameter) |
+
+Every route answers 404 while SSO is off or serves a provider other than the
+chosen one. Every refusal answers a generic 403 and logs the reason.
+
+### What is checked
+
+- **SAML** (`ruby-saml`, strict): the IdP certificate must be configured; the
+  assertion must be signed by it (a signed Response alone is not enough);
+  `EncryptedAssertion` is refused; Issuer, Audience (the SP entity ID),
+  Destination and the bearer Recipient (the ACS URL) and the validity windows
+  are checked; `InResponseTo` must name an AuthnRequest issued in the last 10
+  minutes, stored in the database and consumed on use (unsolicited responses
+  only with `allow_idp_initiated`); the assertion ID is used once.
+- **OAuth 2 / OIDC** (`oauth2`): authorization code with a single-use `state`
+  kept in the session and PKCE (`S256`); the code is exchanged server to server
+  and the profile read from the userinfo URL. A missing or mismatched `state`,
+  an IdP `error`, or `email_verified: false` is refused.
+- **JWT** (`jwt`): the algorithm is pinned to the configured one (so `none` and
+  algorithm switching are refused), `exp` and `jti` are required, `aud` must
+  name this install, and a `jti` is used once.
+
+### Users and roles
+
+The email comes from the configured attribute or claim (SAML falls back to an
+email-shaped NameID) and is matched to a host user case-insensitively. An
+unknown email is refused unless `create_users` is on, which creates a user with
+that email, name and a random password. With roles & permissions on and
+`sync_roles`, an asserted role naming an existing Escalated role slug replaces
+the user's roles; an unknown one changes nothing. SSO never grants the host's
+admin or agent gate. A successful sign-in renews the session and clears the
+two-factor mark, so SSO does not skip the challenge.

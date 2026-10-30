@@ -6,7 +6,7 @@ module Escalated
       before_action :require_admin!
 
       SENSITIVE_KEYS = %w[mailgun_signing_key postmark_inbound_token imap_password].freeze
-      SSO_SECRET_KEYS = %w[sso_jwt_secret].freeze
+      SSO_SECRET_KEYS = Escalated::Services::SsoService::SECRET_KEYS
 
       def index
         settings = Escalated::EscalatedSetting.all_as_hash
@@ -19,33 +19,36 @@ module Escalated
         }
       end
 
-      # The SSO settings screen, showing the settings SsoService actually reads.
-      #
-      # It used to show a different, OIDC-shaped set -- sso_client_id and
-      # sso_issuer -- which SsoService has never consulted, and none of the keys
-      # it does consult. So the form saved values nothing used and hid the ones
-      # that mattered, and it rendered under a page name the frontend does not
-      # ship, which meant the whole screen came up blank anyway.
-      #
-      # Stored secrets reach the page only as a mask ('' when unset).
+      # Admin > Settings > SSO (ADR 2026-10-29-configurable-access-features):
+      # 404 while SSO is switched off. Stored secrets reach the page only as a
+      # mask ('' when unset); the page also lists the endpoints for the IdP.
       def sso
+        return head(:not_found) unless Escalated::Support::AccessFeatures.sso?
+
         settings = sso_service.get_config
         SSO_SECRET_KEYS.each { |key| settings[key] = Escalated::Support::SecretMask.mask(settings[key]) }
 
         render_page 'Escalated/Admin/Settings/SsoSettings', {
-          settings: settings
+          settings: settings,
+          endpoints: sso_service.endpoints(escalated)
         }
       end
 
       def update_sso
+        return head(:not_found) unless Escalated::Support::AccessFeatures.sso?
+
         data = params.permit(*Escalated::Services::SsoService::CONFIG_KEYS).to_h
+        errors = sso_errors(data)
+        if errors.any?
+          return redirect_to(escalated.admin_settings_sso_path, alert: errors.values.first,
+                                                                inertia: { errors: errors })
+        end
+
         # The page posts the mask back for a secret the admin did not change.
         SSO_SECRET_KEYS.each { |key| data.delete(key) if Escalated::Support::SecretMask.masked?(data[key]) }
         sso_service.save_config(data)
 
         redirect_to escalated.admin_settings_sso_path, notice: I18n.t('escalated.admin.settings.updated')
-      rescue Escalated::Services::SsoValidationError => e
-        redirect_to escalated.admin_settings_sso_path, alert: e.message
       end
 
       def update
@@ -183,6 +186,36 @@ module Escalated
         return unless encryption.present? && %w[ssl tls starttls none].include?(encryption)
 
         Escalated::EscalatedSetting.set('imap_encryption', encryption)
+      end
+
+      SSO_URL_KEYS = %w[sso_url sso_login_url sso_logout_url sso_metadata_url sso_oauth_authorize_url
+                        sso_oauth_token_url sso_oauth_userinfo_url].freeze
+      SSO_REQUIRED = {
+        'saml' => %w[sso_entity_id sso_login_url],
+        'jwt' => %w[sso_url sso_jwt_secret],
+        'oauth' => %w[sso_oauth_authorize_url sso_oauth_token_url sso_oauth_userinfo_url sso_oauth_client_id]
+      }.freeze
+
+      def sso_errors(data)
+        errors = {}
+        provider = data['sso_provider'].to_s
+        errors['sso_provider'] = 'The selected SSO provider is invalid.' unless %w[none saml oauth
+                                                                                   jwt].include?(provider)
+        SSO_URL_KEYS.each do |key|
+          value = data[key].to_s
+          next if value.empty?
+
+          errors[key] = 'This must be a valid URL.' unless value.length <= 500 && value.match?(%r{\Ahttps?://\S+\z})
+        end
+        algorithm = data['sso_jwt_algorithm'].to_s
+        if algorithm.present? && Escalated::Services::SsoService::JWT_ALGORITHMS.exclude?(algorithm)
+          errors['sso_jwt_algorithm'] = 'The selected algorithm is invalid.'
+        end
+        SSO_REQUIRED.fetch(provider, []).each do |key|
+          present = data[key].present? || (SSO_SECRET_KEYS.include?(key) && sso_service.get_config[key].present?)
+          errors[key] ||= 'This field is required.' unless present
+        end
+        errors
       end
 
       def sso_service

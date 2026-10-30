@@ -173,6 +173,10 @@ RSpec.describe 'Stored secrets are never serialized', type: :request do
   end
 
   describe 'SSO settings' do
+    # The SSO screen exists while SSO is switched on (ADR 2026-10-29).
+    before { Escalated.configuration.access = { sso: true } }
+    after { Escalated.configuration.access = {} }
+
     it 'shows the JWT secret as the full mask, and an empty string when unset' do
       get '/support/admin/settings/sso'
       expect(inertia_page.dig('props', 'settings', 'sso_jwt_secret')).to eq('')
@@ -188,7 +192,7 @@ RSpec.describe 'Stored secrets are never serialized', type: :request do
     it 'keeps the stored secret when the mask is posted back, and replaces it with a new value' do
       set_setting('sso_jwt_secret', jwt_secret)
       get '/support/admin/settings/sso'
-      settings = inertia_page.dig('props', 'settings')
+      settings = inertia_page.dig('props', 'settings').merge('sso_url' => 'https://idp.example.test/login')
 
       inertia_visit(:post, '/support/admin/settings/sso', settings.merge('sso_provider' => 'jwt'))
       expect(response).to be_redirect

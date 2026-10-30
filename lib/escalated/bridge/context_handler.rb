@@ -13,6 +13,10 @@ module Escalated
     # awaits the promise and the host blocks the JSON-RPC read loop until the
     # ActiveRecord operation completes, then sends back the JSON-RPC response.
     class ContextHandler
+      # ctx.tickets.create/update and ctx.replies.create, and the contract's
+      # fields for every ctx write, live in ContractWrites.
+      include ContractWrites
+
       # The plugin name that is currently executing (set before each dispatch).
       attr_writer :current_plugin
 
@@ -328,21 +332,6 @@ module Escalated
         end
       end
 
-      def tickets_create(params)
-        data   = params['data'] or raise ArgumentError, 'ctx.tickets.create requires data'
-        ticket = Escalated::Ticket.create!(data)
-        ticket.as_json
-      end
-
-      def tickets_update(params)
-        id   = params['id'] or raise ArgumentError, 'ctx.tickets.update requires id'
-        data = params['data'] or raise ArgumentError, 'ctx.tickets.update requires data'
-
-        ticket = Escalated::Ticket.find(id)
-        ticket.update!(data)
-        ticket.reload.as_json
-      end
-
       # -----------------------------------------------------------------------
       # Replies
       # -----------------------------------------------------------------------
@@ -377,12 +366,6 @@ module Escalated
         end
       end
 
-      def replies_create(params)
-        data  = params['data'] or raise ArgumentError, 'ctx.replies.create requires data'
-        reply = Escalated::Reply.create!(data)
-        reply.as_json
-      end
-
       # -----------------------------------------------------------------------
       # Contacts (users)
       # -----------------------------------------------------------------------
@@ -402,9 +385,9 @@ module Escalated
       end
 
       def contacts_create(params)
-        data  = params['data'] or raise ArgumentError, 'ctx.contacts.create requires data'
+        data  = contract_fields(params['data'], CONTACT_CREATE_FIELDS, 'ctx.contacts.create')
         model = Escalated.configuration.user_model
-        user  = model.create!(data)
+        user  = model.create!(data.slice(*CONTACT_CREATE_FIELDS))
         user.as_json
       end
 
@@ -417,8 +400,9 @@ module Escalated
       end
 
       def tags_create(params)
-        data = params['data'] or raise ArgumentError, 'ctx.tags.create requires data'
-        tag  = Escalated::Tag.create!(data)
+        data = contract_fields(params['data'], TAG_CREATE_FIELDS, 'ctx.tags.create')
+        name = optional_text(data, 'name', 'ctx.tags.create') or raise ArgumentError, 'ctx.tags.create requires name'
+        tag  = Escalated::Tag.create!(data.slice('slug', 'color').compact.merge('name' => name))
         tag.as_json
       end
 

@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.8] - 2026-10-30
+
 ### Upgrading
 - **`ctx.replies.create`, `ctx.tickets.create`, `ctx.tickets.update`, `ctx.contacts.create` and `ctx.tags.create` only accept the plugin contract's fields** (plugin contract, The plugin context). They passed the plugin's data straight to `create!`/`update!`, so a plugin could set a reply's author or internal/system flags, a ticket's requester, assignee or SLA fields, a tag's id, or any column of the host's user model (an admin flag included). Any other key is now an `ArgumentError` naming it. Replies: `ticket_id` (an existing ticket), `body`, `is_internal` (true makes a note); the author is the acting user, or nobody. Tickets: `subject`/`title`, `body`/`description` (the subject when blank, as a description is required), `priority`, `status`, `department_id`, `ticket_type`, `metadata`, and on create `channel` (accepted; tickets here have no channel column) and `contact_id` or `requester_email`/`requester_name` (a contact, found or created, also set as the guest name and email); never a requester id, assignee, reference or SLA field. Unknown priorities, statuses, ticket types, departments and contacts are errors. Contacts: `name`, `email`. Tags: `name`, `slug`, `color`. Plugins that sent other keys must drop them.
 

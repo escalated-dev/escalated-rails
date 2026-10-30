@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.9] - 2026-10-30
+
 ### Upgrading
 - **Plugin `ctx.tickets.create`, `ctx.tickets.update` and `ctx.replies.create` now go through `TicketService`** (plugin contract, The plugin context), so a plugin's ticket or reply behaves like one written over the API. Before, they wrote the models directly and nothing else happened. Now a new ticket gets the default priority, a reference, the `ticket_created` activity and the default SLA, and is announced (`ticket.created` to workflows, webhooks, plugins and followers, the new-ticket mail and broadcast); a `status` on create or update is a status change (`status_changed` activity, `ticket.status_changed`, status mails); priority, department, subject and description changes are logged and announced (`ticket.priority_changed`, `ticket.department_changed`, `ticket.updated`); a reply or note is logged, sets the first response time and the agent/customer status flip like an API reply, and is announced (`reply.created` / `note.created`, reply mail). The author and causer is the signed-in user of the request the plugin is serving, or nobody. While a plugin action is being delivered, the same action raised by a plugin's own write (or `ctx.emit`) is not delivered to plugins again, and nesting stops at three, so a `ticket.created` handler that opens a ticket no longer triggers itself; webhooks and workflows still see every event.
 

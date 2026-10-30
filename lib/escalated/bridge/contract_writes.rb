@@ -35,7 +35,15 @@ module Escalated
           attributes[:guest_name] = contact.name.presence || contact.email
         end
 
-        Escalated::Ticket.create!(attributes).as_json
+        # Through the ticket service, like a ticket opened over the API: the
+        # creation activity, SLA, ticket.created, workflows and webhooks. The
+        # service opens every ticket; a requested status is a status change.
+        status = attributes.delete(:status)
+        ticket = ticket_service.create(attributes.merge(requester: nil))
+        if changes?(ticket.status, status)
+          ticket = ticket_service.transition_status(ticket, status, actor: @acting_user)
+        end
+        ticket.reload.as_json
       end
 
       def tickets_update(params)
@@ -43,8 +51,47 @@ module Escalated
         data = contract_fields(params['data'], TICKET_UPDATE_FIELDS, 'ctx.tickets.update')
 
         ticket = Escalated::Ticket.find(id)
-        ticket.update!(ticket_attributes(data, 'ctx.tickets.update'))
+        attributes = ticket_attributes(data, 'ctx.tickets.update')
+        update_ticket_details(ticket, attributes)
+        if changes?(ticket.priority, attributes[:priority])
+          ticket = ticket_service.change_priority(ticket, attributes[:priority], actor: @acting_user)
+        end
+        update_ticket_department(ticket, attributes) if attributes.key?(:department_id)
+        if changes?(ticket.status, attributes[:status])
+          ticket = ticket_service.transition_status(ticket, attributes[:status], actor: @acting_user)
+        end
         ticket.reload.as_json
+      end
+
+      # Each change goes the way the API makes it, so it is logged and
+      # announced (ticket.updated, ticket.priority_changed, ...).
+      def update_ticket_details(ticket, attributes)
+        details = attributes.slice(:subject, :description)
+        direct = attributes.slice(:ticket_type, :metadata)
+        return if details.empty? && direct.empty?
+
+        ticket.update!(direct) if direct.any?
+        ticket_service.update(ticket, details, actor: @acting_user)
+      end
+
+      def update_ticket_department(ticket, attributes)
+        return if ticket.department_id == attributes[:department_id]
+
+        if attributes[:department_id].nil?
+          ticket.update!(department_id: nil)
+          ticket_service.update(ticket, {}, actor: @acting_user)
+        else
+          ticket_service.change_department(ticket, Escalated::Department.find(attributes[:department_id]),
+                                           actor: @acting_user)
+        end
+      end
+
+      def changes?(current, requested)
+        !requested.nil? && requested.to_s != current.to_s
+      end
+
+      def ticket_service
+        Escalated::Services::TicketService
       end
 
       def replies_create(params)
@@ -56,14 +103,15 @@ module Escalated
         body = optional_text(data, 'body', method) or raise ArgumentError, "#{method} requires body"
 
         # The author is the acting user (the signed-in user of the request the
-        # plugin is serving), or nobody: a plugin never names it.
-        Escalated::Reply.create!(
-          ticket: ticket,
-          body: body,
-          is_internal: [true, 1, '1', 'true'].include?(data['is_internal']),
-          is_system: false,
-          author: @acting_user
-        ).as_json
+        # plugin is serving), or nobody: a plugin never names it. Through the
+        # ticket service, like a reply over the API: activity log, first
+        # response, reply.created / note.created, workflows and webhooks.
+        ticket_service.reply(ticket, {
+                               body: body,
+                               is_internal: [true, 1, '1', 'true'].include?(data['is_internal']),
+                               is_system: false,
+                               author: @acting_user
+                             }).as_json
       end
 
       # The plugin's data, refused when it holds a key outside the contract.

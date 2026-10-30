@@ -13,6 +13,8 @@ module Escalated
     # that caused the event.
     module PluginActions
       LIFECYCLE = %w[plugin.activated plugin.deactivated plugin.uninstalling].freeze
+      # How many plugin actions may nest (see guard).
+      MAX_DEPTH = 3
 
       class << self
         def deliver(event, payload)
@@ -20,21 +22,33 @@ module Escalated
             data = build(name, payload)
             next if data.nil?
 
-            begin
-              Escalated.hooks.do_action(name, data)
-            rescue StandardError => e
-              Rails.logger.error("[Escalated::PluginActions] plugin action #{name} failed: #{e.message}")
-            end
-
-            begin
-              bridge = Escalated.plugin_bridge
-              bridge.dispatch_action(name, data) if bridge.booted?
-            rescue StandardError => e
-              Rails.logger.warn("[Escalated::PluginActions] SDK plugin action #{name} failed: #{e.message}")
-            end
+            # A plugin's own ctx write raises events while it handles one; the
+            # same action is not handed back to plugins.
+            guard(name) { deliver_now(name, data) }
           end
         rescue StandardError => e
           Rails.logger.error("[Escalated::PluginActions] delivering #{event} failed: #{e.message}")
+        end
+
+        # Re-entrancy guard, after the workflow engine's: while an action is
+        # being delivered to plugins, the same action (raised by a plugin's
+        # own ctx write, or ctx.emit) is not delivered again, and nesting
+        # stops at MAX_DEPTH. Webhooks and workflows still see every event.
+        # Returns whether the block ran.
+        def guard(name)
+          running = (Thread.current[:escalated_plugin_actions] ||= [])
+          if running.include?(name) || running.size >= MAX_DEPTH
+            Rails.logger.debug { "[Escalated::PluginActions] skipped #{name}: raised while #{running.inspect} run" }
+            return false
+          end
+
+          running.push(name)
+          begin
+            yield
+          ensure
+            running.pop
+          end
+          true
         end
 
         # Whether a plugin-emitted hook would impersonate a host event: a
@@ -43,6 +57,21 @@ module Escalated
           hook = hook.to_s
           LIFECYCLE.include?(hook) || Escalated::EventNames::CANONICAL.include?(hook) ||
             Escalated::EventNames::LEGACY.key?(hook)
+        end
+
+        def deliver_now(name, data)
+          begin
+            Escalated.hooks.do_action(name, data)
+          rescue StandardError => e
+            Rails.logger.error("[Escalated::PluginActions] plugin action #{name} failed: #{e.message}")
+          end
+
+          begin
+            bridge = Escalated.plugin_bridge
+            bridge.dispatch_action(name, data) if bridge.booted?
+          rescue StandardError => e
+            Rails.logger.warn("[Escalated::PluginActions] SDK plugin action #{name} failed: #{e.message}")
+          end
         end
 
         def build(name, payload)

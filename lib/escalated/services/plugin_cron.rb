@@ -33,7 +33,8 @@ module Escalated
         return 0 unless bridge.booted?
 
         sent = 0
-        (bridge.manifests || {}).each do |name, manifest|
+        # Inactive plugins run no cron.
+        Escalated::Bridge::SdkPluginActivation.active_manifests(bridge.manifests).each do |name, manifest|
           Array(manifest['cronSchedules']).grep(String).each do |schedule|
             next unless due_or_skip?(name, schedule, at)
 

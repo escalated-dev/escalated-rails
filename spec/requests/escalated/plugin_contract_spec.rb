@@ -40,6 +40,7 @@ RSpec.describe 'Plugin contract', type: :request do
     bridge = instance_double(Escalated::Bridge::PluginBridge, booted?: true, manifests: manifests)
     allow(bridge).to receive(:dispatch_action)
     allow(Escalated).to receive(:plugin_bridge).and_return(bridge)
+    activate_sdk_plugins(*manifests.keys)
     bridge
   end
 
@@ -229,7 +230,7 @@ RSpec.describe 'Plugin contract', type: :request do
     end
 
     it 'drops ctx.emit names that impersonate a canonical or lifecycle event' do
-      bridge = instance_double(Escalated::Bridge::PluginBridge, dispatch_action: nil)
+      bridge = instance_double(Escalated::Bridge::PluginBridge, dispatch_action: nil, manifests: {})
       handler.bridge = bridge
 
       %w[ticket.created plugin.activated ticket.replied acme.synced].each do |hook|

@@ -315,7 +315,8 @@ module Escalated
 
       def sdk_manifests
         bridge = Escalated.plugin_bridge
-        bridge.booted? ? (bridge.manifests || {}) : {}
+        # Inactive plugins add nothing.
+        bridge.booted? ? Escalated::Bridge::SdkPluginActivation.active_manifests(bridge.manifests) : {}
       rescue StandardError
         {}
       end

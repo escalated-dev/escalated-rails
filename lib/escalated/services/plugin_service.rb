@@ -6,6 +6,13 @@ require 'fileutils'
 module Escalated
   module Services
     class PluginService
+      # No Ruby or SDK plugin has this slug.
+      class UnknownPlugin < StandardError
+        def initialize(slug)
+          super("No plugin is installed as '#{slug}'.")
+        end
+      end
+
       class << self
         # ================================================================
         # Discovery
@@ -17,7 +24,16 @@ module Escalated
         #
         # @return [Array<Hash>]
         def all_plugins
-          local_plugins + gem_plugins
+          native = local_plugins + gem_plugins
+          taken = native.pluck(:slug)
+          sdk = sdk_plugins.reject do |plugin|
+            next false unless taken.include?(plugin[:slug])
+
+            Rails.logger.error("[Escalated::PluginService] SDK plugin '#{plugin[:name]}' and a Ruby plugin share " \
+                               "the slug '#{plugin[:slug]}'; the SDK plugin is not listed.")
+            true
+          end
+          native + sdk
         end
 
         # Return slugs of all currently activated plugins.
@@ -34,27 +50,26 @@ module Escalated
         # Lifecycle
         # ================================================================
 
-        # Activate a plugin by slug.
-        #
-        # Creates the database record if it doesn't exist, loads the plugin
-        # file, and fires activation hooks.
+        # Activate a plugin by slug (domain-model/plugin-contract.md,
+        # Lifecycle): record it active, let it set itself up (Ruby: load it
+        # and fire plugin_activated; SDK: the runtime's `activate`), then fire
+        # `plugin.activated`. Activating an active plugin does nothing.
         #
         # @param slug [String]
         # @return [Boolean]
+        # @raise [UnknownPlugin]
         def activate_plugin(slug)
-          validate_plugin_exists!(slug)
+          sdk_name = sdk_plugin_name(slug)
+          validate_plugin_exists!(slug) if sdk_name.nil?
 
-          plugin = Escalated::Plugin.find_or_create_by!(slug: slug) do |p|
-            p.is_active = false
-          end
+          plugin = Escalated::Plugin.find_or_initialize_by(slug: slug)
+          return true if plugin.persisted? && plugin.is_active
 
-          unless plugin.is_active
-            plugin.update!(
-              is_active: true,
-              activated_at: Time.current,
-              deactivated_at: nil
-            )
+          plugin.update!(is_active: true, activated_at: Time.current, deactivated_at: nil)
 
+          if sdk_name
+            Escalated.plugin_bridge.activate(sdk_name)
+          else
             # Load the plugin so its hooks are registered
             load_plugin(slug)
 
@@ -62,6 +77,8 @@ module Escalated
             Escalated.hooks.do_action('plugin_activated', slug)
             Escalated.hooks.do_action("plugin_activated_#{slug}")
           end
+
+          fire_lifecycle('plugin.activated', slug, sdk_name)
 
           true
         end
@@ -73,12 +90,21 @@ module Escalated
         #
         # @param slug [String]
         # @return [Boolean]
+        # @raise [UnknownPlugin]
         def deactivate_plugin(slug)
+          sdk_name = sdk_plugin_name(slug)
           plugin = Escalated::Plugin.find_by(slug: slug)
+          raise UnknownPlugin, slug if plugin.nil? && sdk_name.nil? && resolve_plugin_path(slug).nil?
 
           if plugin&.is_active
-            Escalated.hooks.do_action('plugin_deactivated', slug)
-            Escalated.hooks.do_action("plugin_deactivated_#{slug}")
+            fire_lifecycle('plugin.deactivated', slug, sdk_name)
+
+            if sdk_name
+              Escalated.plugin_bridge.deactivate(sdk_name)
+            else
+              Escalated.hooks.do_action('plugin_deactivated', slug)
+              Escalated.hooks.do_action("plugin_deactivated_#{slug}")
+            end
 
             plugin.update!(
               is_active: false,
@@ -101,6 +127,8 @@ module Escalated
           all = all_plugins
           plugin_data = all.find { |p| p[:slug] == slug }
           if plugin_data && plugin_data[:source] == :composer
+            raise 'SDK plugins are installed with npm. Remove the package with npm instead.' if plugin_data[:sdk]
+
             raise 'Gem plugins cannot be deleted. Remove the gem via Bundler instead.'
           end
 
@@ -113,6 +141,7 @@ module Escalated
           load_plugin(slug) if plugin&.is_active
 
           # Fire uninstall hooks
+          fire_lifecycle('plugin.uninstalling', slug, nil)
           Escalated.hooks.do_action('plugin_uninstalling', slug)
           Escalated.hooks.do_action("plugin_uninstalling_#{slug}")
 
@@ -237,9 +266,84 @@ module Escalated
           nil
         end
 
+        # Fire a lifecycle action (`plugin.activated` and so on) with
+        # {plugin, slug} to active Ruby and SDK plugins. A plugin that raises
+        # is logged and never undoes the transition.
+        def fire_lifecycle(hook, slug, sdk_name)
+          data = { 'plugin' => sdk_name || native_plugin_name(slug), 'slug' => slug }
+          begin
+            Escalated.hooks.do_action(hook, data)
+          rescue StandardError => e
+            Rails.logger.error("[Escalated::PluginService] plugin action #{hook} failed: #{e.message}")
+          end
+          begin
+            bridge = Escalated.plugin_bridge
+            bridge.dispatch_action(hook, data) if bridge.booted?
+          rescue StandardError => e
+            Rails.logger.warn("[Escalated::PluginService] SDK plugin action #{hook} failed: #{e.message}")
+          end
+        end
+
+        def native_plugin_name(slug)
+          dir = resolve_plugin_path(slug)
+          manifest = dir && parse_manifest(File.join(dir, 'plugin.json'))
+          manifest.is_a?(Hash) && manifest['name'].is_a?(String) ? manifest['name'] : slug
+        end
+
+        # SDK plugins the runtime loaded, listed with the Ruby ones. They are
+        # installed with npm, so their source is `composer` (managed by a
+        # package manager) and the admin cannot delete them.
+        def sdk_plugins
+          manifests = sdk_manifests
+          return [] if manifests.empty?
+
+          rows = Escalated::Plugin.where(slug: manifests.keys.map { |n| sdk_slug(n) }).index_by(&:slug)
+          manifests.map do |name, manifest|
+            slug = sdk_slug(name)
+            row = rows[slug]
+            pages = Array(manifest['pages'])
+            {
+              slug: slug,
+              name: name.to_s,
+              description: manifest['description'],
+              version: (manifest['version'] || '0.0.0').to_s,
+              author: manifest['author'],
+              author_url: manifest['homepage'],
+              homepage: manifest['homepage'],
+              is_active: row&.is_active || false,
+              activated_at: row&.is_active ? row.activated_at : nil,
+              source: :composer,
+              sdk: true,
+              provides: {
+                menu_items: pages.count { |page| page.is_a?(Hash) && page['menu'].is_a?(Hash) },
+                widgets: Array(manifest['widgets']).size,
+                page_components: Array(manifest['components']).size
+              }
+            }
+          end
+        rescue ActiveRecord::StatementInvalid => e
+          Rails.logger.debug { "[Escalated::PluginService] Could not list SDK plugins: #{e.message}" }
+          []
+        end
+
+        def sdk_plugin_name(slug)
+          sdk_manifests.keys.find { |name| sdk_slug(name) == slug }&.to_s
+        end
+
+        def sdk_slug(name)
+          Escalated::Bridge::SdkPluginActivation.slug(name)
+        end
+
+        def sdk_manifests
+          bridge = Escalated.plugin_bridge
+          bridge.booted? ? (bridge.manifests || {}) : {}
+        rescue StandardError
+          {}
+        end
+
         def validate_plugin_exists!(slug)
           plugin_dir = resolve_plugin_path(slug)
-          raise "Plugin not found: #{slug}" unless plugin_dir
+          raise UnknownPlugin, slug unless plugin_dir
           raise "Plugin manifest not found: #{slug}/plugin.json" unless File.exist?(File.join(plugin_dir,
                                                                                               'plugin.json'))
         end

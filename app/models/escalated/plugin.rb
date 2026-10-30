@@ -6,8 +6,10 @@ module Escalated
 
     validates :slug, presence: true, uniqueness: true,
                      format: {
-                       with: /\A[a-z0-9]+(?:-[a-z0-9]+)*\z/,
-                       message: 'must be a lowercase slug (e.g. my-plugin)'
+                       # The plugin contract's slug: an SDK plugin named
+                       # "@acme/plugin-crm" is "acme--plugin-crm".
+                       with: /\A[A-Za-z0-9_-]+\z/,
+                       message: 'must be a slug (letters, digits, "-" and "_")'
                      }
 
     scope :active,   -> { where(is_active: true) }

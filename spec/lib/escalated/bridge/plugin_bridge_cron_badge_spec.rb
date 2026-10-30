@@ -29,6 +29,7 @@ RSpec.describe Escalated::Bridge::PluginBridge do
     rpc = rpc_class.new(&answer)
     bridge.instance_variable_set(:@rpc, rpc)
     allow(bridge).to receive(:ensure_alive).and_return(true)
+    activate_sdk_plugins('@acme/crm')
     rpc
   end
 

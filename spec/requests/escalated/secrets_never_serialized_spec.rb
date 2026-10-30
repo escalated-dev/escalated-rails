@@ -234,8 +234,12 @@ RSpec.describe 'Stored secrets are never serialized', type: :request do
     it 'keeps the TOTP secret and recovery codes off the two-factor page' do
       Escalated::TwoFactor.create!(user_id: admin.id, secret: totp_secret, recovery_codes: [recovery_code],
                                    confirmed_at: Time.current)
+      # The page exists while two-factor is on; this session has passed it.
+      Escalated.configuration.access = { two_factor: true }
+      allow(Escalated::Support::TwoFactorSession).to receive(:passed?).and_return(true)
 
       get '/support/admin/settings/two_factor'
+      Escalated.configuration.access = {}
 
       expect_no_secrets(totp_secret, recovery_code)
       expect(inertia_page.dig('props', 'enabled')).to be(true)

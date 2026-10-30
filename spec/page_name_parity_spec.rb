@@ -44,7 +44,6 @@ module PageNameParity
   NOT_YET_RENDERED = %w[
     Escalated/Admin/Settings/Sandbox
     Escalated/Admin/Workflows/Builder
-    Escalated/Auth/TwoFactorChallenge
     Escalated/Plugin/Page
   ].freeze
 

@@ -20,4 +20,17 @@ namespace :escalated do
       abort e.message
     end
   end
+
+  namespace :two_factor do
+    desc 'Remove the two-factor enrolment of a user (lost device): rake "escalated:two_factor:reset[you@example.com]"'
+    task :reset, %i[user] => :environment do |_task, args|
+      model = Escalated.configuration.user_model
+      ref = args[:user].to_s
+      user = model.find_by(email: ref) || (ref.match?(/\A\d+\z/) && model.find_by(id: ref))
+      abort "No user [#{ref}]." unless user
+
+      Escalated::TwoFactor.where(user_id: user.id).delete_all
+      puts "Removed the two-factor enrolment of user #{user.id}."
+    end
+  end
 end

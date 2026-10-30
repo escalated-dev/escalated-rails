@@ -58,6 +58,20 @@ module Escalated
       end
     end
 
+    # Every login must pass the two-factor challenge again: clear the mark when
+    # Warden (Devise) signs someone in or out. Hosts on other authentication
+    # call Escalated::Support::TwoFactorSession.forget(session) themselves.
+    config.after_initialize do
+      if defined?(Warden::Manager)
+        Warden::Manager.after_set_user(except: :fetch) do |_user, auth, _opts|
+          Escalated::Support::TwoFactorSession.forget(auth.request.session)
+        end
+        Warden::Manager.before_logout do |_user, auth, _opts|
+          Escalated::Support::TwoFactorSession.forget(auth.request.session)
+        end
+      end
+    end
+
     initializer 'escalated.append_routes' do |app|
       app.routes.append do
         mount Escalated::Engine, at: "/#{Escalated.configuration.route_prefix}"

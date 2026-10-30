@@ -256,10 +256,16 @@ Escalated::Engine.routes.draw do
     end
 
     # Phase 5
-    get 'settings/two_factor', to: 'settings#two_factor', as: :settings_two_factor
-    post 'settings/two_factor/setup', to: 'settings#two_factor_setup', as: :settings_two_factor_setup
-    post 'settings/two_factor/confirm', to: 'settings#two_factor_confirm', as: :settings_two_factor_confirm
-    post 'settings/two_factor/disable', to: 'settings#two_factor_disable', as: :settings_two_factor_disable
+    # Two-factor enrolment, for every staff user (ADR 2026-10-29). 404 while
+    # two-factor is off. Laravel's hyphenated paths are accepted as well.
+    get 'settings/two_factor', to: 'two_factor#show', as: :settings_two_factor
+    post 'settings/two_factor/setup', to: 'two_factor#setup', as: :settings_two_factor_setup
+    post 'settings/two_factor/confirm', to: 'two_factor#confirm', as: :settings_two_factor_confirm
+    post 'settings/two_factor/disable', to: 'two_factor#disable', as: :settings_two_factor_disable
+    get 'settings/two-factor', to: 'two_factor#show'
+    post 'settings/two-factor/setup', to: 'two_factor#setup'
+    post 'settings/two-factor/confirm', to: 'two_factor#confirm'
+    post 'settings/two-factor/disable', to: 'two_factor#disable'
     get 'settings/sso', to: 'settings#sso', as: :settings_sso
     post 'settings/sso', to: 'settings#update_sso', as: :settings_update_sso
     # Settings sub-pages, at escalated-laravel's paths.
@@ -374,6 +380,11 @@ Escalated::Engine.routes.draw do
     post ':token/reply', to: 'tickets#reply', as: :ticket_reply
     post ':token/rate', to: 'tickets#rate', as: :ticket_rate
   end
+
+  # The two-factor challenge after the host's login (ADR 2026-10-29); 404
+  # while two-factor is off.
+  get 'two-factor/challenge', to: 'two_factor_challenges#show', as: :two_factor_challenge
+  post 'two-factor/challenge', to: 'two_factor_challenges#create', as: :two_factor_verify
 
   # Root redirect to customer tickets
   root to: 'customer/tickets#index'

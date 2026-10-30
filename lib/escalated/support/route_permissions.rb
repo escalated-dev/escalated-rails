@@ -47,7 +47,7 @@ module Escalated
 
       MAP = [
         # ---- Personal ------------------------------------------------------
-        ["#{A}/settings\#{two_factor,two_factor_setup,two_factor_confirm,two_factor_disable}", []],
+        ["#{A}/two_factor#*", []],
 
         # ---- Tickets (admin and agent panels, staff API) ---------------------
         ["#{G}/dashboard#index", VIEW],

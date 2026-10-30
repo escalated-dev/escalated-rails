@@ -13,8 +13,12 @@ RSpec.describe 'Admin two-factor enrolment', type: :request do
 
   before do
     allow(Escalated.configuration).to receive(:notification_channels).and_return([])
+    # Enrolment exists while two-factor is switched on (ADR 2026-10-29).
+    Escalated.configuration.access = { two_factor: true }
     sign_in_as(admin)
   end
+
+  after { Escalated.configuration.access = {} }
 
   def sign_in_as(user)
     # rubocop:disable-next RSpec/AnyInstance
@@ -30,8 +34,7 @@ RSpec.describe 'Admin two-factor enrolment', type: :request do
   end
 
   def codes_accepted_now(secret)
-    step = Time.now.to_i / Escalated::Services::TwoFactorService::PERIOD
-    (-1..1).map { |offset| totp.send(:generate_totp, secret, step + offset) }
+    (-1..1).map { |offset| ROTP::TOTP.new(secret).at(Time.now.to_i + (offset * 30)) }
   end
 
   def start_enrolment
@@ -67,6 +70,8 @@ RSpec.describe 'Admin two-factor enrolment', type: :request do
 
   it 'does not replace an enrolment that is already confirmed' do
     confirmed = create(:escalated_two_factor, user: admin)
+    # An enrolled user reaches enrolment after passing the challenge.
+    allow(Escalated::Support::TwoFactorSession).to receive(:passed?).and_return(true)
 
     post '/support/admin/settings/two_factor/setup'
 

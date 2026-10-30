@@ -19,61 +19,6 @@ module Escalated
         }
       end
 
-      def two_factor
-        two_factor = Escalated::TwoFactor.find_by(user_id: escalated_current_user.id)
-
-        render_page 'Escalated/Admin/Settings/TwoFactor', {
-          enabled: two_factor&.confirmed? || false,
-          pending: two_factor.present? && !two_factor.confirmed?
-        }
-      end
-
-      # Starts enrolment. The page reads the QR code and recovery codes from the
-      # flash; the secret itself stays on the server until a code proves the
-      # user's authenticator has it.
-      def two_factor_setup
-        if Escalated::TwoFactor.where(user_id: escalated_current_user.id).where.not(confirmed_at: nil).exists?
-          return redirect_back_or_to(escalated.admin_settings_two_factor_path,
-                                     alert: I18n.t('escalated.admin.two_factor.already_enabled',
-                                                   default: 'Two-factor authentication is already enabled.'))
-        end
-
-        Escalated::TwoFactor.where(user_id: escalated_current_user.id, confirmed_at: nil).delete_all
-
-        totp = Escalated::Services::TwoFactorService.new
-        secret = totp.generate_secret
-        recovery_codes = totp.generate_recovery_codes
-        Escalated::TwoFactor.create!(user_id: escalated_current_user.id, secret: secret, recovery_codes: recovery_codes)
-
-        flash[:two_factor_setup] = {
-          qr_uri: totp.generate_qr_uri(secret, escalated_current_user.email),
-          recovery_codes: recovery_codes
-        }
-        redirect_back_or_to escalated.admin_settings_two_factor_path
-      end
-
-      def two_factor_confirm
-        two_factor = Escalated::TwoFactor.find_by(user_id: escalated_current_user.id, confirmed_at: nil)
-
-        unless two_factor && Escalated::Services::TwoFactorService.new.verify(two_factor.secret, params[:code].to_s)
-          return redirect_back_or_to(escalated.admin_settings_two_factor_path,
-                                     alert: I18n.t('escalated.admin.two_factor.invalid_code'))
-        end
-
-        two_factor.update!(confirmed_at: Time.current)
-
-        flash[:two_factor_confirmed] = { recovery_codes: two_factor.recovery_codes }
-        redirect_back_or_to escalated.admin_settings_two_factor_path,
-                            notice: I18n.t('escalated.admin.two_factor.enabled')
-      end
-
-      def two_factor_disable
-        two_factor = Escalated::TwoFactor.find_by(user_id: escalated_current_user.id)
-        two_factor&.destroy!
-
-        redirect_to escalated.admin_settings_two_factor_path, notice: I18n.t('escalated.admin.two_factor.disabled')
-      end
-
       # The SSO settings screen, showing the settings SsoService actually reads.
       #
       # It used to show a different, OIDC-shaped set -- sso_client_id and
@@ -113,10 +58,13 @@ module Escalated
 
         update_widget_settings
 
-        # Boolean settings
-        %w[guest_tickets_enabled allow_customer_close inbound_email_enabled show_powered_by
-           knowledge_base_enabled knowledge_base_public knowledge_base_feedback_enabled].each do |key|
-          value = params[key].in?(%w[1 true on]) ? '1' : '0'
+        # Boolean settings, each written only when the form sends it: a page
+        # that posts one switch (Admin/Settings/TwoFactor's "require for all
+        # staff") must not turn the others off.
+        boolean_settings.each do |key|
+          next unless params.key?(key)
+
+          value = params[key].to_s.in?(%w[1 true on]) ? '1' : '0'
           Escalated::EscalatedSetting.set(key, value)
         end
 
@@ -148,6 +96,16 @@ module Escalated
       end
 
       private
+
+      BOOLEAN_SETTINGS = %w[guest_tickets_enabled allow_customer_close inbound_email_enabled show_powered_by
+                            knowledge_base_enabled knowledge_base_public knowledge_base_feedback_enabled].freeze
+
+      # two_factor_required only while two-factor is switched on.
+      def boolean_settings
+        return BOOLEAN_SETTINGS unless Escalated::Support::AccessFeatures.two_factor?
+
+        BOOLEAN_SETTINGS + %w[two_factor_required]
+      end
 
       WIDGET_POSITIONS = %w[bottom-right bottom-left].freeze
 

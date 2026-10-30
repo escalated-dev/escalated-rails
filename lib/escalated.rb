@@ -3,6 +3,8 @@
 require 'escalated/broadcasting'
 require 'escalated/engine'
 require 'escalated/configuration'
+require 'escalated/route_list'
+require 'escalated/route_list_helper'
 require 'escalated/ticket_access'
 require 'escalated/attachment_access'
 require 'escalated/guest_access'

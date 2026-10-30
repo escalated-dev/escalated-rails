@@ -10,7 +10,7 @@ module InertiaPageHelpers
   MANIFEST_PATH = File.expand_path('../fixtures/escalated-pages.json', __dir__)
 
   # Shared with every page by ApplicationController; no component declares them.
-  SHARED_PROPS = %w[errors auth current_user flash escalated plugin_ui].freeze
+  SHARED_PROPS = %w[errors auth current_user flash escalated plugin_ui ziggy].freeze
 
   def inertia_page
     encoded = response.body[%r{data-page="(.+?)"></div>}m, 1]

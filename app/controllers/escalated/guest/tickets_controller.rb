@@ -211,7 +211,8 @@ module Escalated
             error: flash[:error],
             notice: flash[:notice],
             alert: flash[:alert]
-          }
+          },
+          ziggy: Escalated::RouteList.ziggy(request)
         )
       end
 

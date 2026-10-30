@@ -23,7 +23,7 @@ module ReportScreenProps
 
   # Inertia shares these with every page; they are not a screen's own business
   # and no component declares them.
-  SHARED_PROPS = %w[errors auth current_user flash escalated plugin_ui].freeze
+  SHARED_PROPS = %w[errors auth current_user flash escalated plugin_ui ziggy].freeze
 
   SCREENS = {
     'sla_trends' => 'Escalated/Admin/Reports/SlaTrends',

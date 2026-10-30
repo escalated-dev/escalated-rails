@@ -19,6 +19,10 @@ module Escalated
                   :table_prefix,
                   :database_connection,
                   :route_prefix,
+                  # Entries merged over the built-in route list (Escalated::RouteList)
+                  # the frontend's route(name, params) resolves against:
+                  # { 'login' => '/users/sign_in', name => { uri:, methods: } }.
+                  :route_overrides,
                   :middleware,
                   :admin_middleware,
                   :hosted_api_url,
@@ -141,6 +145,7 @@ module Escalated
       @table_prefix = 'escalated_'
       @database_connection = nil
       @route_prefix = 'support'
+      @route_overrides = {}
       @middleware = [:authenticate_user!]
       @admin_middleware = nil
       @hosted_api_url = nil

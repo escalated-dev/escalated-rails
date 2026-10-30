@@ -60,7 +60,9 @@ module Escalated
           # Admin/Settings/TwoFactor reads its enrolment steps from here.
           two_factor_setup: flash[:two_factor_setup],
           two_factor_confirmed: flash[:two_factor_confirmed]
-        }
+        },
+        # The named routes the frontend's route() resolves (Escalated::RouteList).
+        ziggy: Escalated::RouteList.ziggy(request)
       }
 
       # Plugin menus, slots and widgets, in the shape the shared frontend's

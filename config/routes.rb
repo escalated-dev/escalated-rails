@@ -106,6 +106,8 @@ Escalated::Engine.routes.draw do
         post :department
         post :macro, action: :apply_macro
         post :follow
+        # The split dialog posts reply_id in the body (escalated-laravel's path).
+        post :split
         post :snooze
         post :unsnooze
         post :presence

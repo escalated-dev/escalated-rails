@@ -8,6 +8,11 @@ module Escalated
     # to add — hosts using a different role implementation (Pundit, custom
     # role column, etc.) should override this controller in their own routes.
     class UsersController < Escalated::ApplicationController
+      include Escalated::InertiaForms
+
+      # The roles picker exists only while roles & permissions is switched on
+      # (ADR 2026-10-29-configurable-access-features); otherwise 404.
+      before_action :ensure_roles_permissions_enabled!, only: :update_roles
       before_action :require_admin!
 
       def index
@@ -29,14 +34,62 @@ module Escalated
 
         result = paginate(scope, per_page: 20)
 
-        render_page 'Escalated/Admin/Users/Index', {
-          users: {
-            data: result[:data].map { |u| user_json(u) },
-            meta: result[:meta]
-          },
+        rows = result[:data].map { |u| user_json(u) }
+        props = {
+          users: { data: rows, meta: result[:meta] },
           filters: { search: search },
           currentUserId: current_user&.id
         }
+
+        # Escalated roles, only while roles & permissions is enforced: each
+        # user's role slugs, and the roles an admin can give them.
+        if Escalated::Support::AccessFeatures.roles_permissions?
+          roles = Escalated::Role.order(:name).to_a
+          slugs = roles.to_h { |r| [r.id, r.slug] }
+          assigned = role_user_rows(rows.pluck(:id))
+          rows.each do |row|
+            row[:roles] = assigned.fetch(row[:id].to_s, []).filter_map { |id| slugs[id] }.sort
+          end
+          props[:roles] = roles.map { |r| { id: r.id, name: r.name, slug: r.slug } }
+        end
+
+        render_page 'Escalated/Admin/Users/Index', props
+      end
+
+      # Replace a user's Escalated roles (roles & permissions on only), as
+      # escalated-laravel's UserController#updateRoles.
+      def update_roles
+        role_ids = validated_role_ids
+        return if performed?
+
+        target = user_class.find(params.expect(:user_id))
+
+        # Taking away your own role management would leave nobody able to undo it.
+        if current_user && current_user.id.to_s == target.id.to_s &&
+           !Escalated::Role.where(id: role_ids).joins(:permissions)
+                           .exists?(Escalated::Permission.table_name => { slug: 'role.manage' })
+          flash[:error] = I18n.t('escalated.admin.user.cannot_remove_own_role_management',
+                                 default: 'You cannot remove your own role management.')
+          redirect_back_or_to(escalated.admin_users_path)
+          return
+        end
+
+        join = Escalated.table_name('role_users')
+        ActiveRecord::Base.transaction do
+          ActiveRecord::Base.connection.delete(
+            ActiveRecord::Base.sanitize_sql_array(["DELETE FROM #{join} WHERE user_id = ?", target.id])
+          )
+          role_ids.each do |role_id|
+            ActiveRecord::Base.connection.insert(
+              ActiveRecord::Base.sanitize_sql_array(
+                ["INSERT INTO #{join} (role_id, user_id) VALUES (?, ?)", role_id, target.id]
+              )
+            )
+          end
+        end
+
+        flash[:success] = I18n.t('escalated.admin.user.updated', default: 'User updated.')
+        redirect_back_or_to(escalated.admin_users_path)
       end
 
       def update_role
@@ -84,6 +137,49 @@ module Escalated
       end
 
       private
+
+      def ensure_roles_permissions_enabled!
+        head :not_found unless Escalated::Support::AccessFeatures.roles_permissions?
+      end
+
+      # Laravel's rules: role_ids present and an array of integers that are
+      # existing roles. Goes back with the errors on their keys otherwise.
+      def validated_role_ids
+        raw = request.request_parameters.key?('role_ids') ? request.request_parameters['role_ids'] : params[:role_ids]
+        errors = role_ids_errors(raw)
+        if errors.any?
+          redirect_back_with_form_errors(errors, escalated.admin_users_path)
+          return []
+        end
+
+        raw.map { |v| Integer(v.to_s, 10) }.uniq
+      end
+
+      def role_ids_errors(raw)
+        return { 'role_ids' => 'The role ids field must be present.' } if raw.nil?
+        return { 'role_ids' => 'The role ids field must be an array.' } unless raw.is_a?(Array)
+
+        raw.each_with_index do |value, index|
+          unless value.is_a?(Integer) || value.to_s.match?(/\A-?\d+\z/)
+            return { "role_ids.#{index}" => "The role_ids.#{index} field must be an integer." }
+          end
+          next if Escalated::Role.exists?(id: value.to_i)
+
+          return { "role_ids.#{index}" => "The selected role_ids.#{index} is invalid." }
+        end
+        {}
+      end
+
+      # { user_id (string) => [role_id, ...] } from the role_users join table.
+      def role_user_rows(user_ids)
+        return {} if user_ids.empty?
+
+        Escalated::Role.joins(:users)
+                       .where(Escalated.table_name('role_users') => { user_id: user_ids })
+                       .pluck(Arel.sql("#{Escalated.table_name('role_users')}.user_id"), :id)
+                       .group_by { |user_id, _| user_id.to_s }
+                       .transform_values { |pairs| pairs.map(&:last) }
+      end
 
       def filter_params
         params.permit(:search)

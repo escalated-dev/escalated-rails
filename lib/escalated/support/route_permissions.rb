@@ -122,6 +122,7 @@ module Escalated
         # ---- Users -------------------------------------------------------------------------
         ["#{A}/users#index", %w[user.view]],
         ["#{A}/users#update_role", %w[user.manage]],
+        ["#{A}/users#update_roles", %w[role.manage]],
         ["#{A}/audit_logs#index", %w[audit.view]],
 
         # ---- Admin resources: reads => *.view, the rest => *.manage -------------------

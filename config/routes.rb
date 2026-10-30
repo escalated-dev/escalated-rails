@@ -165,6 +165,7 @@ Escalated::Engine.routes.draw do
     # Users (host User model: list + grant/revoke admin/agent flags)
     get 'users', to: 'users#index', as: :users
     patch 'users/:user_id/role', to: 'users#update_role', as: :user_role
+    put 'users/:user_id/roles', to: 'users#update_roles', as: :user_roles
 
     # Phase 2
     resources :custom_fields, only: %i[index new create edit update destroy] do

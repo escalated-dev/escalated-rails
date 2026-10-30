@@ -13,7 +13,13 @@ require 'rails_helper'
 RSpec.describe 'Admin SSO settings', type: :request do
   let(:admin) { create(:user, :admin, email: 'admin-sso-settings@example.test') }
 
-  before { allow_any_instance_of(Escalated::ApplicationController).to receive(:current_user).and_return(admin) } # rubocop:disable RSpec/AnyInstance
+  before do
+    allow_any_instance_of(Escalated::ApplicationController).to receive(:current_user).and_return(admin) # rubocop:disable RSpec/AnyInstance
+    # The SSO screen exists while SSO is switched on (ADR 2026-10-29).
+    Escalated.configuration.access = { sso: true }
+  end
+
+  after { Escalated.configuration.access = {} }
 
   def page_payload
     encoded = response.body[%r{data-page="(.+?)"></div>}m, 1]
@@ -41,6 +47,7 @@ RSpec.describe 'Admin SSO settings', type: :request do
     post '/support/admin/settings/sso', params: {
       sso_provider: 'saml',
       sso_entity_id: 'https://example.test/sso',
+      sso_login_url: 'https://example.test/sso/login',
       sso_attr_email: 'mail'
     }
 
@@ -50,6 +57,12 @@ RSpec.describe 'Admin SSO settings', type: :request do
       'sso_entity_id' => 'https://example.test/sso',
       'sso_attr_email' => 'mail'
     )
+  end
+
+  it 'refuses a provider without the fields it needs' do
+    post '/support/admin/settings/sso', params: { sso_provider: 'saml' }
+
+    expect(Escalated::Services::SsoService.new.provider).to eq('none')
   end
 
   it 'leaves keys it was not given alone' do

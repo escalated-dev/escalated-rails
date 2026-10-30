@@ -126,7 +126,11 @@ module Escalated
                   # Two-factor settings used while access[:two_factor] is on:
                   # { required:, issuer:, cache_store: } (env ESCALATED_TWO_FACTOR_REQUIRED,
                   # ESCALATED_TWO_FACTOR_ISSUER). cache_store counts verify attempts.
-                  :two_factor
+                  :two_factor,
+                  # Single sign-on, used while access[:sso] is on: { sp_entity_id:,
+                  # allow_idp_initiated:, jwt_audience:, clock_skew:, create_users:,
+                  # sync_roles:, redirect_to:, sign_in: } (ESCALATED_SSO_* env fallbacks).
+                  :sso
 
     def initialize
       @mode = :self_hosted
@@ -262,6 +266,7 @@ module Escalated
       @api_logout = nil
       @access = {}
       @two_factor = {}
+      @sso = {}
     end
 
     def self_hosted?

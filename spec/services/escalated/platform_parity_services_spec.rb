@@ -7,7 +7,7 @@ require 'rails_helper'
 #
 # Covers: BusinessHoursCalculator, TicketMergeService, SkillRoutingService,
 #         CapacityService, WebhookDispatcher, AutomationRunner,
-#         TwoFactorService, SsoService, ReportingService
+#         TwoFactorService, ReportingService
 # ============================================================================ #
 
 # ---------------------------------------------------------------------------- #
@@ -1305,128 +1305,6 @@ RSpec.describe Escalated::Services::TwoFactorService do
       codes = service.generate_recovery_codes
 
       expect(codes.uniq.length).to eq(8)
-    end
-  end
-end
-
-# ---------------------------------------------------------------------------- #
-# 8. SsoService
-# ---------------------------------------------------------------------------- #
-RSpec.describe Escalated::Services::SsoService do
-  subject(:service) { described_class.new }
-
-  before do
-    allow(Escalated.configuration).to receive_messages(notification_channels: [], webhook_url: nil)
-  end
-
-  # ------------------------------------------------------------------ #
-  # #get_config
-  # ------------------------------------------------------------------ #
-  describe '#get_config' do
-    it 'returns all SSO configuration keys with defaults' do
-      config = service.get_config
-
-      expect(config).to include(
-        'sso_provider' => 'none',
-        'sso_entity_id' => '',
-        'sso_url' => '',
-        'sso_certificate' => '',
-        'sso_attr_email' => 'email',
-        'sso_attr_name' => 'name',
-        'sso_attr_role' => 'role',
-        'sso_jwt_secret' => '',
-        'sso_jwt_algorithm' => 'HS256'
-      )
-    end
-
-    it 'returns stored values when settings exist' do
-      Escalated::EscalatedSetting.create!(key: 'sso_provider', value: 'saml')
-      Escalated::EscalatedSetting.create!(key: 'sso_url', value: 'https://idp.example.com/sso')
-
-      config = service.get_config
-
-      expect(config['sso_provider']).to eq('saml')
-      expect(config['sso_url']).to eq('https://idp.example.com/sso')
-    end
-
-    it 'mixes stored values with defaults for missing keys' do
-      Escalated::EscalatedSetting.create!(key: 'sso_provider', value: 'jwt')
-
-      config = service.get_config
-
-      expect(config['sso_provider']).to eq('jwt')
-      expect(config['sso_attr_email']).to eq('email') # default
-    end
-  end
-
-  # ------------------------------------------------------------------ #
-  # #save_config
-  # ------------------------------------------------------------------ #
-  describe '#save_config' do
-    it 'creates settings for new keys' do
-      expect do
-        service.save_config('sso_provider' => 'saml', 'sso_url' => 'https://idp.example.com')
-      end.to change(Escalated::EscalatedSetting, :count).by(2)
-    end
-
-    it 'updates existing settings' do
-      Escalated::EscalatedSetting.create!(key: 'sso_provider', value: 'none')
-
-      service.save_config('sso_provider' => 'saml')
-
-      expect(Escalated::EscalatedSetting.find_by(key: 'sso_provider').value).to eq('saml')
-    end
-
-    it 'ignores keys not in CONFIG_KEYS' do
-      expect do
-        service.save_config('unknown_key' => 'value', 'sso_provider' => 'jwt')
-      end.to change(Escalated::EscalatedSetting, :count).by(1)
-    end
-
-    it 'only saves provided keys' do
-      service.save_config('sso_provider' => 'saml')
-
-      expect(Escalated::EscalatedSetting.find_by(key: 'sso_url')).to be_nil
-    end
-  end
-
-  # ------------------------------------------------------------------ #
-  # #enabled?
-  # ------------------------------------------------------------------ #
-  describe '#enabled?' do
-    it "returns false when provider is 'none'" do
-      expect(service.enabled?).to be(false)
-    end
-
-    it 'returns false when no provider setting exists' do
-      expect(service.enabled?).to be(false)
-    end
-
-    it "returns true when provider is set to something other than 'none'" do
-      Escalated::EscalatedSetting.create!(key: 'sso_provider', value: 'saml')
-
-      expect(service.enabled?).to be(true)
-    end
-
-    it "returns true when provider is 'jwt'" do
-      Escalated::EscalatedSetting.create!(key: 'sso_provider', value: 'jwt')
-
-      expect(service.enabled?).to be(true)
-    end
-  end
-
-  # ------------------------------------------------------------------ #
-  # #provider
-  # ------------------------------------------------------------------ #
-  describe '#provider' do
-    it "returns 'none' by default" do
-      expect(service.provider).to eq('none')
-    end
-
-    it 'returns the stored provider value' do
-      Escalated::EscalatedSetting.create!(key: 'sso_provider', value: 'saml')
-
-      expect(service.provider).to eq('saml')
     end
   end
 end

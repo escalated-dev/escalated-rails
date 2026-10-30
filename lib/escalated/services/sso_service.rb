@@ -3,254 +3,331 @@
 require 'base64'
 require 'json'
 require 'openssl'
-require 'rexml/document'
-require 'time'
+require 'zlib'
+require 'ruby-saml'
+require 'jwt'
+require 'oauth2'
 
 module Escalated
   module Services
+    # Why a sign-in was refused: for the log, never for the user.
     class SsoValidationError < StandardError; end
 
+    # Single sign-on through the provider an admin picks in Admin > Settings >
+    # SSO (ADR 2026-10-29-configurable-access-features). Crypto is left to
+    # maintained libraries: ruby-saml (SAML 2.0, strict), oauth2 (OAuth 2 /
+    # OIDC with PKCE) and jwt.
+    #
+    # Every validate method returns { email:, name:, role: } or raises
+    # SsoValidationError.
     class SsoService
-      CONFIG_KEYS = %w[sso_provider sso_entity_id sso_url sso_certificate sso_attr_email sso_attr_name sso_attr_role
-                       sso_jwt_secret sso_jwt_algorithm].freeze
+      CONFIG_KEYS = %w[
+        sso_provider sso_entity_id sso_url sso_login_url sso_logout_url sso_metadata_url sso_certificate
+        sso_attr_email sso_attr_name sso_attr_role sso_jwt_secret sso_jwt_algorithm
+        sso_oauth_authorize_url sso_oauth_token_url sso_oauth_userinfo_url sso_oauth_client_id
+        sso_oauth_client_secret sso_oauth_scopes
+      ].freeze
+
+      SECRET_KEYS = %w[sso_jwt_secret sso_oauth_client_secret].freeze
+
       DEFAULTS = {
         'sso_provider' => 'none',
-        'sso_entity_id' => '',
-        'sso_url' => '',
-        'sso_certificate' => '',
         'sso_attr_email' => 'email',
         'sso_attr_name' => 'name',
         'sso_attr_role' => 'role',
-        'sso_jwt_secret' => '',
-        'sso_jwt_algorithm' => 'HS256'
+        'sso_jwt_algorithm' => 'HS256',
+        'sso_oauth_scopes' => 'openid profile email'
       }.freeze
 
-      SAML_NS = {
-        'saml' => 'urn:oasis:names:tc:SAML:2.0:assertion',
-        'samlp' => 'urn:oasis:names:tc:SAML:2.0:protocol'
-      }.freeze
+      PROVIDERS = %w[saml oauth jwt].freeze
+      JWT_ALGORITHMS = %w[HS256 HS384 HS512 RS256 RS384 RS512].freeze
+      # How long an AuthnRequest ID stays answerable, in seconds.
+      SAML_REQUEST_TTL = 600
+      EMAIL = /\A[^\s@]+@[^\s@]+\.[^\s@]+\z/
 
       def get_config
-        CONFIG_KEYS.each_with_object({}) do |key, hash|
-          setting = Escalated::EscalatedSetting.find_by(key: key)
-          hash[key] = setting&.value || DEFAULTS[key]
+        config = CONFIG_KEYS.index_with do |key|
+          value = Escalated::EscalatedSetting.find_by(key: key)&.value
+          value.nil? ? DEFAULTS.fetch(key, '') : value.to_s
         end
+        # The single URL older versions stored.
+        legacy = config['sso_url'].to_s.strip
+        if legacy.present?
+          config['sso_login_url'] = legacy if config['sso_login_url'].blank?
+          if config['sso_provider'] == 'oauth' && config['sso_oauth_authorize_url'].blank?
+            config['sso_oauth_authorize_url'] = legacy
+          end
+        end
+        config
       end
 
       def save_config(data)
         CONFIG_KEYS.each do |key|
           next unless data.key?(key)
 
-          Escalated::EscalatedSetting.find_or_initialize_by(key: key).update!(value: data[key])
+          Escalated::EscalatedSetting.find_or_initialize_by(key: key).update!(value: data[key].to_s)
         end
-      end
-
-      def enabled?
-        provider != 'none'
       end
 
       def provider
-        Escalated::EscalatedSetting.find_by(key: 'sso_provider')&.value || 'none'
+        value = Escalated::EscalatedSetting.find_by(key: 'sso_provider')&.value.to_s
+        PROVIDERS.include?(value) ? value : 'none'
       end
 
-      # -----------------------------------------------------------------
-      # SAML Assertion Validation
-      # -----------------------------------------------------------------
+      def enabled?
+        Escalated::Support::AccessFeatures.sso? && provider != 'none'
+      end
 
-      # Validates a base64-encoded SAML response and extracts user attributes.
-      # Returns a hash with :email, :name, :role, :attributes.
-      # Raises SsoValidationError on failure.
-      def validate_saml_assertion(saml_response)
+      def self.options
+        (Escalated.configuration.sso || {}).to_h.symbolize_keys
+      end
+
+      def self.truthy?(value)
+        value == true || %w[1 true yes on].include?(value.to_s.strip.downcase)
+      end
+
+      def self.option(name, env)
+        value = options[name]
+        value.nil? ? ENV.fetch(env, nil) : value
+      end
+
+      def clock_skew
+        raw = self.class.option(:clock_skew, 'ESCALATED_SSO_CLOCK_SKEW')
+        value = raw.nil? ? 120 : raw.to_i
+        value.negative? ? 120 : [value, 300].min
+      end
+
+      # ---- Endpoints -------------------------------------------------------
+
+      def sp_entity_id(urls)
+        self.class.option(:sp_entity_id, 'ESCALATED_SSO_SP_ENTITY_ID').presence || urls.sso_saml_metadata_url
+      end
+
+      # The URLs an admin gives the identity provider. +urls+ is the engine's
+      # URL helpers in the request's context.
+      def endpoints(urls)
+        {
+          login: urls.sso_login_url,
+          sp_entity_id: sp_entity_id(urls),
+          metadata: urls.sso_saml_metadata_url,
+          acs: urls.sso_saml_acs_url,
+          oauth_redirect: urls.sso_oauth_callback_url,
+          jwt_callback: urls.sso_jwt_callback_url
+        }
+      end
+
+      # ---- SAML ---------------------------------------------------------------
+
+      def saml_settings(urls, config = get_config, require_certificate: true)
+        certificate = config['sso_certificate'].to_s.strip
+        if require_certificate && certificate.empty?
+          raise SsoValidationError, 'SAML refused: no IdP certificate is configured.'
+        end
+
+        settings = OneLogin::RubySaml::Settings.new
+        settings.sp_entity_id = sp_entity_id(urls)
+        settings.assertion_consumer_service_url = urls.sso_saml_acs_url
+        settings.assertion_consumer_service_binding = 'urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST'
+        settings.idp_entity_id = config['sso_entity_id'].to_s.strip
+        settings.idp_sso_service_url = config['sso_login_url'].to_s.strip
+        settings.idp_cert = certificate unless certificate.empty?
+        settings.name_identifier_format = 'urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified'
+        settings.soft = false
+        # The assertion itself must carry the IdP's signature; a signed
+        # Response around an unsigned assertion is refused.
+        settings.security[:want_assertions_signed] = true
+        settings.security[:strict_audience_validation] = true
+        settings.security[:digest_method] = XMLSecurity::Document::SHA256
+        settings.security[:signature_method] = XMLSecurity::Document::RSA_SHA256
+        settings
+      end
+
+      # The IdP sign-in URL for a new AuthnRequest. Its ID is stored
+      # server-side (the IdP's cross-site POST back carries no SameSite=Lax
+      # session cookie) and must come back as InResponseTo within the TTL.
+      def saml_login_url(urls)
         config = get_config
-
-        begin
-          xml = Base64.decode64(saml_response)
-        rescue StandardError
-          raise SsoValidationError, 'Invalid SAML response: base64 decode failed.'
+        settings = saml_settings(urls, config)
+        if settings.idp_sso_service_url.blank?
+          raise SsoValidationError,
+                'SAML refused: no IdP sign-in URL is configured.'
         end
 
-        begin
-          doc = REXML::Document.new(xml)
-        rescue REXML::ParseException
-          raise SsoValidationError, 'Invalid SAML response: malformed XML.'
+        request = OneLogin::RubySaml::Authrequest.new
+        url = request.create(settings)
+        Escalated::SsoMessageId.remember('saml_request', request.uuid, Time.now.to_i + SAML_REQUEST_TTL)
+        url
+      end
+
+      def saml_metadata(urls)
+        OneLogin::RubySaml::Metadata.new.generate(saml_settings(urls, get_config, require_certificate: false), true)
+      end
+
+      def validate_saml_response(urls, saml_response)
+        config = get_config
+        settings = saml_settings(urls, config)
+        raise SsoValidationError, 'SAML refused: no IdP entity ID is configured.' if settings.idp_entity_id.blank?
+
+        xml = Base64.decode64(saml_response.to_s)
+        if xml.include?('EncryptedAssertion')
+          raise SsoValidationError,
+                'SAML refused: encrypted assertions are not supported.'
         end
 
-        raise SsoValidationError, 'Invalid SAML response: malformed XML.' if doc.root.nil?
-
-        # Check issuer
-        entity_id = (config['sso_entity_id'] || '').strip
-        unless entity_id.empty?
-          issuer_el = REXML::XPath.first(doc, '//saml:Issuer', SAML_NS)
-          raise SsoValidationError, 'SAML assertion missing Issuer element.' if issuer_el.nil?
-
-          issuer = (issuer_el.text || '').strip
-          if issuer != entity_id
-            raise SsoValidationError, "SAML Issuer mismatch: expected '#{entity_id}', got '#{issuer}'."
+        request_id = in_response_to(xml)
+        if request_id.nil?
+          unless self.class.truthy?(self.class.option(:allow_idp_initiated, 'ESCALATED_SSO_ALLOW_IDP_INITIATED'))
+            raise SsoValidationError,
+                  'SAML refused: unsolicited response (no InResponseTo) and IdP-initiated sign-in is off.'
           end
+        elsif !Escalated::SsoMessageId.consume('saml_request', request_id)
+          raise SsoValidationError, "SAML refused: InResponseTo [#{request_id}] is not a pending request."
         end
 
-        # Validate conditions
-        conditions_el = REXML::XPath.first(doc, '//saml:Conditions', SAML_NS)
-        validate_saml_conditions(conditions_el) if conditions_el
+        response = OneLogin::RubySaml::Response.new(
+          saml_response.to_s,
+          settings: settings,
+          matches_request_id: request_id,
+          allowed_clock_drift: clock_skew
+        )
+        raise SsoValidationError, "SAML refused: #{response.errors.join('; ')}" unless response.is_valid?(true)
 
-        # Extract attributes
-        attr_email = config['sso_attr_email'] || 'email'
-        attr_name = config['sso_attr_name'] || 'name'
-        attr_role = config['sso_attr_role'] || 'role'
-
-        attributes = extract_saml_attributes(doc)
-
-        email = attributes[attr_email]
-        if email.blank?
-          name_id_el = REXML::XPath.first(doc, '//saml:Subject/saml:NameID', SAML_NS)
-          email = name_id_el&.text&.strip
+        assertion_id = response.assertion_id.to_s
+        until_at = (response.not_on_or_after || (Time.current + 300)).to_i + clock_skew
+        if assertion_id.empty? || !Escalated::SsoMessageId.claim('saml_assertion', assertion_id, until_at)
+          raise SsoValidationError, "SAML refused: assertion [#{assertion_id}] was already used."
         end
 
-        raise SsoValidationError, 'SAML assertion missing email attribute.' if email.blank?
-
-        {
-          email: email,
-          name: attributes[attr_name] || '',
-          role: attributes[attr_role] || '',
-          attributes: attributes
-        }
+        attributes = response.attributes
+        first = ->(name) { Array(attributes.multi(name.to_s)).first.to_s.strip }
+        email = first.call(config['sso_attr_email'].presence || 'email')
+        email = response.nameid.to_s.strip if email.empty? && response.nameid.to_s.match?(EMAIL)
+        identity(email, first.call(config['sso_attr_name'].presence || 'name'),
+                 first.call(config['sso_attr_role'].presence || 'role'))
+      rescue OneLogin::RubySaml::ValidationError => e
+        raise SsoValidationError, "SAML refused: #{e.message}"
       end
 
-      # -----------------------------------------------------------------
-      # JWT Token Validation
-      # -----------------------------------------------------------------
+      # ---- OAuth 2 / OIDC -----------------------------------------------------
 
-      # Validates a JWT token and extracts user attributes.
-      # Returns a hash with :email, :name, :role, :claims.
-      # Raises SsoValidationError on failure.
-      def validate_jwt_token(token)
+      def oauth_client(config)
+        authorize = URI.parse(config['sso_oauth_authorize_url'])
+        token = URI.parse(config['sso_oauth_token_url'])
+        OAuth2::Client.new(
+          config['sso_oauth_client_id'], config['sso_oauth_client_secret'],
+          site: "#{token.scheme}://#{token.host}:#{token.port}",
+          authorize_url: authorize.to_s,
+          token_url: token.to_s,
+          auth_scheme: :request_body
+        )
+      end
+
+      # The provider's authorization URL with a fresh state and a PKCE (S256)
+      # challenge; the caller keeps state and verifier in the session.
+      def oauth_start(urls)
         config = get_config
+        if config['sso_oauth_authorize_url'].blank? || config['sso_oauth_token_url'].blank? ||
+           config['sso_oauth_client_id'].blank?
+          raise SsoValidationError, 'OAuth refused: the provider is not fully configured.'
+        end
 
-        parts = token.split('.')
-        raise SsoValidationError, 'Invalid JWT: expected 3 segments.' unless parts.length == 3
+        state = SecureRandom.urlsafe_base64(32)
+        verifier = SecureRandom.urlsafe_base64(48)
+        challenge = Base64.urlsafe_encode64(OpenSSL::Digest::SHA256.digest(verifier), padding: false)
+        url = oauth_client(config).auth_code.authorize_url(
+          redirect_uri: urls.sso_oauth_callback_url,
+          scope: config['sso_oauth_scopes'].to_s.split(/[\s,]+/).reject(&:empty?).join(' '),
+          state: state,
+          code_challenge: challenge,
+          code_challenge_method: 'S256'
+        )
+        { url: url, state: state, verifier: verifier }
+      end
 
-        header_b64, payload_b64, signature_b64 = parts
-
+      # Exchange the code (with the PKCE verifier) server to server and read
+      # the profile from the userinfo endpoint.
+      def oauth_identity(urls, code, verifier)
+        config = get_config
         begin
-          JSON.parse(base64url_decode(header_b64))
-        rescue StandardError
-          raise SsoValidationError, 'Invalid JWT: malformed header.'
+          token = oauth_client(config).auth_code.get_token(
+            code, redirect_uri: urls.sso_oauth_callback_url, code_verifier: verifier
+          )
+          profile = token.get(config['sso_oauth_userinfo_url'], headers: { 'Accept' => 'application/json' }).parsed
+        rescue StandardError => e
+          raise SsoValidationError, "OAuth refused: #{e.message}"
+        end
+        profile = {} unless profile.is_a?(Hash)
+        if [false, 'false', 0, '0'].include?(profile['email_verified'])
+          raise SsoValidationError, 'OAuth refused: the provider says the email is not verified.'
         end
 
-        begin
-          payload = JSON.parse(base64url_decode(payload_b64))
-        rescue StandardError
-          raise SsoValidationError, 'Invalid JWT: malformed payload.'
+        claim = ->(name, fallback = nil) { (profile[name] || (fallback && profile[fallback])).to_s.strip }
+        identity(claim.call(config['sso_attr_email'].presence || 'email', 'email'),
+                 claim.call(config['sso_attr_name'].presence || 'name', 'name'),
+                 claim.call(config['sso_attr_role'].presence || 'role'))
+      end
+
+      # ---- JWT -------------------------------------------------------------------
+
+      def jwt_login_url(urls)
+        config = get_config
+        url = (config['sso_login_url'].presence || config['sso_url']).to_s.strip
+        raise SsoValidationError, 'JWT sign-in has no login URL configured.' if url.empty?
+
+        "#{url}#{url.include?('?') ? '&' : '?'}#{URI.encode_www_form(return_to: urls.sso_jwt_callback_url)}"
+      end
+
+      # The token's alg must be the configured algorithm (so none and switching
+      # are refused); exp is required; nbf/iat hold within the skew; aud names
+      # this install; jti is required and used once.
+      def validate_jwt(token, default_audience)
+        config = get_config
+        algorithm = config['sso_jwt_algorithm'].presence || 'HS256'
+        secret = config['sso_jwt_secret'].to_s
+        unless JWT_ALGORITHMS.include?(algorithm)
+          raise SsoValidationError,
+                "JWT refused: unsupported algorithm #{algorithm}."
+        end
+        raise SsoValidationError, 'JWT refused: no secret or public key is configured.' if secret.empty?
+
+        audience = self.class.option(:jwt_audience, 'ESCALATED_SSO_JWT_AUDIENCE').presence || default_audience
+        raise SsoValidationError, 'JWT refused: no audience is configured.' if audience.blank?
+
+        key = algorithm.start_with?('RS') ? OpenSSL::PKey::RSA.new(secret) : secret
+        claims, = JWT.decode(token.to_s, key, true,
+                             algorithm: algorithm, required_claims: %w[exp jti],
+                             aud: audience, verify_aud: true, leeway: clock_skew,
+                             verify_iat: true)
+        jti = claims['jti'].to_s
+        raise SsoValidationError, 'JWT refused: no jti claim.' if jti.empty?
+        unless Escalated::SsoMessageId.claim('jwt', jti, claims['exp'].to_i + clock_skew)
+          raise SsoValidationError, "JWT refused: jti [#{jti}] was already used."
         end
 
-        secret = config['sso_jwt_secret'] || ''
-        algorithm = config['sso_jwt_algorithm'] || 'HS256'
-        raise SsoValidationError, 'JWT secret is not configured.' if secret.empty?
-
-        signature = base64url_decode(signature_b64)
-        signing_input = "#{header_b64}.#{payload_b64}"
-
-        unless verify_jwt_signature(signing_input, signature, secret, algorithm)
-          raise SsoValidationError, 'Invalid JWT: signature verification failed.'
-        end
-
-        now = Time.now.to_i
-        skew = 60
-
-        raise SsoValidationError, 'JWT has expired.' if payload['exp'] && payload['exp'] < (now - skew)
-
-        raise SsoValidationError, 'JWT is not yet valid.' if payload['nbf'] && payload['nbf'] > (now + skew)
-
-        attr_email = config['sso_attr_email'] || 'email'
-        attr_name = config['sso_attr_name'] || 'name'
-        attr_role = config['sso_attr_role'] || 'role'
-
-        email = payload[attr_email] || payload['email'] || payload['sub']
-        raise SsoValidationError, 'JWT missing email claim.' if email.nil? || email.to_s.empty?
-
-        {
-          email: email,
-          name: payload[attr_name] || payload['name'] || '',
-          role: payload[attr_role] || payload['role'] || '',
-          claims: payload
-        }
+        claim = ->(name, fallback = nil) { (claims[name] || (fallback && claims[fallback])).to_s.strip }
+        identity(claim.call(config['sso_attr_email'].presence || 'email', 'email'),
+                 claim.call(config['sso_attr_name'].presence || 'name', 'name'),
+                 claim.call(config['sso_attr_role'].presence || 'role'))
+      rescue JWT::DecodeError, OpenSSL::PKey::PKeyError => e
+        raise SsoValidationError, "JWT refused: #{e.message}"
       end
 
       private
 
-      def validate_saml_conditions(conditions_el)
-        now = Time.now.to_i
-        skew = 120
+      def in_response_to(xml)
+        doc = REXML::Document.new(xml)
+        raise SsoValidationError, 'SAML refused: malformed XML.' if doc.root.nil?
 
-        not_before = conditions_el.attributes['NotBefore']
-        if not_before.present?
-          begin
-            dt = Time.parse(not_before).to_i
-            raise SsoValidationError, 'SAML assertion is not yet valid.' if dt > (now + skew)
-          rescue ArgumentError
-            # Skip if unparseable
-          end
-        end
-
-        not_on_or_after = conditions_el.attributes['NotOnOrAfter']
-        return if not_on_or_after.blank?
-
-        begin
-          dt = Time.parse(not_on_or_after).to_i
-          raise SsoValidationError, 'SAML assertion has expired.' if dt < (now - skew)
-        rescue ArgumentError
-          # Skip if unparseable
-        end
+        value = doc.root.attributes['InResponseTo'].to_s.strip
+        value.empty? ? nil : value
+      rescue REXML::ParseException
+        raise SsoValidationError, 'SAML refused: malformed XML.'
       end
 
-      def extract_saml_attributes(doc)
-        attributes = {}
-        REXML::XPath.each(doc, '//saml:AttributeStatement/saml:Attribute', SAML_NS) do |attr_el|
-          name = attr_el.attributes['Name']
-          value_el = REXML::XPath.first(attr_el, 'saml:AttributeValue', SAML_NS)
-          attributes[name] = (value_el&.text || '').strip if name
-        end
-        attributes
-      end
+      def identity(email, name, role)
+        raise SsoValidationError, 'SSO refused: no valid email in the identity.' unless email.to_s.match?(EMAIL)
 
-      def verify_jwt_signature(signing_input, signature, secret, algorithm)
-        hmac_algos = {
-          'HS256' => 'sha256',
-          'HS384' => 'sha384',
-          'HS512' => 'sha512'
-        }
-
-        if hmac_algos.key?(algorithm)
-          expected = OpenSSL::HMAC.digest(hmac_algos[algorithm], secret, signing_input)
-          return secure_compare(expected, signature)
-        end
-
-        rsa_algos = {
-          'RS256' => 'SHA256',
-          'RS384' => 'SHA384',
-          'RS512' => 'SHA512'
-        }
-
-        if rsa_algos.key?(algorithm)
-          pub_key = OpenSSL::PKey::RSA.new(secret)
-          return pub_key.verify(rsa_algos[algorithm], signature, signing_input)
-        end
-
-        raise SsoValidationError, "Unsupported JWT algorithm: #{algorithm}"
-      end
-
-      def secure_compare(a, b)
-        return false unless a.bytesize == b.bytesize
-
-        OpenSSL.fixed_length_secure_compare(a, b)
-      rescue StandardError
-        # Fallback for older Ruby
-        a == b
-      end
-
-      def base64url_decode(str)
-        str += '=' * (-str.length % 4)
-        Base64.urlsafe_decode64(str)
+        { email: email, name: name.to_s, role: role.to_s }
       end
     end
   end

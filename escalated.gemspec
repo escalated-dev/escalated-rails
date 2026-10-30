@@ -17,10 +17,13 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'csv'
   spec.add_dependency 'escalated-locale', '~> 0.1'
   spec.add_dependency 'inertia_rails', '>= 3.0'
+  spec.add_dependency 'jwt', '>= 2.10', '< 4'
+  spec.add_dependency 'oauth2', '~> 2.0'
   spec.add_dependency 'pundit', '>= 2.0'
   spec.add_dependency 'rails', '>= 8.0'
   spec.add_dependency 'rexml', '>= 3.2'
   spec.add_dependency 'rotp', '~> 6.3'
+  spec.add_dependency 'ruby-saml', '~> 1.18'
 
   spec.add_development_dependency 'factory_bot_rails'
   spec.add_development_dependency 'faker'

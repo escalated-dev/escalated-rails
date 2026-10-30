@@ -386,6 +386,16 @@ Escalated::Engine.routes.draw do
   get 'two-factor/challenge', to: 'two_factor_challenges#show', as: :two_factor_challenge
   post 'two-factor/challenge', to: 'two_factor_challenges#create', as: :two_factor_verify
 
+  # Single sign-on (ADR 2026-10-29); 404 while SSO is off or for a provider
+  # other than the chosen one.
+  scope 'sso', controller: :sso, as: :sso do
+    get :login, as: :login
+    get 'saml/metadata', action: :metadata, as: :saml_metadata
+    post 'saml/acs', action: :saml_acs, as: :saml_acs
+    get 'oauth/callback', action: :oauth_callback, as: :oauth_callback
+    match 'jwt/callback', action: :jwt_callback, via: %i[get post], as: :jwt_callback
+  end
+
   # Root redirect to customer tickets
   root to: 'customer/tickets#index'
 end

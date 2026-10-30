@@ -482,7 +482,7 @@ module Escalated
           return nil
         end
 
-        @bridge&.dispatch_action(hook, data)
+        Escalated::Services::PluginActions.guard(hook) { @bridge&.dispatch_action(hook, data) }
         nil
       end
 

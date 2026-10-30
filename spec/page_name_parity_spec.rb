@@ -44,7 +44,6 @@ module PageNameParity
   NOT_YET_RENDERED = %w[
     Escalated/Admin/Settings/Sandbox
     Escalated/Admin/Workflows/Builder
-    Escalated/Plugin/Page
   ].freeze
 
   PAGE_NAME = %r{'(Escalated/[A-Za-z0-9/_]+)'}

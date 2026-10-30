@@ -208,16 +208,16 @@ RSpec.describe 'SDK plugin activation', type: :request do
       activate_sdk_plugins('@acme/plugin-crm')
       runtime_saw
 
-      expect(plugin_route(Escalated::Plugins::EndpointsController, '@acme/plugin-quiet', :endpoint_path).first)
-        .to eq(404)
-      expect(plugin_route(Escalated::Plugins::WebhooksController, '@acme/plugin-quiet', :webhook_path).first)
-        .to eq(404)
+      get '/support/api/plugins/acme--plugin-quiet/ping'
+      expect(response).to have_http_status(:not_found)
+      post '/support/webhooks/plugins/acme--plugin-quiet/hook'
+      expect(response).to have_http_status(:not_found)
       expect(runtime_saw).to eq([])
 
-      expect(plugin_route(Escalated::Plugins::EndpointsController, '@acme/plugin-crm', :endpoint_path).first)
-        .to eq(200)
-      expect(plugin_route(Escalated::Plugins::WebhooksController, '@acme/plugin-crm', :webhook_path).first)
-        .to eq(200)
+      get '/support/api/plugins/acme--plugin-crm/ping'
+      expect(response).to have_http_status(:ok)
+      post '/support/webhooks/plugins/acme--plugin-crm/hook'
+      expect(response).to have_http_status(:ok)
       expect(runtime_saw.map { |m| [m['method'], m['params']['plugin']] })
         .to eq([['endpoint', '@acme/plugin-crm'], ['webhook', '@acme/plugin-crm']])
     end
@@ -273,16 +273,5 @@ RSpec.describe 'SDK plugin activation', type: :request do
     ensure
       FileUtils.rm_rf(dir) if dir
     end
-  end
-
-  # Runs an SDK plugin route's controller through Rack, as the routes the
-  # bridge draws do.
-  def plugin_route(controller, plugin, path_key)
-    env = Rack::MockRequest.env_for('/support/plugins/x', method: 'POST', input: '{}',
-                                                          'CONTENT_TYPE' => 'application/json')
-    env['action_dispatch.request.path_parameters'] = {
-      controller: controller.controller_path, action: 'handle', plugin: plugin, path_key => 'ping'
-    }
-    controller.action(:handle).call(env)
   end
 end

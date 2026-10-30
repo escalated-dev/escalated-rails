@@ -19,6 +19,10 @@ def plugin(name, label)
     'pages' => [{ 'route' => 'settings', 'component' => 'Settings', 'menu' => { 'label' => label } }],
     'widgets' => [{ 'component' => 'Inbox', 'label' => "#{label} inbox", 'hasBadge' => true }],
     'components' => [{ 'page' => 'ticket.show', 'slot' => 'sidebar', 'component' => 'Panel' }],
+    'endpoints' => [{ 'method' => 'GET', 'path' => '/ping' }, { 'method' => 'GET', 'path' => '/Settings' },
+                    { 'method' => 'POST', 'path' => '/items/:id' }, { 'method' => 'GET', 'path' => '/boom' },
+                    { 'method' => 'GET', 'path' => '/secret', 'capability' => 'acme.secret' }],
+    'webhooks' => [{ 'method' => 'POST', 'path' => '/hook' }],
     'cronSchedules' => ['* * * * *']
   }
 end
@@ -57,7 +61,13 @@ while (line = $stdin.gets)
            when 'handshake' then { 'compatible' => true, 'protocol_version' => '1.0' }
            when 'manifest' then manifests
            when 'filter' then params['value']
-           when 'endpoint', 'webhook' then { 'plugin' => params['plugin'], 'path' => params['path'] }
+           when 'endpoint', 'webhook'
+             if params['path'] == '/boom'
+               puts JSON.generate('jsonrpc' => '2.0', 'id' => message['id'],
+                                  'error' => { 'code' => -32_000, 'message' => 'secret stack detail' })
+               next
+             end
+             params.slice('plugin', 'path', 'params', 'query', 'headers', 'body')
            when 'badge' then 5
            else { 'ok' => true }
            end

@@ -17,6 +17,12 @@ module Escalated
         webhook_path = params[:webhook_path] || ''
         http_method  = request.method.downcase
 
+        # An inactive plugin's routes do not exist.
+        unless Escalated::Bridge::SdkPluginActivation.active?(plugin)
+          render json: { error: 'Not Found' }, status: :not_found
+          return
+        end
+
         bridge = Escalated.plugin_bridge
         unless bridge&.booted?
           render json: { error: 'Plugin runtime is not available' }, status: :service_unavailable

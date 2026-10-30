@@ -35,6 +35,8 @@ module Escalated
       # @param params [Hash]
       # @return [Object]
       def call(method, params)
+        refuse_inactive_plugin!(method, params)
+
         case method
         # Config
         when 'ctx.config.all' then config_all(params)
@@ -93,6 +95,19 @@ module Escalated
       end
 
       private
+
+      # The runtime loads every installed plugin, active or not, and may
+      # still hand an inactive one a hook: it gets no host data and makes no
+      # writes. It may still log.
+      def refuse_inactive_plugin!(method, params)
+        return if method == 'ctx.log' || @bridge.nil?
+
+        plugin = params['plugin'] || @current_plugin
+        return unless plugin.is_a?(String) && (@bridge.manifests || {}).key?(plugin)
+        return if SdkPluginActivation.active?(plugin)
+
+        raise "Plugin #{plugin} is not active."
+      end
 
       # -----------------------------------------------------------------------
       # Config

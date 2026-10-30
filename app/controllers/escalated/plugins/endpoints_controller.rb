@@ -16,6 +16,12 @@ module Escalated
         endpoint_path = params[:endpoint_path] || ''
         http_method = request.method.downcase
 
+        # An inactive plugin's routes do not exist.
+        unless Escalated::Bridge::SdkPluginActivation.active?(plugin)
+          render json: { error: 'Not Found' }, status: :not_found
+          return
+        end
+
         bridge = Escalated.plugin_bridge
         unless bridge&.booted?
           render json: { error: 'Plugin runtime is not available' }, status: :service_unavailable
@@ -28,7 +34,7 @@ module Escalated
           "/#{endpoint_path}",
           {
             body: request_body,
-            params: request.query_parameters.to_unsafe_h
+            params: request.query_parameters.to_h
           }
         )
 

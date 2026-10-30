@@ -28,6 +28,7 @@ RSpec.describe 'escalated:plugins:cron' do # rubocop:disable RSpec/DescribeClass
   before do
     allow(bridge).to receive(:cron) { |plugin, schedule| sent << [plugin, schedule] }
     allow(Escalated).to receive(:plugin_bridge).and_return(bridge)
+    activate_sdk_plugins('@acme/plugin-crm', '@acme/plugin-quiet', '@acme/plugin-none')
   end
 
   def run_task(at)

@@ -9,7 +9,8 @@ module Escalated
         plugins = Escalated::Services::PluginService.all_plugins
 
         render_page 'Escalated/Admin/Plugins/Index', {
-          plugins: plugins.map { |p| plugin_json(p) }
+          plugins: plugins.map { |p| plugin_json(p) },
+          can_upload: true
         }
       end
 
@@ -33,19 +34,24 @@ module Escalated
       def activate
         Escalated::Services::PluginService.activate_plugin(params[:id])
 
-        redirect_back_or_to(admin_plugins_path, notice: 'Plugin activated successfully.')
+        redirect_to admin_plugins_path, status: :see_other, flash: { success: 'Plugin activated successfully.' }
+      rescue Escalated::Services::PluginService::UnknownPlugin => e
+        unknown_plugin(e)
       rescue StandardError => e
         Rails.logger.error("[Escalated::PluginsController] Activation failed: #{e.message}")
-        redirect_back_or_to(admin_plugins_path, alert: "Failed to activate plugin: #{e.message}")
+        redirect_to admin_plugins_path, status: :see_other, flash: { error: "Failed to activate plugin: #{e.message}" }
       end
 
       def deactivate
         Escalated::Services::PluginService.deactivate_plugin(params[:id])
 
-        redirect_back_or_to(admin_plugins_path, notice: 'Plugin deactivated successfully.')
+        redirect_to admin_plugins_path, status: :see_other, flash: { success: 'Plugin deactivated successfully.' }
+      rescue Escalated::Services::PluginService::UnknownPlugin => e
+        unknown_plugin(e)
       rescue StandardError => e
         Rails.logger.error("[Escalated::PluginsController] Deactivation failed: #{e.message}")
-        redirect_back_or_to(admin_plugins_path, alert: "Failed to deactivate plugin: #{e.message}")
+        redirect_to admin_plugins_path, status: :see_other,
+                                        flash: { error: "Failed to deactivate plugin: #{e.message}" }
       end
 
       def destroy
@@ -73,6 +79,15 @@ module Escalated
         escalated.admin_plugins_path
       end
 
+      # An unknown slug: an error flash, or a 404 for a JSON request.
+      def unknown_plugin(error)
+        if request.format.json? && request.headers['X-Inertia'].blank?
+          render json: { error: error.message }, status: :not_found
+        else
+          redirect_to admin_plugins_path, status: :see_other, flash: { error: error.message }
+        end
+      end
+
       def plugin_json(plugin)
         {
           slug: plugin[:slug],
@@ -85,7 +100,7 @@ module Escalated
           is_active: plugin[:is_active],
           activated_at: plugin[:activated_at]&.iso8601,
           source: (plugin[:source] || :local).to_s
-        }
+        }.merge(plugin.slice(:homepage, :provides))
       end
     end
   end

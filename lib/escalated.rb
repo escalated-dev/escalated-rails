@@ -67,6 +67,7 @@ require 'escalated/ui_renderer'
 require 'escalated/bridge/json_rpc_client'
 require 'escalated/bridge/context_handler'
 require 'escalated/bridge/route_registrar'
+require 'escalated/bridge/sdk_plugin_activation'
 require 'escalated/bridge/plugin_bridge'
 
 module Escalated

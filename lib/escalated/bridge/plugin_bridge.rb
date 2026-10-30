@@ -107,11 +107,17 @@ module Escalated
           return
         end
 
+        # Only active plugins get hooks. The runtime loads every installed
+        # plugin, so the active names go along for a runtime that gates on them.
+        active = SdkPluginActivation.active_names(@manifests.keys)
+        return if active.empty?
+
         @pending_action_count += 1
 
         begin
           @context_handler.current_plugin = '__host__'
-          @rpc.call('action', { 'hook' => hook, 'event' => event }, TIMEOUT_ACTION, @context_handler)
+          @rpc.call('action', { 'hook' => hook, 'event' => event, 'plugins' => active }, TIMEOUT_ACTION,
+                    @context_handler)
         rescue StandardError => e
           Rails.logger.warn("[Escalated::Bridge] Action '#{hook}' failed: #{e.message}")
           handle_crash
@@ -130,9 +136,13 @@ module Escalated
       def apply_filter(hook, value)
         return value unless ensure_alive
 
+        active = SdkPluginActivation.active_names(@manifests.keys)
+        return value if active.empty?
+
         begin
           @context_handler.current_plugin = '__host__'
-          result = @rpc.call('filter', { 'hook' => hook, 'value' => value }, TIMEOUT_FILTER, @context_handler)
+          result = @rpc.call('filter', { 'hook' => hook, 'value' => value, 'plugins' => active }, TIMEOUT_FILTER,
+                             @context_handler)
           result.nil? ? value : result
         rescue StandardError => e
           Rails.logger.warn("[Escalated::Bridge] Filter '#{hook}' failed — returning unmodified value: #{e.message}")
@@ -146,7 +156,7 @@ module Escalated
       #
       # @return [Boolean] whether the runtime ran it
       def cron(plugin, schedule)
-        return false unless ensure_alive
+        return false unless ensure_alive && SdkPluginActivation.active?(plugin)
 
         begin
           @context_handler.current_plugin = plugin
@@ -166,7 +176,7 @@ module Escalated
       # @return [Numeric, String, nil] nil when the runtime fails or answers
       #   anything else
       def badge(plugin, component, user: nil)
-        return nil unless ensure_alive
+        return nil unless ensure_alive && SdkPluginActivation.active?(plugin)
 
         begin
           @context_handler.current_plugin = plugin
@@ -192,6 +202,7 @@ module Escalated
       # @return [Object]
       def call_endpoint(plugin, method, path, request = {})
         raise 'Plugin runtime is not available' unless ensure_alive
+        raise ActionController::RoutingError, 'Not Found' unless SdkPluginActivation.active?(plugin)
 
         @context_handler.current_plugin = plugin
 
@@ -219,6 +230,7 @@ module Escalated
       # @return [Object]
       def call_webhook(plugin, method, path, body, headers)
         raise 'Plugin runtime is not available' unless ensure_alive
+        raise ActionController::RoutingError, 'Not Found' unless SdkPluginActivation.active?(plugin)
 
         @context_handler.current_plugin = plugin
 
@@ -236,6 +248,19 @@ module Escalated
         )
       end
 
+      # Tell the runtime a plugin was activated (`activate {plugin}`), which
+      # calls its onActivate(ctx). A failure is logged, never raised: it does
+      # not undo the activation.
+      def activate(plugin)
+        lifecycle('activate', plugin)
+      end
+
+      # Tell the runtime a plugin is being deactivated (`deactivate
+      # {plugin}`), which calls its onDeactivate(ctx) while it is still active.
+      def deactivate(plugin)
+        lifecycle('deactivate', plugin)
+      end
+
       # @return [Hash{String => Hash}]  plugin manifests (empty if not booted)
       attr_reader :manifests
 
@@ -249,6 +274,16 @@ module Escalated
       # ======================================================================
 
       private
+
+      def lifecycle(method, plugin)
+        return unless ensure_alive
+
+        @context_handler.current_plugin = plugin
+        @rpc.call(method, { 'plugin' => plugin }, TIMEOUT_ACTION, @context_handler)
+      rescue StandardError => e
+        Rails.logger.warn("[Escalated::Bridge] #{plugin} #{method} failed: #{e.message}")
+        handle_crash
+      end
 
       # Check that Node.js and the runtime package are available.
       def runtime_available?
@@ -331,6 +366,8 @@ module Escalated
         end
 
         Rails.logger.info("[Escalated::Bridge] Received manifests for: #{@manifests.keys.join(', ')}")
+
+        SdkPluginActivation.record_installed(@manifests.keys)
       end
 
       # Register routes from the loaded manifests.

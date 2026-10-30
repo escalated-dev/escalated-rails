@@ -161,6 +161,13 @@ end
 
 ### Plugin Lifecycle
 
+Every plugin, Ruby or SDK, also gets the plugin contract's lifecycle actions
+with `{ 'plugin' => <name>, 'slug' => <slug> }`: `plugin.activated` after
+activation, `plugin.deactivated` before deactivation, and
+`plugin.uninstalling` before deletion. A callback that raises is logged and
+does not undo the change. Ruby plugins also get the hooks below; SDK plugins
+only the dotted ones.
+
 | Hook | Args | When |
 |------|------|------|
 | `plugin_loaded` | `slug, manifest` | Plugin file is loaded |
@@ -236,6 +243,31 @@ Escalated.plugin_ui.add_page_component(
   }
 )
 ```
+
+## SDK plugins: activation
+
+SDK plugins are listed on **Admin > Plugins** with the Ruby ones, under a
+slug made from the package name (`@escalated-dev/plugin-slack` is
+`escalated-dev--plugin-slack`), with the **composer** badge: npm manages them,
+so they cannot be deleted from the UI.
+
+An SDK plugin is inactive until an admin activates it. Activating records it
+in `escalated_plugins`, sends the runtime `activate` (its `onActivate`), then
+fires `plugin.activated`; deactivating fires `plugin.deactivated` and sends
+`deactivate` while it is still active, then records it inactive. An inactive
+SDK plugin gets no hooks, cron or badges, adds no widgets or slots, answers
+404 on its endpoints and webhooks, and has its `ctx` calls refused (except
+`ctx.log`).
+
+The first time the host sees SDK plugins (the first runtime start after
+upgrading, or on a new install), every SDK plugin installed at that moment is
+recorded active, because earlier versions ran every SDK plugin. Plugins
+installed after that start inactive.
+
+The runtime loads every installed plugin. The host sends `action` and `filter`
+only when at least one SDK plugin is active, naming the active ones as
+`plugins`; a runtime that does not honour that list still runs an inactive
+plugin's handler, which then cannot read or write anything through `ctx`.
 
 ## SDK plugins: cron schedules and widget badges
 

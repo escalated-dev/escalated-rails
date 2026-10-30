@@ -63,21 +63,25 @@ RSpec.describe 'Escalated newsletter HTTP layer', type: :request do
       expect(response).to have_http_status(:redirect)
     end
 
-    it 'enforces newsletter manage permission when host roles are present' do
+    it 'enforces newsletter manage permission while roles & permissions is on' do
       role = create(:escalated_role)
-      admin.define_singleton_method(:roles) { [role] }
+      role.users << admin
+      Escalated.configuration.access = { roles_permissions: true }
       sign_in_as(admin)
 
       get '/support/admin/newsletters'
 
       expect(response).to have_http_status(:forbidden)
+    ensure
+      Escalated.configuration.access = {}
     end
 
-    it 'requires newsletters.send for test sends when host roles are present' do
+    it 'requires newsletters.send for test sends while roles & permissions is on' do
       manage = create(:escalated_permission, slug: 'newsletters.manage')
       role = create(:escalated_role)
       role.permissions << manage
-      admin.define_singleton_method(:roles) { [role] }
+      role.users << admin
+      Escalated.configuration.access = { roles_permissions: true }
       sign_in_as(admin)
       list = create(:escalated_newsletter_list)
 
@@ -91,6 +95,8 @@ RSpec.describe 'Escalated newsletter HTTP layer', type: :request do
            }
 
       expect(response).to have_http_status(:forbidden)
+    ensure
+      Escalated.configuration.access = {}
     end
   end
 

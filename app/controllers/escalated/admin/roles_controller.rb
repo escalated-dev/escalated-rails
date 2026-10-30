@@ -7,6 +7,9 @@ module Escalated
 
       FIELDS = %i[name description].freeze
 
+      # The roles screens exist only while roles & permissions is switched on
+      # (ADR 2026-10-29-configurable-access-features); otherwise 404.
+      before_action :ensure_roles_permissions_enabled!
       before_action :require_admin!
       before_action :set_role, only: %i[edit update destroy]
 
@@ -74,6 +77,10 @@ module Escalated
       end
 
       private
+
+      def ensure_roles_permissions_enabled!
+        head :not_found unless Escalated::Support::AccessFeatures.roles_permissions?
+      end
 
       def set_role
         @role = Escalated::Role.find(params[:id])

@@ -118,7 +118,11 @@ module Escalated
                   :api_registrar,
                   :api_token_refresher,
                   :api_profile_updater,
-                  :api_logout
+                  :api_logout,
+                  # Install-level access switches (ADR 2026-10-29): a hash of
+                  # roles_permissions / two_factor / sso booleans. Unset keys fall
+                  # back to ESCALATED_ROLES_PERMISSIONS / _TWO_FACTOR / _SSO, else off.
+                  :access
 
     def initialize
       @mode = :self_hosted
@@ -252,6 +256,7 @@ module Escalated
       @api_token_refresher = nil
       @api_profile_updater = nil
       @api_logout = nil
+      @access = {}
     end
 
     def self_hosted?

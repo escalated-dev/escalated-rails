@@ -86,6 +86,15 @@ RSpec.describe 'Admin config forms', type: :request do
   end
 
   describe 'roles' do
+    # The roles screens exist only while roles & permissions is on (ADR
+    # 2026-10-29); the admin then needs role permissions of their own.
+    before do
+      Escalated.configuration.access = { roles_permissions: true }
+      allow(Escalated::AccessControl).to receive(:permission_slugs).and_return(%w[role.view role.manage])
+    end
+
+    after { Escalated.configuration.access = {} }
+
     let!(:view_tickets) { create(:escalated_permission, name: 'View tickets', slug: 'tickets.view', group: 'Tickets') }
     let!(:edit_settings) do
       create(:escalated_permission, name: 'Edit settings', slug: 'settings.edit', group: 'Settings')

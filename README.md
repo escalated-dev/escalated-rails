@@ -42,6 +42,7 @@ A full-featured, embeddable support ticket system for Rails. Drop it into any ap
 - **Email notifications** — Configurable per-event notifications with webhook support
 - **Department routing** — Organize agents into departments with auto-assignment (round-robin)
 - **Tagging system** — Categorize tickets with colored tags
+- **Access control** — Roles & permissions as an install-level switch, enforced on every admin, agent and staff API action when on and hidden when off; see [access control](docs/access-control.md)
 - **Guest tickets** — Anonymous ticket submission with magic-link access via guest token
 - **Inbound email** — Create and reply to tickets via email (Mailgun, Postmark, AWS SES, IMAP)
 - **Inertia.js + Vue 3 UI** — Shared frontend via [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated)

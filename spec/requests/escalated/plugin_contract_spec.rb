@@ -73,7 +73,19 @@ RSpec.describe 'Plugin contract', type: :request do
         Escalated.plugin_ui.add_menu_item(label: 'Secret', url: '/x', permission: 'nobody-has-this',
                                           section: 'agent')
 
+        # Permissions apply while roles & permissions is on (ADR 2026-10-29).
+        Escalated.configuration.access = { roles_permissions: true }
+        allow(Escalated::AccessControl).to receive(:permission_slugs).and_return(%w[ticket.view])
         expect(shared_plugins).to eq({})
+      ensure
+        Escalated.configuration.access = {}
+      end
+
+      it 'shows items with a permission to every agent while roles & permissions is off' do
+        Escalated.plugin_ui.add_menu_item(label: 'Secret', url: '/x', permission: 'nobody-has-this',
+                                          section: 'agent')
+
+        expect(shared_plugins['menuItems'].pluck('label')).to eq(%w[Secret])
       end
     end
 

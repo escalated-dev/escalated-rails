@@ -2,57 +2,31 @@
 
 module Escalated
   module Plugins
-    # Handles requests routed to SDK plugin data endpoints.
-    #
-    # Routes are registered dynamically by RouteRegistrar based on each
-    # plugin manifest's "endpoints" array.  All requests require agent or
-    # admin authentication (same middleware as the rest of the engine).
+    # An SDK plugin's data endpoints: {prefix}/api/plugins/{slug}{path}
+    # (domain-model/plugin-contract.md, Endpoints and webhooks). Behind the
+    # admin guard, plus the endpoint's `capability` when it declares one
+    # (403). Only active plugins answer; anything else is a 404.
     class EndpointsController < Escalated::ApplicationController
-      before_action :require_agent!
+      include Escalated::Plugins::SdkPluginRequest
 
-      # Handle any HTTP method forwarded to a plugin endpoint.
+      before_action :require_admin!
+
       def handle
-        plugin = params[:plugin]
-        endpoint_path = params[:endpoint_path] || ''
-        http_method = request.method.downcase
+        name, manifest = Escalated::Bridge::SdkPluginRoutes.active_plugin(params[:slug])
+        endpoint, path_params = name && Escalated::Bridge::SdkPluginRoutes.match(
+          manifest['endpoints'], request.method, plugin_request_path
+        )
+        return render(json: { error: 'Not Found' }, status: :not_found) unless endpoint
+        return render(json: { error: 'Forbidden' }, status: :forbidden) unless capability_granted?(endpoint)
 
-        # An inactive plugin's routes do not exist.
-        unless Escalated::Bridge::SdkPluginActivation.active?(plugin)
-          render json: { error: 'Not Found' }, status: :not_found
-          return
-        end
-
-        bridge = Escalated.plugin_bridge
-        unless bridge&.booted?
-          render json: { error: 'Plugin runtime is not available' }, status: :service_unavailable
-          return
-        end
-
-        result = bridge.call_endpoint(
-          plugin,
-          http_method,
-          "/#{endpoint_path}",
-          {
-            body: request_body,
-            params: request.query_parameters.to_h
-          }
+        result = Escalated.plugin_bridge.call_endpoint(
+          name, endpoint['method'], endpoint['path'],
+          { body: request_body, params: path_params, query: request.query_parameters.to_h, headers: plugin_headers }
         )
 
         render json: result
       rescue StandardError => e
-        Rails.logger.error("[Escalated::Plugins::EndpointsController] #{e.message}")
-        render json: { error: e.message }, status: :internal_server_error
-      end
-
-      private
-
-      def request_body
-        body = request.body.read
-        return {} if body.blank?
-
-        JSON.parse(body)
-      rescue JSON::ParserError
-        {}
+        plugin_failed(e, name)
       end
     end
   end

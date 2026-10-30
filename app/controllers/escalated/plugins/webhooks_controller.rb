@@ -2,71 +2,30 @@
 
 module Escalated
   module Plugins
-    # Handles incoming webhook requests for SDK plugins.
-    #
-    # Routes are registered dynamically by RouteRegistrar based on each plugin
-    # manifest's "webhooks" array.  CSRF protection is skipped because webhook
-    # callers are external services; authentication is delegated to the plugin
-    # itself (it verifies signatures, shared secrets, etc. via ctx.config).
+    # An SDK plugin's webhooks: {prefix}/webhooks/plugins/{slug}{path}
+    # (domain-model/plugin-contract.md, Endpoints and webhooks). No guard and
+    # no CSRF: callers are external services, and the plugin authenticates
+    # the sender itself. Only active plugins answer; anything else is a 404.
     class WebhooksController < Escalated::PublicController
+      include Escalated::Plugins::SdkPluginRequest
+
       protect_from_forgery with: :null_session
 
-      # Handle any HTTP method forwarded to a plugin webhook.
       def handle
-        plugin       = params[:plugin]
-        webhook_path = params[:webhook_path] || ''
-        http_method  = request.method.downcase
+        name, manifest = Escalated::Bridge::SdkPluginRoutes.active_plugin(params[:slug])
+        webhook, path_params = name && Escalated::Bridge::SdkPluginRoutes.match(
+          manifest['webhooks'], request.method, plugin_request_path
+        )
+        return render(json: { error: 'Not Found' }, status: :not_found) unless webhook
 
-        # An inactive plugin's routes do not exist.
-        unless Escalated::Bridge::SdkPluginActivation.active?(plugin)
-          render json: { error: 'Not Found' }, status: :not_found
-          return
-        end
-
-        bridge = Escalated.plugin_bridge
-        unless bridge&.booted?
-          render json: { error: 'Plugin runtime is not available' }, status: :service_unavailable
-          return
-        end
-
-        result = bridge.call_webhook(
-          plugin,
-          http_method,
-          "/#{webhook_path}",
-          request_body,
-          request_headers
+        result = Escalated.plugin_bridge.call_webhook(
+          name, webhook['method'], webhook['path'], request_body, plugin_headers,
+          { params: path_params, query: request.query_parameters.to_h }
         )
 
         render json: result
       rescue StandardError => e
-        Rails.logger.error("[Escalated::Plugins::WebhooksController] #{e.message}")
-        render json: { error: e.message }, status: :internal_server_error
-      end
-
-      private
-
-      def request_body
-        body = request.body.read
-        return {} if body.blank?
-
-        JSON.parse(body)
-      rescue JSON::ParserError
-        {}
-      end
-
-      def request_headers
-        request.headers.each_with_object({}) do |(key, value), hash|
-          # Expose only HTTP_ headers (standard Rack convention)
-          next unless key.start_with?('HTTP_') || key == 'CONTENT_TYPE' || key == 'CONTENT_LENGTH'
-
-          normalized = key
-                       .sub(/\AHTTP_/, '')
-                       .split('_')
-                       .map(&:capitalize)
-                       .join('-')
-
-          hash[normalized] = value
-        end
+        plugin_failed(e, name)
       end
     end
   end

@@ -17,11 +17,16 @@ Escalated::Engine.routes.draw do
   # (Escalated::AttachmentAccess). Core, so API-only hosts can download too.
   get 'attachments/:id', to: 'attachments#show', as: :attachment_download
 
-  # SDK plugin routes are registered dynamically at boot time by
-  # Escalated::Bridge::RouteRegistrar based on each plugin's manifest.
-  # They appear as:
-  #   GET/POST /support/plugins/:plugin/api/:path   → plugins/endpoints#handle
-  #   POST     /support/plugins/:plugin/webhooks/:path → plugins/webhooks#handle
+  # SDK plugin endpoints and webhooks (domain-model/plugin-contract.md):
+  #   {prefix}/api/plugins/{slug}{path}      behind the admin guard
+  #   {prefix}/webhooks/plugins/{slug}{path} with no guard
+  # One route each: the controller finds the active plugin by its slug and
+  # the manifest entry by method and path (Escalated::Bridge::SdkPluginRoutes),
+  # so activating a plugin needs no restart and anything else is a 404.
+  match 'api/plugins/:slug(/*plugin_path)', to: 'plugins/endpoints#handle', via: :all, format: false,
+                                            as: :sdk_plugin_endpoint
+  match 'webhooks/plugins/:slug(/*plugin_path)', to: 'plugins/webhooks#handle', via: :all, format: false,
+                                                 as: :sdk_plugin_webhook
 
   # ── UI routes (only when ui_enabled is true) ─────────────────────────
   # Agent, admin, customer, and guest routes depend on Inertia and the
@@ -337,6 +342,10 @@ Escalated::Engine.routes.draw do
       end
     end
   end
+
+  # SDK plugin pages (domain-model/plugin-contract.md, Pages): each pages[]
+  # entry of an active plugin renders Escalated/Plugin/Page.
+  get 'admin/plugins/:slug/*page_route', to: 'plugins/pages#show', format: false, as: :sdk_plugin_page
 
   # The standalone widget bundle, loaded with a <script> tag on any site.
   if Escalated.configuration.widget_serve_script

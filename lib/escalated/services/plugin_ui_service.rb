@@ -206,6 +206,7 @@ module Escalated
         widgets = shared_widgets(admin, allows)
         slots = shared_page_components(allows)
         add_sdk_extensions(widgets, slots, allows, viewer)
+        add_sdk_menu_items(menu, admin, allows)
 
         return {} if menu.empty? && widgets.empty? && slots.empty?
 
@@ -278,10 +279,34 @@ module Escalated
         slots
       end
 
-      # SDK plugins' widget and slot declarations. Their pages are not
-      # mounted by this engine yet, so their menu entries are not shared. A
-      # widget with a badge function (`hasBadge`) carries the plugin's answer
-      # as `badge`, asked as the viewer (nil when it fails).
+      # SDK plugins' page menu entries, pointing at where the engine mounts
+      # each page: {prefix}/admin/plugins/{slug}/{route}.
+      def add_sdk_menu_items(menu, admin, allows)
+        prefix = Escalated.configuration.route_prefix.to_s.delete_prefix('/').delete_suffix('/')
+        sdk_manifests.each do |name, manifest|
+          slug = self.class.slug(name)
+          Array(manifest['pages']).each do |page|
+            next unless page.is_a?(Hash) && page['menu'].is_a?(Hash)
+
+            route = page['route'].to_s.sub(%r{\A/+}, '')
+            next if route.empty? || page['component'].blank?
+
+            menu_item = page['menu']
+            section = (menu_item['section'] || 'admin').to_s
+            next if (section == 'admin' && !admin) || !allows.call(page['capability'])
+
+            url = "/#{[prefix, 'admin/plugins', slug, route].reject(&:empty?).join('/')}"
+            menu << {
+              label: menu_item['label'] || page['component'], route: url, icon: menu_item['icon'],
+              position: menu_item['position'] || 100, section: section, plugin: slug
+            }
+          end
+        end
+      end
+
+      # SDK plugins' widget and slot declarations. A widget with a badge
+      # function (`hasBadge`) carries the plugin's answer as `badge`, asked as
+      # the viewer (nil when it fails).
       def add_sdk_extensions(widgets, slots, allows, viewer)
         sdk_manifests.each do |name, manifest|
           slug = self.class.slug(name)

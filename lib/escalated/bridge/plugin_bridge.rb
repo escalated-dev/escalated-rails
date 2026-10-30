@@ -51,11 +51,8 @@ module Escalated
         @context_handler = ContextHandler.new
         @context_handler.bridge = self
 
-        @route_registrar = RouteRegistrar.new(self)
-
         @manifests          = {}
         @booted             = false
-        @routes_registered  = false
 
         @restart_attempts = 0
         @last_restart_at  = 0
@@ -84,7 +81,6 @@ module Escalated
         begin
           ensure_running
           fetch_manifests
-          register_routes
           @booted = true
         rescue StandardError => e
           Rails.logger.warn("[Escalated::Bridge] Boot failed — SDK plugins disabled: #{e.message}")
@@ -198,7 +194,8 @@ module Escalated
       # @param plugin  [String]
       # @param method  [String]  HTTP verb
       # @param path    [String]
-      # @param request [Hash]    :body, :params
+      # @param path    [String]  the manifest path (with :param segments)
+      # @param request [Hash]    :body, :params (route params), :query, :headers
       # @return [Object]
       def call_endpoint(plugin, method, path, request = {})
         raise 'Plugin runtime is not available' unless ensure_alive
@@ -213,7 +210,9 @@ module Escalated
             'method' => method,
             'path' => path,
             'body' => request[:body],
-            'params' => request[:params] || {}
+            'params' => request[:params] || {},
+            'query' => request[:query] || {},
+            'headers' => request[:headers] || {}
           },
           TIMEOUT_ENDPOINT,
           @context_handler
@@ -227,8 +226,9 @@ module Escalated
       # @param path    [String]
       # @param body    [Hash]
       # @param headers [Hash]
+      # @param transport [Hash]  :params (route params), :query
       # @return [Object]
-      def call_webhook(plugin, method, path, body, headers)
+      def call_webhook(plugin, method, path, body, headers, transport = {})
         raise 'Plugin runtime is not available' unless ensure_alive
         raise ActionController::RoutingError, 'Not Found' unless SdkPluginActivation.active?(plugin)
 
@@ -241,7 +241,9 @@ module Escalated
             'method' => method,
             'path' => path,
             'body' => body,
-            'headers' => headers
+            'headers' => headers,
+            'params' => transport[:params] || {},
+            'query' => transport[:query] || {}
           },
           TIMEOUT_WEBHOOK,
           @context_handler
@@ -368,14 +370,19 @@ module Escalated
         Rails.logger.info("[Escalated::Bridge] Received manifests for: #{@manifests.keys.join(', ')}")
 
         SdkPluginActivation.record_installed(@manifests.keys)
+        report_shared_slugs
       end
 
-      # Register routes from the loaded manifests.
-      def register_routes
-        return if @routes_registered || @manifests.empty?
+      # Two plugins with one slug would answer on each other's URLs: a
+      # configuration error (plugin contract, Identity). Neither is served
+      # (SdkPluginRoutes), and this names both.
+      def report_shared_slugs
+        @manifests.keys.group_by { |name| SdkPluginActivation.slug(name) }.each do |slug, names|
+          next if names.size < 2
 
-        @route_registrar.register_all(@manifests)
-        @routes_registered = true
+          Rails.logger.error("[Escalated::Bridge] Plugins #{names.join(' and ')} share the slug #{slug}; " \
+                             'neither is served')
+        end
       end
 
       # Ensure the runtime is running, spawning it lazily if needed.
@@ -399,7 +406,6 @@ module Escalated
           spawn_process
           handshake
           fetch_manifests
-          register_routes
 
           @restart_attempts = 0
           @booted           = true

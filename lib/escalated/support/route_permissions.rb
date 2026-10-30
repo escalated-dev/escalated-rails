@@ -140,6 +140,9 @@ module Escalated
         *resource('webhooks', 'webhook', reads: %w[index show deliveries]),
         *resource('api_tokens', 'api_token'),
         *resource('plugins', 'plugin'),
+        # SDK plugin pages and endpoints: the admin guard, plus each entry's
+        # own capability (checked by the controller).
+        ['escalated/plugins/{pages,endpoints}#*', []],
         *resource('canned_responses', 'macro'),
 
         # ---- Settings ------------------------------------------------------------------------

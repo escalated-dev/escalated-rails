@@ -26,6 +26,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - **`ctx.tickets.query` and `ctx.replies.query` only accept the plugin contract's filter keys.** Tickets: `id`, `reference`, `status`, `priority`, `channel`, `ticket_type`, `department_id`, `requester_id`, `contact_id`, `assigned_to`. Replies: `ticket_id`, `is_internal`, `type` (`reply`, `note` or `system`). Any other key, or a non-scalar value, raises instead of becoming a column name. Results are capped at 500 rows.
 
 ### Added
+- **Admin > Users roles picker.** While roles & permissions is on, the users
+  screen sends `roles` (`{id, name, slug}`, by name) and each user's role slugs,
+  and `PUT /support/admin/users/:user_id/roles` (`{role_ids: [...]}`, needs
+  `role.manage`) replaces a user's roles, as escalated-laravel's
+  `escalated.admin.users.roles`. 404 while the switch is off.
 - **Sign-in through SSO when switched on**, with the provider chosen in Admin > Settings > SSO (which now lists the endpoints for the IdP). SAML checks the assertion signature against the configured certificate, Issuer, Audience, Destination/Recipient, validity windows, InResponseTo against requests issued in the last 10 minutes, and replay; OAuth uses a session-bound state and PKCE; JWT pins the algorithm and requires `exp`, `aud` and a single-use `jti`. Users are matched by email, created only with `config.sso[:create_users]`, and given the asserted role only with roles on and `[:sync_roles]`.
 - **SDK plugins on Admin > Plugins**: listed by slug with `name`, `version`, `description`, `is_active`, `activated_at`, `source: composer` and `provides` counts; activating sends the runtime `activate {plugin}` and deactivating `deactivate {plugin}` (`PluginBridge#activate` / `#deactivate`); uninstalling is refused (npm manages them).
 - **Lifecycle actions `plugin.activated`, `plugin.deactivated` and `plugin.uninstalling`** with `{plugin, slug}`, to Ruby and SDK plugins, in the contract's order. A raising callback is logged and does not undo the transition.

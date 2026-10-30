@@ -13,6 +13,7 @@ screen or stored setting changes them.
 | Feature | Config | Env var |
 |---|---|---|
 | Roles & permissions | `config.access = { roles_permissions: true }` | `ESCALATED_ROLES_PERMISSIONS` |
+| Two-factor authentication | `config.access = { two_factor: true }` | `ESCALATED_TWO_FACTOR` |
 
 ```ruby
 Escalated.configure do |config|
@@ -78,3 +79,53 @@ Staff without a role can still reach their personal screens and nothing else.
 Every page gets `escalated.features.roles_permissions` (boolean) and
 `escalated.permissions`: the user's slugs while on, `['*']` for staff while
 off, `[]` for everyone else.
+
+## Two-factor authentication
+
+### What is enforced
+
+With `ESCALATED_TWO_FACTOR=true` (and the `068` migration run):
+
+- TOTP is RFC 6238 (SHA-1, 6 digits, 30 s) through the `rotp` gem, with one
+  step of drift either side. A code's time step is recorded when it is
+  accepted, and that step or an earlier one is refused afterwards.
+- A staff user with a confirmed enrolment who opens any admin or agent page
+  without having passed the challenge in this session is redirected to
+  `GET /support/two-factor/challenge` (`Escalated/Auth/TwoFactorChallenge`,
+  props `action` and `error`). JSON requests get
+  `403 {"two_factor_required": true}`.
+- The challenge posts `code` or `recovery_code` to
+  `POST /support/two-factor/challenge`. Success renews the session (keeping its
+  data), marks it for that user and returns to the page they asked for.
+  Failure is a validation error on the field sent. Five attempts per user per
+  minute (`config.two_factor[:cache_store]`, default `Rails.cache`); then 429.
+- Eight single-use recovery codes are issued at setup; a code that signs
+  someone in is removed. Secrets and recovery codes are sealed at rest with a
+  key derived from `secret_key_base`; enrolments stored before are read as
+  they are.
+- Enrolment (`/support/admin/settings/two_factor`, and `setup`, `confirm`,
+  `disable`) is open to every staff user, not only admins, and needs no
+  permission. Confirming marks the session as passed.
+- The token API is not session-based and is not challenged.
+- Every login is challenged again: with Warden (Devise) the mark is cleared on
+  sign-in and sign-out. Hosts on other authentication call
+  `Escalated::Support::TwoFactorSession.forget(session)` when someone signs in
+  or out.
+
+### Requiring it
+
+`config.two_factor = { required: true }` (`ESCALATED_TWO_FACTOR_REQUIRED`), or
+the `two_factor_required` setting (posted to `/support/admin/settings`, which
+now saves only the keys a form sends; the setting wins once saved). When
+required, a staff user without an enrolment is sent to enrol and can use
+nothing else until they do. Pages get `escalated.two_factor_required`.
+
+### Lost device
+
+`rake "escalated:two_factor:reset[user@example.com]"` removes a user's
+enrolment.
+
+### While it is off
+
+The enrolment and challenge routes answer 404 and nobody is challenged.
+Enrolments are kept.

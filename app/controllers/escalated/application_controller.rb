@@ -49,7 +49,8 @@ module Escalated
           permissions: shared_permissions(
             escalated_current_user,
             current_user_data&.dig(:is_agent) || current_user_data&.dig(:is_admin)
-          )
+          ),
+          two_factor_required: two_factor_enrolment_required?
         },
         flash: {
           success: flash[:success],
@@ -71,6 +72,15 @@ module Escalated
       )
 
       inertia_share(**shared)
+    end
+
+    # Whether the signed-in staff user must enrol in two-factor before going on.
+    def two_factor_enrolment_required?
+      user = escalated_current_user
+      return false unless user && (current_user_data&.dig(:is_agent) || current_user_data&.dig(:is_admin))
+      return false unless Escalated::Services::TwoFactorService.required?
+
+      Escalated::Services::TwoFactorService.confirmed_for(user).nil?
     end
 
     def user_permission_slugs(user_id)
@@ -106,7 +116,7 @@ module Escalated
         return redirect_to main_app.root_path, alert: I18n.t('escalated.middleware.not_agent')
       end
 
-      enforce_route_permissions!
+      enforce_two_factor! && enforce_route_permissions!
     end
 
     # The host's admin gate, then the action's permission (see require_agent!).
@@ -116,7 +126,17 @@ module Escalated
                            alert: I18n.t('escalated.middleware.not_admin')
       end
 
-      enforce_route_permissions!
+      enforce_two_factor! && enforce_route_permissions!
+    end
+
+    # Agents and admins, for screens about the staff member's own account
+    # (two-factor enrolment): the gate and the challenge, no permission.
+    def require_staff!
+      unless current_user_data&.dig(:is_agent) || current_user_data&.dig(:is_admin)
+        return redirect_to main_app.root_path, alert: I18n.t('escalated.middleware.not_agent')
+      end
+
+      enforce_two_factor!
     end
 
     def user_not_authorized

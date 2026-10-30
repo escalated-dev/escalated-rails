@@ -122,7 +122,11 @@ module Escalated
                   # Install-level access switches (ADR 2026-10-29): a hash of
                   # roles_permissions / two_factor / sso booleans. Unset keys fall
                   # back to ESCALATED_ROLES_PERMISSIONS / _TWO_FACTOR / _SSO, else off.
-                  :access
+                  :access,
+                  # Two-factor settings used while access[:two_factor] is on:
+                  # { required:, issuer:, cache_store: } (env ESCALATED_TWO_FACTOR_REQUIRED,
+                  # ESCALATED_TWO_FACTOR_ISSUER). cache_store counts verify attempts.
+                  :two_factor
 
     def initialize
       @mode = :self_hosted
@@ -257,6 +261,7 @@ module Escalated
       @api_profile_updater = nil
       @api_logout = nil
       @access = {}
+      @two_factor = {}
     end
 
     def self_hosted?

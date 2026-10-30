@@ -10,6 +10,12 @@ module Escalated
   module AccessControl
     extend ActiveSupport::Concern
 
+    included do
+      # :challenge (reachable before passing the challenge) or :enrolment
+      # (reachable before enrolling while two-factor is required).
+      class_attribute :escalated_two_factor_route, instance_writer: false, default: nil
+    end
+
     # Every permission slug the user's roles grant; [] without any.
     def self.permission_slugs(user_id)
       return [] if user_id.blank?
@@ -70,6 +76,41 @@ module Escalated
       return true if missing.empty?
 
       deny_permission!("You do not have the required permission: #{missing.first}")
+    end
+
+    # Two-factor (ADR 2026-10-29): while it is on, a staff user with a
+    # confirmed enrolment must have passed the challenge in this session, and
+    # while it is required a staff user without one is sent to enrol. API
+    # token requests carry no session and are not challenged.
+    def enforce_two_factor!
+      return true unless Escalated::Support::AccessFeatures.two_factor?
+      return true if escalated_two_factor_route == :challenge
+
+      user = access_control_user
+      return true if user.nil?
+
+      if Escalated::Services::TwoFactorService.confirmed_for(user)
+        return true if Escalated::Support::TwoFactorSession.passed?(session, user)
+
+        return deny_two_factor!(escalated.two_factor_challenge_path, 'Two-factor authentication is required.')
+      end
+
+      if escalated_two_factor_route != :enrolment && Escalated::Services::TwoFactorService.required?
+        return deny_two_factor!(escalated.admin_settings_two_factor_path,
+                                'Set up two-factor authentication to continue.')
+      end
+
+      true
+    end
+
+    def deny_two_factor!(location, message)
+      if request.format.json? && request.headers['X-Inertia'].blank?
+        render json: { message: message, two_factor_required: true }, status: :forbidden
+      else
+        Escalated::Support::TwoFactorSession.remember_intended(session, request.fullpath) if request.get?
+        redirect_to location, status: request.get? ? :found : :see_other
+      end
+      false
     end
 
     def deny_permission!(message)

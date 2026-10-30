@@ -1181,10 +1181,10 @@ RSpec.describe Escalated::Services::TwoFactorService do
   # #generate_secret
   # ------------------------------------------------------------------ #
   describe '#generate_secret' do
-    it 'returns a 16-character string' do
+    it 'returns a 32-character string (160 bits, the RFC 4226 recommendation)' do
       secret = service.generate_secret
 
-      expect(secret.length).to eq(16)
+      expect(secret.length).to eq(32)
     end
 
     it 'only contains valid Base32 characters' do
@@ -1249,7 +1249,7 @@ RSpec.describe Escalated::Services::TwoFactorService do
       secret = service.generate_secret
       # Generate the correct code using the service's own logic
       current_step = Time.now.to_i / 30
-      correct_code = service.send(:generate_totp, secret, current_step)
+      correct_code = ROTP::TOTP.new(secret).at(current_step * 30)
 
       expect(service.verify(secret, correct_code)).to be(true)
     end
@@ -1257,7 +1257,7 @@ RSpec.describe Escalated::Services::TwoFactorService do
     it 'accepts codes from the previous time step (drift tolerance)' do
       secret = service.generate_secret
       previous_step = (Time.now.to_i / 30) - 1
-      previous_code = service.send(:generate_totp, secret, previous_step)
+      previous_code = ROTP::TOTP.new(secret).at(previous_step * 30)
 
       expect(service.verify(secret, previous_code)).to be(true)
     end
@@ -1265,7 +1265,7 @@ RSpec.describe Escalated::Services::TwoFactorService do
     it 'accepts codes from the next time step (drift tolerance)' do
       secret = service.generate_secret
       next_step = (Time.now.to_i / 30) + 1
-      next_code = service.send(:generate_totp, secret, next_step)
+      next_code = ROTP::TOTP.new(secret).at(next_step * 30)
 
       expect(service.verify(secret, next_code)).to be(true)
     end
@@ -1279,7 +1279,7 @@ RSpec.describe Escalated::Services::TwoFactorService do
     it 'rejects a code from a far-off time step' do
       secret = service.generate_secret
       far_step = (Time.now.to_i / 30) + 100
-      far_code = service.send(:generate_totp, secret, far_step)
+      far_code = ROTP::TOTP.new(secret).at(far_step * 30)
 
       expect(service.verify(secret, far_code)).to be(false)
     end

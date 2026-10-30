@@ -191,6 +191,17 @@ createInertiaApp({
 })
 ```
 
+### Named routes
+
+The shared components build URLs with Laravel's Ziggy-style `route(name, params)`. The engine ships the list itself: every Escalated Inertia page gets a `ziggy` prop with the names mapped to this engine's paths under `route_prefix`. Install the matching `route()` helper in your Inertia layout, before the script that mounts the app:
+
+```erb
+<%= escalated_route_helper_tag %>
+<%= vite_javascript_tag 'application' %>
+```
+
+No hand-mapped `window.route` shim is needed. A `window.route` or `window.Ziggy` your app already installs still wins, and `config.route_overrides` replaces or adds single names (for example `'login' => '/users/sign_in'`). See [docs/named-routes.md](docs/named-routes.md).
+
 ### Theming (Optional)
 
 Register the `EscalatedPlugin` to render Escalated pages inside your app's layout — no page duplication needed:

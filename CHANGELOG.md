@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **Built-in named route list for the shared frontend's `route()`** (`Escalated::RouteList`). Every Escalated Inertia response (staff, customer and guest screens) now carries a `ziggy` prop, `{ url, port: null, defaults: {}, routes: { name => { uri, methods } }, location }`, mapping the route names `@escalated-dev/escalated` calls to this engine's real paths under `route_prefix`. The `escalated_route_helper_tag` view helper installs a matching `route()` (only when `window.route` is not already a function; `window.Ziggy` is read first; an unknown name warns and returns `#`). `config.route_overrides` replaces or adds single names, for example `{ 'login' => '/users/sign_in' }`. See `docs/named-routes.md`.
+- `POST {prefix}/admin/tickets/:id/split` with `reply_id` in the body, the path the split dialog posts to. `.../replies/:reply_id/split` still works.
+
+### Upgrading
+- Hosts no longer need a hand-written `window.route` shim. Add `<%= escalated_route_helper_tag %>` to the Inertia layout ahead of the app's script and drop the shim, or keep the shim: a `window.route` the host installs still wins, so nothing changes until it is removed. Names the engine has no working endpoint for (agent snooze/unsnooze, ticket links, merge, side conversations, the all-workflows log) are not in the list; `login` is the host's and comes from `config.route_overrides`.
+
 ## [0.7.9] - 2026-10-30
 
 ### Upgrading

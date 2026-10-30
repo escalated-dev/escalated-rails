@@ -72,6 +72,11 @@ module Escalated
       end
     end
 
+    # escalated_route_helper_tag, for the host's Inertia layout.
+    initializer 'escalated.route_helper' do
+      ActiveSupport.on_load(:action_view) { include Escalated::RouteListHelper }
+    end
+
     initializer 'escalated.append_routes' do |app|
       app.routes.append do
         mount Escalated::Engine, at: "/#{Escalated.configuration.route_prefix}"

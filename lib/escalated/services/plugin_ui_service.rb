@@ -198,7 +198,10 @@ module Escalated
       #   asked as this user
       # @return [Hash]
       def shared_extensions(admin: false, permissions: [], viewer: nil)
-        allows = ->(ability) { ability.blank? || admin || Array(permissions).include?(ability.to_s) }
+        allows = lambda do |ability|
+          granted = Array(permissions)
+          ability.blank? || granted.include?('*') || granted.include?(ability.to_s)
+        end
         menu = shared_menu_items(admin, allows)
         widgets = shared_widgets(admin, allows)
         slots = shared_page_components(allows)

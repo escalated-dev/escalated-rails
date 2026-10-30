@@ -7,10 +7,14 @@ module Escalated
         include Escalated::ApiAuthentication
         include Escalated::ApiRateLimiting
         include Escalated::TicketAccess::Controller
+        include Escalated::AccessControl
 
         before_action :check_api_enabled!
         before_action :authenticate_api_token!
         before_action :enforce_rate_limit!
+        # API tokens act as their owner: with roles & permissions on, the
+        # owner's roles must grant the action's permission too.
+        before_action :enforce_route_permissions!, if: -> { current_user.present? }
 
         rescue_from ActiveRecord::RecordNotFound, with: :not_found
         rescue_from ActiveRecord::RecordInvalid, with: :unprocessable

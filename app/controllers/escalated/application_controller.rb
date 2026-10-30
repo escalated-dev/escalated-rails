@@ -5,6 +5,7 @@ module Escalated
     include Pundit::Authorization
     include Escalated::Renderable
     include Escalated::TicketAccess::Controller
+    include Escalated::AccessControl
 
     protect_from_forgery with: :exception
 
@@ -42,9 +43,13 @@ module Escalated
           knowledge_base_public: Escalated::EscalatedSetting.knowledge_base_public?,
           knowledge_base_feedback_enabled: Escalated::EscalatedSetting.knowledge_base_feedback_enabled?,
           features: {
-            newsletters: Escalated.configuration.enable_newsletters?
+            newsletters: Escalated.configuration.enable_newsletters?,
+            **Escalated::Support::AccessFeatures.shared
           },
-          permissions: user_permission_slugs(escalated_current_user&.id)
+          permissions: shared_permissions(
+            escalated_current_user,
+            current_user_data&.dig(:is_agent) || current_user_data&.dig(:is_admin)
+          )
         },
         flash: {
           success: flash[:success],
@@ -69,12 +74,7 @@ module Escalated
     end
 
     def user_permission_slugs(user_id)
-      return [] if user_id.blank?
-
-      Escalated::Permission.joins(roles: :users)
-                           .where(escalated_role_users: { user_id: user_id })
-                           .distinct
-                           .pluck(:slug)
+      Escalated::AccessControl.permission_slugs(user_id)
     end
 
     def current_user_data
@@ -99,16 +99,24 @@ module Escalated
       current_user
     end
 
+    # The host's agent gate, then (with roles & permissions on) the action's
+    # permission from the user's roles. Both must pass.
     def require_agent!
-      return if current_user_data&.dig(:is_agent) || current_user_data&.dig(:is_admin)
+      unless current_user_data&.dig(:is_agent) || current_user_data&.dig(:is_admin)
+        return redirect_to main_app.root_path, alert: I18n.t('escalated.middleware.not_agent')
+      end
 
-      redirect_to main_app.root_path, alert: I18n.t('escalated.middleware.not_agent')
+      enforce_route_permissions!
     end
 
+    # The host's admin gate, then the action's permission (see require_agent!).
     def require_admin!
-      return if current_user_data&.dig(:is_admin)
+      unless current_user_data&.dig(:is_admin)
+        return redirect_to main_app.root_path,
+                           alert: I18n.t('escalated.middleware.not_admin')
+      end
 
-      redirect_to main_app.root_path, alert: I18n.t('escalated.middleware.not_admin')
+      enforce_route_permissions!
     end
 
     def user_not_authorized

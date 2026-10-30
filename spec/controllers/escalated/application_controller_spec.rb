@@ -33,19 +33,31 @@ RSpec.describe Escalated::ApplicationController, type: :request do
       expect(props.dig('escalated', 'permissions')).to eq([])
     end
 
-    it 'includes permission slugs for the signed-in user via roles' do
+    it 'shares a wildcard permission set for staff while roles & permissions is off' do
+      sign_in_as(admin)
+      get '/support/admin/skills'
+
+      expect(response).to have_http_status(:ok)
+      props = inertia_props_from(response.body)
+      expect(props.dig('escalated', 'permissions')).to eq(['*'])
+    end
+
+    it 'includes permission slugs for the signed-in user via roles while roles & permissions is on' do
       manage = create(:escalated_permission, slug: 'newsletters.manage')
-      send_perm = create(:escalated_permission, slug: 'newsletters.send')
+      view_users = create(:escalated_permission, slug: 'user.view')
       role = create(:escalated_role)
-      role.permissions << [manage, send_perm]
+      role.permissions << [manage, view_users]
       role.users << admin
+      Escalated.configuration.access = { roles_permissions: true }
 
       sign_in_as(admin)
       get '/support/admin/skills'
 
       expect(response).to have_http_status(:ok)
       props = inertia_props_from(response.body)
-      expect(props.dig('escalated', 'permissions')).to contain_exactly('newsletters.manage', 'newsletters.send')
+      expect(props.dig('escalated', 'permissions')).to contain_exactly('newsletters.manage', 'user.view')
+    ensure
+      Escalated.configuration.access = {}
     end
   end
 end

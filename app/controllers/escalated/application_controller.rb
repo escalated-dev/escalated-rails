@@ -18,6 +18,40 @@ module Escalated
 
     private
 
+    # A screen visit (Inertia or a browser) rather than a JSON client.
+    def page_visit?
+      request.headers['X-Inertia'].present? || !request.format.json?
+    end
+
+    # Malformed ticket list filters, as escalated-laravel's $request->validate():
+    # a page visit goes back (to the referring page, else +fallback+) with the
+    # field errors for the next page's `errors` prop -- a raw 422 is what the
+    # Inertia client shows as an error modal; a JSON client gets the 422.
+    # +errors+ maps a field to its messages.
+    def invalid_list_filters(errors, fallback)
+      unless page_visit?
+        return render json: { message: errors.values.flatten.first, errors: errors },
+                      status: :unprocessable_content
+      end
+
+      redirect_back_or_to(fallback, inertia: { errors: errors.transform_values { |messages| Array(messages).first } })
+    end
+
+    # An account filter with only one half of the pair (escalated-laravel's
+    # required_with rule on account_type/account_id), on either ticket list.
+    def invalid_account_filter(error)
+      errors = {}
+      if params[:account_type].blank?
+        errors['account_type'] = ['The account type field is required when account id is present.']
+      end
+      if params[:account_id].blank?
+        errors['account_id'] = ['The account id field is required when account type is present.']
+      end
+      errors = { 'account' => [error.message] } if errors.empty?
+      fallback = request.path.include?('/admin/') ? escalated.admin_tickets_path : escalated.agent_tickets_path
+      invalid_list_filters(errors, fallback)
+    end
+
     def apply_middleware
       Escalated.configuration.middleware.each do |middleware_method|
         send(middleware_method) if respond_to?(middleware_method, true)

@@ -189,8 +189,18 @@ RSpec.describe 'Configurable ticket access' do
   it 'rejects partial account filters before querying' do
     allow(Escalated.configuration).to receive(:accounts).and_return(enabled: true)
     sign_in_as(agent)
-    get '/support/agent/tickets', params: { account_id: 'one' }
+    get '/support/agent/tickets', params: { account_id: 'one' }, headers: { 'Accept' => 'application/json' }
     expect(response).to have_http_status(:unprocessable_content)
+    expect(response.parsed_body['errors'].keys).to eq(['account_type'])
+  end
+
+  it 'sends a page visit with a partial account filter back with the error' do
+    allow(Escalated.configuration).to receive(:accounts).and_return(enabled: true)
+    sign_in_as(agent)
+    get '/support/agent/tickets', params: { account_type: 'FakeProject' },
+                                  headers: { 'X-Inertia' => 'true', 'Referer' => '/support/agent/tickets' }
+    expect(response).to redirect_to('/support/agent/tickets')
+    expect(session[:inertia_errors]&.keys).to eq(['account_id'])
   end
 
   it 'checks chat access and private guest session tokens' do

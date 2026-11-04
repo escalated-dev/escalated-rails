@@ -202,12 +202,17 @@ module Escalated
       requester.respond_to?(:email) ? requester.email : ''
     end
 
+    # The latest public reply: internal notes are never previewed in a list.
+    def latest_public_reply
+      replies.public_replies.order(created_at: :desc, id: :desc).first
+    end
+
     def last_reply_at
-      replies.maximum(:created_at)
+      replies.public_replies.maximum(:created_at)
     end
 
     def last_reply_author
-      latest = replies.order(created_at: :desc).first
+      latest = latest_public_reply
       return nil unless latest
 
       if latest.author

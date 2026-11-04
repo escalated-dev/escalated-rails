@@ -1,5 +1,16 @@
 ko:
   escalated:
+    agent_inbox:
+      queues:
+        mine: "내 받은편지함"
+        unassigned: "미배정"
+        all: "모든 티켓"
+      views:
+        urgent: "긴급"
+        sla_at_risk: "SLA 위험"
+        waiting_on_me: "내 응답 대기"
+        waiting_on_customer: "고객 응답 대기"
+        recently_updated: "최근 업데이트"
     ticket:
       reply_sent: "답변이 전송되었습니다."
       note_added: "내부 메모가 추가되었습니다."

@@ -11,29 +11,19 @@ module Escalated
                              follow presence pin]
 
       def index
-        scope = TicketAccess.filter_accounts(Escalated::Ticket.all.recent, params)
+        requested = Support::TicketListFilters.from_query(request.query_parameters)
+        errors = Support::TicketListFilters.errors(requested)
+        return render json: { errors: errors }, status: :unprocessable_content if errors.any?
 
-        scope = scope.where(status: params[:status]) if params[:status].present?
-        scope = scope.where(priority: params[:priority]) if params[:priority].present?
-        scope = scope.by_ticket_type(params[:ticket_type]) if params[:ticket_type].present?
-        scope = scope.assigned_to(params[:assigned_to]) if params[:assigned_to].present?
-        scope = scope.where(department_id: params[:department_id]) if params[:department_id].present?
-        scope = scope.unassigned if params[:unassigned] == 'true'
-        scope = scope.breached_sla if params[:sla_breached] == 'true'
-        scope = scope.search(params[:search]) if params[:search].present?
+        inbox = Services::AgentInbox.new(escalated_current_user)
+        filters = inbox.normalise_filters(requested)
+        queue = inbox.queue_for(filters)
+        inbox.remember(session, queue)
+        filters = inbox.list_filters(filters, queue)
 
-        # Following filter: tickets the current user follows
-        if params[:following] == 'true'
-          followers_table = Escalated.table_name('ticket_followers')
-          tickets_table = Escalated.table_name('tickets')
-          join_sql = "INNER JOIN #{followers_table} " \
-                     "ON #{followers_table}.ticket_id = #{tickets_table}.id"
-          followed_ticket_ids = Escalated::Ticket
-                                .joins(join_sql)
-                                .where("#{followers_table}.user_id = ?", escalated_current_user.id)
-                                .pluck(:id)
-          scope = scope.where(id: followed_ticket_ids)
-        end
+        scope = TicketAccess.filter_accounts(Escalated::Ticket.all, params)
+        scope = Support::TicketListFilters.apply(scope, filters, escalated_current_user)
+        scope = Support::TicketListFilters.order(scope, filters)
 
         result = paginate(scope)
 
@@ -51,14 +41,17 @@ module Escalated
             unassigned: params[:unassigned],
             sla_breached: params[:sla_breached],
             search: params[:search],
-            following: params[:following]
-          },
+            following: params[:following],
+            **requested.slice('open', 'sla_at_risk', 'resolved_today', 'updated_within_hours', 'assigned', 'view')
+          }.compact,
           departments: Escalated::Department.active.ordered.map { |d| { id: d.id, name: d.name } },
           agents: agent_list,
           tags: Escalated::Tag.ordered.map { |t| { id: t.id, name: t.name, color: t.color } },
           statuses: Escalated::Ticket.statuses.keys,
           priorities: Escalated::Ticket.priorities.keys,
-          ticket_types: Escalated::Ticket::TICKET_TYPES
+          ticket_types: Escalated::Ticket::TICKET_TYPES,
+          queue: inbox.queue_prop(queue),
+          **inbox.inbox_prop(queue)
         }
       end
 
@@ -68,6 +61,8 @@ module Escalated
         replies = @ticket.replies.chronological.includes(:author, :attachments)
         activities = @ticket.activities.reverse_chronological.limit(50)
         @ticket.ticket_subjects.load
+        inbox = Services::AgentInbox.new(escalated_current_user)
+        queue = inbox.recalled(session)
 
         render_page 'Escalated/Agent/TicketShow', {
           # The page reads the thread and activity from `ticket.replies` and
@@ -89,7 +84,9 @@ module Escalated
           followers_count: @ticket.followers.count,
           customActions: custom_actions_for(@ticket),
           statuses: Escalated::Ticket.statuses.keys,
-          priorities: Escalated::Ticket.priorities.keys
+          priorities: Escalated::Ticket.priorities.keys,
+          queue: inbox.queue_prop(queue),
+          **inbox.inbox_prop(queue)
         }
       end
 
@@ -299,6 +296,7 @@ module Escalated
           sla_breached: ticket.sla_breached,
           last_reply_at: ticket.last_reply_at&.iso8601,
           last_reply_author: ticket.last_reply_author,
+          latest_reply: Support::TicketListFilters.latest_reply_json(ticket),
           is_live_chat: ticket.is_live_chat,
           is_snoozed: ticket.is_snoozed,
           created_at: ticket.created_at&.iso8601,

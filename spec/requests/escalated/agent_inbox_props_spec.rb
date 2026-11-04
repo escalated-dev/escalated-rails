@@ -265,12 +265,32 @@ RSpec.describe 'Agent inbox props', type: :request do
     { 'updated_within_hours' => 'a day' },
     { 'updated_within_hours' => '9000' }
   ].each do |query|
-    it "rejects malformed values for the new filters: #{query}" do
-      get '/support/agent/tickets', params: query
+    it "sends malformed values for the new filters on a page visit back with errors: #{query}" do
+      # escalated-laravel's $request->validate(): a redirect back with the errors
+      # in the session (the next page's `errors` prop), never a raw 422, which
+      # the Inertia client shows as an error modal.
+      headers = { 'X-Inertia' => 'true', 'Referer' => '/support/agent/tickets?assigned=me' }
+      get '/support/agent/tickets', params: query, headers: headers
+
+      expect(response).to redirect_to('/support/agent/tickets?assigned=me')
+      expect(session[:inertia_errors]&.keys).to eq(query.keys)
+      expect(session[:inertia_errors].values).to all(be_a(String))
+    end
+
+    it "answers a JSON client's malformed filter with a 422: #{query}" do
+      get '/support/agent/tickets', params: query, headers: { 'Accept' => 'application/json' }
 
       expect(response).to have_http_status(:unprocessable_content)
       expect(response.parsed_body['errors'].keys).to eq(query.keys)
+      expect(response.parsed_body['message']).to be_present
     end
+  end
+
+  it 'sends a browser visit with a malformed filter and no referer back to the list' do
+    get '/support/agent/tickets', params: { sla_at_risk: 'soon' }
+
+    expect(response).to redirect_to('/support/agent/tickets')
+    expect(session[:inertia_errors]&.keys).to eq(['sla_at_risk'])
   end
 
   it 'previews the latest customer-visible message, never an internal note' do

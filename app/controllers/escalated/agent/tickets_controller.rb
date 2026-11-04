@@ -13,7 +13,7 @@ module Escalated
       def index
         requested = Support::TicketListFilters.from_query(request.query_parameters)
         errors = Support::TicketListFilters.errors(requested)
-        return render json: { errors: errors }, status: :unprocessable_content if errors.any?
+        return invalid_list_filters(errors, escalated.agent_tickets_path) if errors.any?
 
         inbox = Services::AgentInbox.new(escalated_current_user)
         filters = inbox.normalise_filters(requested)

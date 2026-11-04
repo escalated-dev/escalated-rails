@@ -16,12 +16,16 @@ module Escalated
 
       included do
         prepend_around_action :with_ticket_access
-        rescue_from TicketAccess::InvalidAccountFilter do |error|
-          render json: { errors: { account: [error.message] } }, status: :unprocessable_content
-        end
+        rescue_from TicketAccess::InvalidAccountFilter, with: :invalid_account_filter
       end
 
       private
+
+      # A JSON client gets a 422; a controller serving pages overrides this to
+      # send a page visit back with the errors (Escalated::ApplicationController).
+      def invalid_account_filter(error)
+        render json: { errors: { account: [error.message] } }, status: :unprocessable_content
+      end
 
       def with_ticket_access(&)
         TicketAccess.with_actor(-> { respond_to?(:current_user, true) ? current_user : nil }, &)

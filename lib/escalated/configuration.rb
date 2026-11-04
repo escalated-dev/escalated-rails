@@ -12,6 +12,8 @@ module Escalated
     }.freeze
 
     attr_accessor :mode,
+                  # Seconds the agent panel's inbox counts are cached per agent (0 = off)
+                  :agent_inbox_cache_seconds,
                   :visibility,
                   :accounts,
                   :user_class,
@@ -138,6 +140,7 @@ module Escalated
 
     def initialize
       @mode = :self_hosted
+      @agent_inbox_cache_seconds = (ENV['ESCALATED_AGENT_INBOX_CACHE_SECONDS'] || 10).to_i
       @visibility = 'all'
       @accounts = { enabled: false, scope_agents: false, resolver: nil }
       @user_class = 'User'

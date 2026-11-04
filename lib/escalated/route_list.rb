@@ -51,6 +51,8 @@ module Escalated
       **ticket_actions('agent'),
       'escalated.agent.tickets.update' => ['agent/tickets/{id}', PUT],
       'escalated.agent.tickets.custom-action' => ['agent/tickets/{id}/actions/{action_key}', POST],
+      'escalated.agent.tickets.snooze' => ['agent/tickets/{id}/snooze', POST],
+      'escalated.agent.tickets.unsnooze' => ['agent/tickets/{id}/unsnooze', POST],
 
       # Admin tickets
       **ticket_actions('admin'),

@@ -75,7 +75,6 @@ returns `#`. These names the frontend calls have no working endpoint here:
 
 - `login`: the host owns sign-in, and the engine has no login path to point
   at. Map it with `config.route_overrides`.
-- `escalated.agent.tickets.snooze` / `unsnooze`: only admins can snooze.
 - `escalated.admin.tickets.links.*`, `escalated.admin.tickets.merge`,
   `escalated.admin.tickets.merge-search`,
   `escalated.admin.tickets.side-conversations.*`: the routes exist but their

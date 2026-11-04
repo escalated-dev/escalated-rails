@@ -4,6 +4,7 @@ module Escalated
   module Agent
     class TicketsController < Escalated::ApplicationController
       include Escalated::Agent::TicketCustomActions
+      include Escalated::Agent::TicketWorkspace
 
       before_action :require_agent!
       before_action :set_ticket,
@@ -331,6 +332,7 @@ module Escalated
                                end,
           pinned_notes: ticket.pinned_notes.includes(:author).map { |n| reply_json(n) },
           requester_ticket_count: ticket.requester ? Escalated::Ticket.where(requester: ticket.requester).count : 0,
+          requester_tickets: requester_tickets_json(ticket),
           related_tickets: related_tickets_json(ticket),
           subjects: Escalated::TicketSerializer.subjects_for(ticket)
         )

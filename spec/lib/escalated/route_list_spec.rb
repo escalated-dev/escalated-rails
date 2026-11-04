@@ -13,10 +13,6 @@ module RouteListSpec
 
   # Names the frontend calls that this engine has no endpoint for.
   NOT_SERVED = [
-    # Agents cannot snooze here; only the admin ticket screen has snooze and
-    # unsnooze (SnoozeButton is shared by both screens).
-    'escalated.agent.tickets.snooze',
-    'escalated.agent.tickets.unsnooze',
     # Ticket links, merge and side conversations: the admin routes are drawn,
     # but their controllers are written against columns, associations and a
     # service method this engine's models do not have (every call is a 500),

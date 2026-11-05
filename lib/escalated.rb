@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 require 'escalated/broadcasting'
+require 'escalated/support/embed_config'
+require 'escalated/support/admin_navigation'
+require 'escalated/embed_frame_headers'
 require 'escalated/engine'
 require 'escalated/configuration'
 require 'escalated/route_list'
@@ -85,6 +88,22 @@ module Escalated
 
     def configure
       yield(configuration)
+    end
+
+    # Escalated.configuration.embed_admin(...): embed the admin in the host's
+    # own admin panel (optional; docs/embedding-admin.md).
+    def embed_admin(**)
+      configuration.embed_admin(**)
+    end
+
+    # Escalated's admin menu for +user+, for a host to render in its own
+    # sidebar: key, label, route, url, icon, position, active, badge, plugin,
+    # children. Filtered by the admin gate, feature switches and route
+    # permissions, with plugin admin items. +request+ (or +path+) marks the
+    # active item. Works whether or not embedding is on; the views get it as
+    # escalated_admin_navigation.
+    def admin_navigation(user, request = nil, path: nil)
+      Support::AdminNavigation.for(user, request, path: path)
     end
 
     # rubocop:disable-next Rails/Delegate -- `delegate :driver, to: :Manager` calls #Manager on the singleton class, not Escalated::Manager.

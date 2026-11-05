@@ -75,6 +75,12 @@ module Escalated
                   :imap_mailbox,
                   # UI settings
                   :ui_enabled,
+                  # Embedding the admin in the host's own admin panel (optional,
+                  # off by default; ADR 2026-11-05-embeddable-admin). A hash of
+                  # enabled / mode / prefix / middleware / replace_admin_gate /
+                  # layout / root_view / frame_ancestors; see #embed_admin and
+                  # docs/embedding-admin.md. Keys left out keep their defaults.
+                  :embed,
                   # REST API settings
                   :api_enabled,
                   :api_rate_limit,
@@ -206,6 +212,10 @@ module Escalated
 
       # UI defaults
       @ui_enabled = true
+      # Off: the standalone admin at /{route_prefix}/admin. ESCALATED_EMBED,
+      # ESCALATED_EMBED_MODE, ESCALATED_EMBED_PREFIX and
+      # ESCALATED_EMBED_FRAME_ANCESTORS (comma-separated) set the defaults.
+      @embed = Escalated::Support::EmbedConfig.defaults
 
       # REST API defaults
       @api_enabled = false
@@ -316,6 +326,38 @@ module Escalated
 
     def ui_enabled?
       ui_enabled == true
+    end
+
+    # Embed Escalated's admin in the host's own admin panel instead of the
+    # standalone admin at /{route_prefix}/admin (optional; ADR
+    # 2026-11-05-embeddable-admin). Call it in config/initializers/escalated.rb,
+    # before the routes are drawn:
+    #
+    #   Escalated.configure do |config|
+    #     config.embed_admin(prefix: 'admin/support', middleware: [:authenticate_admin!],
+    #                        layout: 'Layouts/AdminLayout')
+    #   end
+    #
+    # prefix:             URL prefix the admin routes move under
+    # middleware:         the host's guards for those routes: before_action method
+    #                     names or callables taking the controller; nil keeps
+    #                     config.middleware
+    # layout:             host layout name for the frontend's `layouts` option
+    # root_view:          layout template for embedded pages (server-rendered hosts)
+    # mode:               'layout' or 'iframe'
+    # replace_admin_gate: true: the host's middleware alone decides who reaches the admin
+    # frame_ancestors:    iframe mode: origins allowed to frame the admin
+    # The ADR's seven settings, as keywords.
+    # rubocop:disable-next Metrics/ParameterLists
+    def embed_admin(prefix: Escalated::Support::EmbedConfig::DEFAULT_PREFIX, middleware: nil, layout: nil,
+                    root_view: nil, mode: 'layout', replace_admin_gate: false, frame_ancestors: [])
+      settings = {
+        enabled: true, mode: mode.to_s, prefix: prefix, middleware: middleware,
+        replace_admin_gate: replace_admin_gate == true, layout: layout, root_view: root_view,
+        frame_ancestors: Array(frame_ancestors)
+      }
+      Escalated::Support::EmbedConfig.validate!(settings)
+      self.embed = settings
     end
 
     def plugins_enabled?

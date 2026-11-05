@@ -1,32 +1,45 @@
 # frozen_string_literal: true
 
 Escalated::Engine.routes.draw do
-  # ── Core routes (always registered) ──────────────────────────────────
-  # These work without the Inertia UI: inbound email webhooks and
-  # SDK plugin endpoints/webhooks (registered dynamically at boot by
-  # Escalated::Bridge::RouteRegistrar).
+  # Embedding the admin in the host's own admin panel (optional, off by
+  # default; ADR 2026-11-05-embeddable-admin). While it is on the engine is
+  # mounted at the root (lib/escalated/engine.rb), every group below is drawn
+  # under route_prefix so its URL stays, and the admin screens are drawn under
+  # the host's prefix instead, with the same names. While it is off the
+  # `standalone` groups are drawn exactly as before.
+  embed = Escalated::Support::EmbedConfig
+  embedded = embed.enabled?
+  embed.validate_gate! if embedded
+  standalone = ->(&routes) { embedded ? scope(embed.route_prefix, &routes) : routes.call }
 
-  # Inbound email webhook (no authentication -- verified by adapter)
-  post 'inbound/:adapter', to: 'inbound#webhook', as: :inbound_webhook
+  standalone.call do
+    # ── Core routes (always registered) ──────────────────────────────────
+    # These work without the Inertia UI: inbound email webhooks and
+    # SDK plugin endpoints/webhooks (registered dynamically at boot by
+    # Escalated::Bridge::RouteRegistrar).
 
-  # Signed ticket webhooks from cloud.escalated.dev (Synced mode). Verified by
-  # X-Escalated-Signature, not by a session, so no host auth filters apply.
-  post 'cloud/webhook', to: 'cloud_webhook#receive', as: :cloud_webhook
+    # Inbound email webhook (no authentication -- verified by adapter)
+    post 'inbound/:adapter', to: 'inbound#webhook', as: :inbound_webhook
 
-  # Attachment downloads: a signed, expiring link plus a ticket-access check
-  # (Escalated::AttachmentAccess). Core, so API-only hosts can download too.
-  get 'attachments/:id', to: 'attachments#show', as: :attachment_download
+    # Signed ticket webhooks from cloud.escalated.dev (Synced mode). Verified by
+    # X-Escalated-Signature, not by a session, so no host auth filters apply.
+    post 'cloud/webhook', to: 'cloud_webhook#receive', as: :cloud_webhook
 
-  # SDK plugin endpoints and webhooks (domain-model/plugin-contract.md):
-  #   {prefix}/api/plugins/{slug}{path}      behind the admin guard
-  #   {prefix}/webhooks/plugins/{slug}{path} with no guard
-  # One route each: the controller finds the active plugin by its slug and
-  # the manifest entry by method and path (Escalated::Bridge::SdkPluginRoutes),
-  # so activating a plugin needs no restart and anything else is a 404.
-  match 'api/plugins/:slug(/*plugin_path)', to: 'plugins/endpoints#handle', via: :all, format: false,
-                                            as: :sdk_plugin_endpoint
-  match 'webhooks/plugins/:slug(/*plugin_path)', to: 'plugins/webhooks#handle', via: :all, format: false,
-                                                 as: :sdk_plugin_webhook
+    # Attachment downloads: a signed, expiring link plus a ticket-access check
+    # (Escalated::AttachmentAccess). Core, so API-only hosts can download too.
+    get 'attachments/:id', to: 'attachments#show', as: :attachment_download
+
+    # SDK plugin endpoints and webhooks (domain-model/plugin-contract.md):
+    #   {prefix}/api/plugins/{slug}{path}      behind the admin guard
+    #   {prefix}/webhooks/plugins/{slug}{path} with no guard
+    # One route each: the controller finds the active plugin by its slug and
+    # the manifest entry by method and path (Escalated::Bridge::SdkPluginRoutes),
+    # so activating a plugin needs no restart and anything else is a 404.
+    match 'api/plugins/:slug(/*plugin_path)', to: 'plugins/endpoints#handle', via: :all, format: false,
+                                              as: :sdk_plugin_endpoint
+    match 'webhooks/plugins/:slug(/*plugin_path)', to: 'plugins/webhooks#handle', via: :all, format: false,
+                                                   as: :sdk_plugin_webhook
+  end
 
   # ── UI routes (only when ui_enabled is true) ─────────────────────────
   # Agent, admin, customer, and guest routes depend on Inertia and the
@@ -35,67 +48,120 @@ Escalated::Engine.routes.draw do
 
   return unless Escalated.configuration.ui_enabled?
 
-  # Customer-facing routes
-  namespace :customer do
-    # The knowledge base reader (published articles only).
-    get 'kb', to: 'knowledge_base#index', as: :kb
-    get 'kb/:slug', to: 'knowledge_base#show', as: :kb_article
-    post 'kb/:slug/feedback', to: 'knowledge_base#feedback', as: :kb_feedback
+  standalone.call do
+    # Customer-facing routes
+    namespace :customer do
+      # The knowledge base reader (published articles only).
+      get 'kb', to: 'knowledge_base#index', as: :kb
+      get 'kb/:slug', to: 'knowledge_base#show', as: :kb_article
+      post 'kb/:slug/feedback', to: 'knowledge_base#feedback', as: :kb_feedback
 
-    # The controller's `create` renders the form and `store` saves it (the
-    # Laravel names). `resources ... only: :create` sent POST /tickets to the
-    # form action, and `get :new, action: :create` was drawn at /tickets
-    # itself, ahead of index: the list was unreachable and nothing was saved.
-    resources :tickets, only: %i[index show] do
-      member do
-        post :reply
-        post :close
-        post :reopen
-        post :rate, to: 'satisfaction_ratings#create'
+      # The controller's `create` renders the form and `store` saves it (the
+      # Laravel names). `resources ... only: :create` sent POST /tickets to the
+      # form action, and `get :new, action: :create` was drawn at /tickets
+      # itself, ahead of index: the list was unreachable and nothing was saved.
+      resources :tickets, only: %i[index show] do
+        member do
+          post :reply
+          post :close
+          post :reopen
+          post :rate, to: 'satisfaction_ratings#create'
+        end
+        collection do
+          get 'new', action: :create, as: :new
+          get 'create', action: :create
+          post '/', action: :store, as: :store
+        end
       end
-      collection do
-        get 'new', action: :create, as: :new
-        get 'create', action: :create
-        post '/', action: :store, as: :store
+    end
+
+    # Agent routes
+    namespace :agent do
+      get '/', to: 'dashboard#index', as: :dashboard
+      post 'tickets/bulk', to: 'bulk_actions#create', as: :tickets_bulk
+      resources :tickets, only: %i[index show update] do
+        member do
+          post :reply
+          post :note
+          post :assign
+          post :status
+          post :priority
+          post :tags
+          post :department
+          post :macro, action: :apply_macro
+          post 'actions/:action_key', action: :custom_action, as: :custom_action
+          post :snooze
+          post :unsnooze
+          post :follow
+          post :presence
+          post 'replies/:reply_id/pin', action: :pin, as: :reply_pin
+          post :subjects, to: 'ticket_subjects#create'
+          delete 'subjects/:subject_id', to: 'ticket_subjects#destroy', as: :destroy_subject
+        end
+      end
+
+      # Mentions
+      scope 'mentions', controller: :mentions do
+        get '/', action: :index, as: :mentions
+        post :mark_read, as: :mentions_mark_read
+        get :search_agents, as: :mentions_search_agents
       end
     end
   end
 
-  # Agent routes
-  namespace :agent do
-    get '/', to: 'dashboard#index', as: :dashboard
-    post 'tickets/bulk', to: 'bulk_actions#create', as: :tickets_bulk
-    resources :tickets, only: %i[index show update] do
-      member do
-        post :reply
-        post :note
-        post :assign
-        post :status
-        post :priority
-        post :tags
-        post :department
-        post :macro, action: :apply_macro
-        post 'actions/:action_key', action: :custom_action, as: :custom_action
-        post :snooze
-        post :unsnooze
-        post :follow
-        post :presence
-        post 'replies/:reply_id/pin', action: :pin, as: :reply_pin
-        post :subjects, to: 'ticket_subjects#create'
-        delete 'subjects/:subject_id', to: 'ticket_subjects#destroy', as: :destroy_subject
-      end
-    end
+  # Admin newsletters and two-factor enrolment stay at {route_prefix}/admin
+  # while the admin is embedded (ADR 2026-11-05: they do not move).
+  admin_newsletters = lambda do
+    # Newsletters
+    scope 'newsletters', as: :newsletters do
+      get '/', to: 'newsletters#index'
+      get 'new', to: 'newsletters#create', as: :new
+      post '/', to: 'newsletters#store'
+      post 'preview', to: 'newsletters#preview', as: :preview
+      post 'test', to: 'newsletters#test', as: :test
 
-    # Mentions
-    scope 'mentions', controller: :mentions do
-      get '/', action: :index, as: :mentions
-      post :mark_read, as: :mentions_mark_read
-      get :search_agents, as: :mentions_search_agents
+      get 'lists', to: 'newsletter_lists#index', as: :lists
+      get 'lists/new', to: 'newsletter_lists#create', as: :new_list
+      post 'lists', to: 'newsletter_lists#store'
+      get 'lists/:id', to: 'newsletter_lists#show', as: :list
+      put 'lists/:id', to: 'newsletter_lists#update'
+      delete 'lists/:id', to: 'newsletter_lists#destroy'
+      post 'lists/:id/members', to: 'newsletter_lists#add_member', as: :list_members
+      delete 'lists/:id/members/:contact_id', to: 'newsletter_lists#remove_member', as: :list_member
+      post 'lists/:id/import', to: 'newsletter_lists#import', as: :list_import
+
+      get 'templates', to: 'newsletter_templates#index', as: :templates
+      get 'templates/new', to: 'newsletter_templates#create', as: :new_template
+      post 'templates', to: 'newsletter_templates#store'
+      get 'templates/:id', to: 'newsletter_templates#show', as: :template
+      put 'templates/:id', to: 'newsletter_templates#update'
+      delete 'templates/:id', to: 'newsletter_templates#destroy'
+
+      get 'settings', to: 'newsletter_settings#show', as: :settings
+      put 'settings', to: 'newsletter_settings#update'
+
+      get ':id', to: 'newsletters#show', as: :show
+      get ':id/edit', to: 'newsletters#edit', as: :edit
+      put ':id', to: 'newsletters#update'
+      delete ':id', to: 'newsletters#destroy'
     end
   end
 
-  # Admin routes
-  namespace :admin do
+  admin_two_factor = lambda do
+    # Phase 5
+    # Two-factor enrolment, for every staff user (ADR 2026-10-29). 404 while
+    # two-factor is off. Laravel's hyphenated paths are accepted as well.
+    get 'settings/two_factor', to: 'two_factor#show', as: :settings_two_factor
+    post 'settings/two_factor/setup', to: 'two_factor#setup', as: :settings_two_factor_setup
+    post 'settings/two_factor/confirm', to: 'two_factor#confirm', as: :settings_two_factor_confirm
+    post 'settings/two_factor/disable', to: 'two_factor#disable', as: :settings_two_factor_disable
+    get 'settings/two-factor', to: 'two_factor#show'
+    post 'settings/two-factor/setup', to: 'two_factor#setup'
+    post 'settings/two-factor/confirm', to: 'two_factor#confirm'
+    post 'settings/two-factor/disable', to: 'two_factor#disable'
+  end
+
+  admin_screens = lambda do |moved|
     post 'tickets/bulk', to: 'bulk_actions#create', as: :tickets_bulk
     resources :tickets, only: %i[index show] do
       member do
@@ -219,39 +285,7 @@ Escalated::Engine.routes.draw do
     end
     resources :automations, only: %i[index new create edit update destroy]
 
-    # Newsletters
-    scope 'newsletters', as: :newsletters do
-      get '/', to: 'newsletters#index'
-      get 'new', to: 'newsletters#create', as: :new
-      post '/', to: 'newsletters#store'
-      post 'preview', to: 'newsletters#preview', as: :preview
-      post 'test', to: 'newsletters#test', as: :test
-
-      get 'lists', to: 'newsletter_lists#index', as: :lists
-      get 'lists/new', to: 'newsletter_lists#create', as: :new_list
-      post 'lists', to: 'newsletter_lists#store'
-      get 'lists/:id', to: 'newsletter_lists#show', as: :list
-      put 'lists/:id', to: 'newsletter_lists#update'
-      delete 'lists/:id', to: 'newsletter_lists#destroy'
-      post 'lists/:id/members', to: 'newsletter_lists#add_member', as: :list_members
-      delete 'lists/:id/members/:contact_id', to: 'newsletter_lists#remove_member', as: :list_member
-      post 'lists/:id/import', to: 'newsletter_lists#import', as: :list_import
-
-      get 'templates', to: 'newsletter_templates#index', as: :templates
-      get 'templates/new', to: 'newsletter_templates#create', as: :new_template
-      post 'templates', to: 'newsletter_templates#store'
-      get 'templates/:id', to: 'newsletter_templates#show', as: :template
-      put 'templates/:id', to: 'newsletter_templates#update'
-      delete 'templates/:id', to: 'newsletter_templates#destroy'
-
-      get 'settings', to: 'newsletter_settings#show', as: :settings
-      put 'settings', to: 'newsletter_settings#update'
-
-      get ':id', to: 'newsletters#show', as: :show
-      get ':id/edit', to: 'newsletters#edit', as: :edit
-      put ':id', to: 'newsletters#update'
-      delete ':id', to: 'newsletters#destroy'
-    end
+    admin_newsletters.call unless moved
 
     # Workflow automation engine
     resources :workflows, only: %i[index show new create edit update destroy] do
@@ -265,17 +299,7 @@ Escalated::Engine.routes.draw do
       end
     end
 
-    # Phase 5
-    # Two-factor enrolment, for every staff user (ADR 2026-10-29). 404 while
-    # two-factor is off. Laravel's hyphenated paths are accepted as well.
-    get 'settings/two_factor', to: 'two_factor#show', as: :settings_two_factor
-    post 'settings/two_factor/setup', to: 'two_factor#setup', as: :settings_two_factor_setup
-    post 'settings/two_factor/confirm', to: 'two_factor#confirm', as: :settings_two_factor_confirm
-    post 'settings/two_factor/disable', to: 'two_factor#disable', as: :settings_two_factor_disable
-    get 'settings/two-factor', to: 'two_factor#show'
-    post 'settings/two-factor/setup', to: 'two_factor#setup'
-    post 'settings/two-factor/confirm', to: 'two_factor#confirm'
-    post 'settings/two-factor/disable', to: 'two_factor#disable'
+    admin_two_factor.call unless moved
     get 'settings/sso', to: 'settings#sso', as: :settings_sso
     post 'settings/sso', to: 'settings#update_sso', as: :settings_update_sso
     # Settings sub-pages, at escalated-laravel's paths.
@@ -347,69 +371,93 @@ Escalated::Engine.routes.draw do
     end
   end
 
-  # SDK plugin pages (domain-model/plugin-contract.md, Pages): each pages[]
-  # entry of an active plugin renders Escalated/Plugin/Page.
-  get 'admin/plugins/:slug/*page_route', to: 'plugins/pages#show', format: false, as: :sdk_plugin_page
+  if embedded
+    # The admin, under the host's prefix and guards (ApplicationController
+    # #apply_middleware reads the flag), and SDK plugin pages beside it.
+    scope embed.prefix, module: :admin, as: :admin, defaults: { embed::ROUTE_FLAG => true } do
+      admin_screens.call(true)
+    end
+    get "#{embed.prefix}/plugins/:slug/*page_route",
+        to: 'plugins/pages#show', format: false, as: :sdk_plugin_page, defaults: { embed::ROUTE_FLAG => true }
 
-  # The standalone widget bundle, loaded with a <script> tag on any site.
-  if Escalated.configuration.widget_serve_script
-    get 'widget/embed.js', to: 'widget_script#show', format: false, as: :widget_script
+    standalone.call do
+      namespace :admin do
+        admin_newsletters.call
+        admin_two_factor.call
+      end
+    end
+  else
+    # Admin routes
+    namespace :admin do
+      admin_screens.call(false)
+    end
+
+    # SDK plugin pages (domain-model/plugin-contract.md, Pages): each pages[]
+    # entry of an active plugin renders Escalated/Plugin/Page.
+    get 'admin/plugins/:slug/*page_route', to: 'plugins/pages#show', format: false, as: :sdk_plugin_page
   end
 
-  # CORS preflights for every widget route, answered by Escalated::WidgetCors.
-  match 'widget/*path', to: 'widget#preflight', via: :options, format: false, as: :widget_preflight
+  standalone.call do
+    # The standalone widget bundle, loaded with a <script> tag on any site.
+    if Escalated.configuration.widget_serve_script
+      get 'widget/embed.js', to: 'widget_script#show', format: false, as: :widget_script
+    end
 
-  # Widget routes (public, no authentication required)
-  scope 'widget', controller: :widget do
-    get :config, action: :widget_config, as: :widget_config
-    get :articles, as: :widget_articles
-    get 'articles/:slug', action: :article, as: :widget_article
-    post :tickets, action: :create_ticket, as: :widget_create_ticket
-    # A reference with the grant as a bearer token, or a legacy guest_token.
-    get 'tickets/:token', action: :lookup_ticket, as: :widget_lookup_ticket
-    post :verification, action: :request_verification, as: :widget_verification
-    post :lookup, action: :lookup, as: :widget_lookup
+    # CORS preflights for every widget route, answered by Escalated::WidgetCors.
+    match 'widget/*path', to: 'widget#preflight', via: :options, format: false, as: :widget_preflight
+
+    # Widget routes (public, no authentication required)
+    scope 'widget', controller: :widget do
+      get :config, action: :widget_config, as: :widget_config
+      get :articles, as: :widget_articles
+      get 'articles/:slug', action: :article, as: :widget_article
+      post :tickets, action: :create_ticket, as: :widget_create_ticket
+      # A reference with the grant as a bearer token, or a legacy guest_token.
+      get 'tickets/:token', action: :lookup_ticket, as: :widget_lookup_ticket
+      post :verification, action: :request_verification, as: :widget_verification
+      post :lookup, action: :lookup, as: :widget_lookup
+    end
+
+    # Widget chat routes (public, rate limited)
+    scope 'widget/chat', controller: :widget_chat do
+      get :availability, as: :widget_chat_availability
+      post :start, as: :widget_chat_start
+      post ':session_id/message', action: :message, as: :widget_chat_message
+      # The shared widget's paths: list and send on `messages`.
+      get ':session_id/messages', action: :messages, as: :widget_chat_messages
+      post ':session_id/messages', action: :message
+      post ':session_id/typing', action: :typing, as: :widget_chat_typing
+      post ':session_id/end', action: :end_chat, as: :widget_chat_end
+      post ':session_id/rate', action: :rate, as: :widget_chat_rate
+    end
+
+    # Guest routes (no authentication required)
+    namespace :guest do
+      post 'verification', to: 'verifications#request_verification', as: :verification
+      post 'lookup', to: 'verifications#lookup', as: :lookup
+      get 'create', to: 'tickets#create'
+      post '/', to: 'tickets#store', as: :tickets
+      get ':token', to: 'tickets#show', as: :ticket
+      post ':token/reply', to: 'tickets#reply', as: :ticket_reply
+      post ':token/rate', to: 'tickets#rate', as: :ticket_rate
+    end
+
+    # The two-factor challenge after the host's login (ADR 2026-10-29); 404
+    # while two-factor is off.
+    get 'two-factor/challenge', to: 'two_factor_challenges#show', as: :two_factor_challenge
+    post 'two-factor/challenge', to: 'two_factor_challenges#create', as: :two_factor_verify
+
+    # Single sign-on (ADR 2026-10-29); 404 while SSO is off or for a provider
+    # other than the chosen one.
+    scope 'sso', controller: :sso, as: :sso do
+      get :login, as: :login
+      get 'saml/metadata', action: :metadata, as: :saml_metadata
+      post 'saml/acs', action: :saml_acs, as: :saml_acs
+      get 'oauth/callback', action: :oauth_callback, as: :oauth_callback
+      match 'jwt/callback', action: :jwt_callback, via: %i[get post], as: :jwt_callback
+    end
+
+    # Root redirect to customer tickets
+    root to: 'customer/tickets#index'
   end
-
-  # Widget chat routes (public, rate limited)
-  scope 'widget/chat', controller: :widget_chat do
-    get :availability, as: :widget_chat_availability
-    post :start, as: :widget_chat_start
-    post ':session_id/message', action: :message, as: :widget_chat_message
-    # The shared widget's paths: list and send on `messages`.
-    get ':session_id/messages', action: :messages, as: :widget_chat_messages
-    post ':session_id/messages', action: :message
-    post ':session_id/typing', action: :typing, as: :widget_chat_typing
-    post ':session_id/end', action: :end_chat, as: :widget_chat_end
-    post ':session_id/rate', action: :rate, as: :widget_chat_rate
-  end
-
-  # Guest routes (no authentication required)
-  namespace :guest do
-    post 'verification', to: 'verifications#request_verification', as: :verification
-    post 'lookup', to: 'verifications#lookup', as: :lookup
-    get 'create', to: 'tickets#create'
-    post '/', to: 'tickets#store', as: :tickets
-    get ':token', to: 'tickets#show', as: :ticket
-    post ':token/reply', to: 'tickets#reply', as: :ticket_reply
-    post ':token/rate', to: 'tickets#rate', as: :ticket_rate
-  end
-
-  # The two-factor challenge after the host's login (ADR 2026-10-29); 404
-  # while two-factor is off.
-  get 'two-factor/challenge', to: 'two_factor_challenges#show', as: :two_factor_challenge
-  post 'two-factor/challenge', to: 'two_factor_challenges#create', as: :two_factor_verify
-
-  # Single sign-on (ADR 2026-10-29); 404 while SSO is off or for a provider
-  # other than the chosen one.
-  scope 'sso', controller: :sso, as: :sso do
-    get :login, as: :login
-    get 'saml/metadata', action: :metadata, as: :saml_metadata
-    post 'saml/acs', action: :saml_acs, as: :saml_acs
-    get 'oauth/callback', action: :oauth_callback, as: :oauth_callback
-    match 'jwt/callback', action: :jwt_callback, via: %i[get post], as: :jwt_callback
-  end
-
-  # Root redirect to customer tickets
-  root to: 'customer/tickets#index'
 end

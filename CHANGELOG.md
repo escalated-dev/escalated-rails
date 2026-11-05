@@ -6,6 +6,19 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Upgrading
+- **Optional: embed the admin in your own admin panel (off by default; no change unless configured).** With no `config.embed` / `embed_admin` and no `ESCALATED_EMBED` env var, every route, `before_action` guard, page, shared prop, layout and header is unchanged: a spec compares the whole route table (host and engine routes, with each action's guards) with a snapshot taken before this change, and the framing middleware is not installed. See docs/embedding-admin.md.
+
+### Added
+- **Embedding the admin in your own admin panel** (optional; ADR 2026-11-05-embeddable-admin). `config.embed_admin(prefix:, middleware:, layout:, root_view:, mode:, replace_admin_gate:, frame_ancestors:)` (also `Escalated.embed_admin`), or `config.embed = { ... }`, or `ESCALATED_EMBED`, `ESCALATED_EMBED_MODE`, `ESCALATED_EMBED_PREFIX`, `ESCALATED_EMBED_FRAME_ANCESTORS`:
+  - the engine is mounted at the root and draws `route_prefix` itself; the admin screens (including plugin admin, API tokens, import, chat) and SDK plugin admin pages move under the host's prefix with the same route helper names, the `ziggy` route list follows, and the old `/support/admin/...` URLs are no longer routed. The host's `middleware` (`before_action` method names or blocks; `nil` keeps `config.middleware`) runs in place of `config.middleware`; Escalated's admin gate stays unless `replace_admin_gate` is set (refused without host middleware), and two-factor and route permissions always apply. Agent, customer, guest, widget, API, SDK plugin endpoints, SSO, two-factor and newsletter routes do not move;
+  - every Inertia page shares `escalated.embed` (`enabled` on embedded pages only, `mode`, `layout`, `route`, `base_url`, `allowed_origins`) and `escalated.navigation`, the admin menu filtered by the admin gate, feature switches and route permissions, with plugin admin items; `Escalated.admin_navigation(user, request)` and the `escalated_admin_navigation` view helper return the same for ERB layouts;
+  - `root_view` renders embedded pages in the host's layout;
+  - iframe mode: `Escalated::EmbedFrameHeaders` (installed at the top of the Rack stack only while embedding is on) adds `Content-Security-Policy: frame-ancestors 'self' <origins>` (a host CSP is kept as a second policy) and drops `X-Frame-Options` on embedded responses only.
+
+### Fixed
+- A malformed ticket-list filter sends the visit back to the admin list or the agent list by controller, not by `/admin/` in the URL (an agent list under a `route_prefix` containing `admin` was sent to the admin list; the embedded admin has no `/admin/` in its URLs).
+
 ## [0.7.11] - 2026-11-04
 
 ### Upgrading

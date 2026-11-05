@@ -1,0 +1,6362 @@
+{
+  "ui": {
+    "host": [
+      {
+        "name": "escalated",
+        "verb": "",
+        "path": "/support",
+        "endpoint": null,
+        "defaults": {},
+        "before": [],
+        "mount": true
+      },
+      {
+        "name": "escalated_api_v1_auth_validate",
+        "verb": "POST",
+        "path": "/support/api/v1/auth/validate(.:format)",
+        "endpoint": "escalated/api/v1/auth#validate",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_auth_login",
+        "verb": "POST",
+        "path": "/support/api/v1/auth/login(.:format)",
+        "endpoint": "escalated/api/v1/auth#login",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_auth_register",
+        "verb": "POST",
+        "path": "/support/api/v1/auth/register(.:format)",
+        "endpoint": "escalated/api/v1/auth#register",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_auth_logout",
+        "verb": "POST",
+        "path": "/support/api/v1/auth/logout(.:format)",
+        "endpoint": "escalated/api/v1/auth#logout",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_auth_refresh",
+        "verb": "POST",
+        "path": "/support/api/v1/auth/refresh(.:format)",
+        "endpoint": "escalated/api/v1/auth#refresh",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_auth_me",
+        "verb": "GET",
+        "path": "/support/api/v1/auth/me(.:format)",
+        "endpoint": "escalated/api/v1/auth#me",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_auth_profile",
+        "verb": "PATCH",
+        "path": "/support/api/v1/auth/profile(.:format)",
+        "endpoint": "escalated/api/v1/auth#profile",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_dashboard",
+        "verb": "GET",
+        "path": "/support/api/v1/dashboard(.:format)",
+        "endpoint": "escalated/api/v1/dashboard#index",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "reply_escalated_api_v1_ticket",
+        "verb": "POST",
+        "path": "/support/api/v1/tickets/:reference/reply(.:format)",
+        "endpoint": "escalated/api/v1/tickets#reply",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": "status_escalated_api_v1_ticket",
+        "verb": "PATCH",
+        "path": "/support/api/v1/tickets/:reference/status(.:format)",
+        "endpoint": "escalated/api/v1/tickets#status",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": "priority_escalated_api_v1_ticket",
+        "verb": "PATCH",
+        "path": "/support/api/v1/tickets/:reference/priority(.:format)",
+        "endpoint": "escalated/api/v1/tickets#priority",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": "assign_escalated_api_v1_ticket",
+        "verb": "POST",
+        "path": "/support/api/v1/tickets/:reference/assign(.:format)",
+        "endpoint": "escalated/api/v1/tickets#assign",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": "follow_escalated_api_v1_ticket",
+        "verb": "POST",
+        "path": "/support/api/v1/tickets/:reference/follow(.:format)",
+        "endpoint": "escalated/api/v1/tickets#follow",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": "apply_macro_escalated_api_v1_ticket",
+        "verb": "POST",
+        "path": "/support/api/v1/tickets/:reference/apply_macro(.:format)",
+        "endpoint": "escalated/api/v1/tickets#apply_macro",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/support/api/v1/tickets/:reference/actions/:action_key(.:format)",
+        "endpoint": "escalated/api/v1/tickets#custom_action",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": "tags_escalated_api_v1_ticket",
+        "verb": "POST",
+        "path": "/support/api/v1/tickets/:reference/tags(.:format)",
+        "endpoint": "escalated/api/v1/tickets#tags",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_tickets",
+        "verb": "GET",
+        "path": "/support/api/v1/tickets(.:format)",
+        "endpoint": "escalated/api/v1/tickets#index",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/support/api/v1/tickets(.:format)",
+        "endpoint": "escalated/api/v1/tickets#create",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_ticket",
+        "verb": "GET",
+        "path": "/support/api/v1/tickets/:reference(.:format)",
+        "endpoint": "escalated/api/v1/tickets#show",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/support/api/v1/tickets/:reference(.:format)",
+        "endpoint": "escalated/api/v1/tickets#destroy",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_agents",
+        "verb": "GET",
+        "path": "/support/api/v1/agents(.:format)",
+        "endpoint": "escalated/api/v1/resources#agents",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_departments",
+        "verb": "GET",
+        "path": "/support/api/v1/departments(.:format)",
+        "endpoint": "escalated/api/v1/resources#departments",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_tags",
+        "verb": "GET",
+        "path": "/support/api/v1/tags(.:format)",
+        "endpoint": "escalated/api/v1/resources#tags",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_canned_responses",
+        "verb": "GET",
+        "path": "/support/api/v1/canned-responses(.:format)",
+        "endpoint": "escalated/api/v1/resources#canned_responses",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_macros",
+        "verb": "GET",
+        "path": "/support/api/v1/macros(.:format)",
+        "endpoint": "escalated/api/v1/resources#macros",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_realtime_config",
+        "verb": "GET",
+        "path": "/support/api/v1/realtime/config(.:format)",
+        "endpoint": "escalated/api/v1/resources#realtime_config",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_mobile_guest_verification",
+        "verb": "POST",
+        "path": "/support/api/v1/mobile/guest/verification",
+        "endpoint": "escalated/api/v1/mobile_guest#request_verification",
+        "defaults": {},
+        "before": [
+          "set_guest_privacy_headers",
+          "check_api_enabled!",
+          "enforce_rate_limit!",
+          "throttle_guest_requests!",
+          "throttle_verification_submissions!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_mobile_guest_lookup",
+        "verb": "POST",
+        "path": "/support/api/v1/mobile/guest/lookup",
+        "endpoint": "escalated/api/v1/mobile_guest#lookup",
+        "defaults": {},
+        "before": [
+          "set_guest_privacy_headers",
+          "check_api_enabled!",
+          "enforce_rate_limit!",
+          "throttle_guest_requests!",
+          "throttle_lookup_replies!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_mobile_guest_tickets",
+        "verb": "POST",
+        "path": "/support/api/v1/mobile/guest/tickets",
+        "endpoint": "escalated/api/v1/mobile_guest#create_ticket",
+        "defaults": {},
+        "before": [
+          "set_guest_privacy_headers",
+          "check_api_enabled!",
+          "enforce_rate_limit!",
+          "throttle_guest_requests!",
+          "throttle_guest_tickets!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_mobile_guest_ticket",
+        "verb": "GET",
+        "path": "/support/api/v1/mobile/guest/tickets/:token",
+        "endpoint": "escalated/api/v1/mobile_guest#show_ticket",
+        "defaults": {},
+        "before": [
+          "set_guest_privacy_headers",
+          "check_api_enabled!",
+          "enforce_rate_limit!",
+          "throttle_guest_requests!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_mobile_guest_ticket_replies",
+        "verb": "POST",
+        "path": "/support/api/v1/mobile/guest/tickets/:token/replies",
+        "endpoint": "escalated/api/v1/mobile_guest#reply",
+        "defaults": {},
+        "before": [
+          "set_guest_privacy_headers",
+          "check_api_enabled!",
+          "enforce_rate_limit!",
+          "throttle_guest_requests!",
+          "throttle_guest_replies!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_newsletters_public_open",
+        "verb": "GET",
+        "path": "/escalated/n/o/:token(.:format)",
+        "endpoint": "escalated/newsletter_tracking#open",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "set_inertia_shared_data if:proc",
+          "ensure_newsletters_enabled!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_newsletters_public_click",
+        "verb": "GET",
+        "path": "/escalated/n/c/:token(.:format)",
+        "endpoint": "escalated/newsletter_tracking#click",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "set_inertia_shared_data if:proc",
+          "ensure_newsletters_enabled!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_newsletters_public_unsubscribe",
+        "verb": "GET",
+        "path": "/escalated/n/u/:token(.:format)",
+        "endpoint": "escalated/newsletter_unsubscribe#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "set_inertia_shared_data if:proc",
+          "ensure_newsletters_enabled!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_newsletters_public_unsubscribe_store",
+        "verb": "POST",
+        "path": "/escalated/n/u/:token(.:format)",
+        "endpoint": "escalated/newsletter_unsubscribe#store",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "ensure_newsletters_enabled!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_newsletters_public_view",
+        "verb": "GET",
+        "path": "/escalated/n/v/:token(.:format)",
+        "endpoint": "escalated/newsletter_view_in_browser#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "set_inertia_shared_data if:proc",
+          "ensure_newsletters_enabled!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "postmark",
+        "verb": "POST",
+        "path": "/escalated/webhooks/newsletter/postmark(.:format)",
+        "endpoint": "escalated/newsletter_esp_webhook#postmark",
+        "defaults": {},
+        "before": [
+          "ensure_newsletters_enabled!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "mailgun",
+        "verb": "POST",
+        "path": "/escalated/webhooks/newsletter/mailgun(.:format)",
+        "endpoint": "escalated/newsletter_esp_webhook#mailgun",
+        "defaults": {},
+        "before": [
+          "ensure_newsletters_enabled!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "ses",
+        "verb": "POST",
+        "path": "/escalated/webhooks/newsletter/ses(.:format)",
+        "endpoint": "escalated/newsletter_esp_webhook#ses",
+        "defaults": {},
+        "before": [
+          "ensure_newsletters_enabled!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "sendgrid",
+        "verb": "POST",
+        "path": "/escalated/webhooks/newsletter/sendgrid(.:format)",
+        "endpoint": "escalated/newsletter_esp_webhook#sendgrid",
+        "defaults": {},
+        "before": [
+          "ensure_newsletters_enabled!"
+        ],
+        "mount": false
+      }
+    ],
+    "engine": [
+      {
+        "name": "inbound_webhook",
+        "verb": "POST",
+        "path": "/inbound/:adapter(.:format)",
+        "endpoint": "escalated/inbound#webhook",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "ensure_inbound_enabled"
+        ]
+      },
+      {
+        "name": "cloud_webhook",
+        "verb": "POST",
+        "path": "/cloud/webhook(.:format)",
+        "endpoint": "escalated/cloud_webhook#receive",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc"
+        ]
+      },
+      {
+        "name": "attachment_download",
+        "verb": "GET",
+        "path": "/attachments/:id(.:format)",
+        "endpoint": "escalated/attachments#show",
+        "defaults": {},
+        "before": [
+          "Proc"
+        ]
+      },
+      {
+        "name": "sdk_plugin_endpoint",
+        "verb": "",
+        "path": "/api/plugins/:slug(/*plugin_path)",
+        "endpoint": "escalated/plugins/endpoints#handle",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "sdk_plugin_webhook",
+        "verb": "",
+        "path": "/webhooks/plugins/:slug(/*plugin_path)",
+        "endpoint": "escalated/plugins/webhooks#handle",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "verify_authenticity_token"
+        ]
+      },
+      {
+        "name": "customer_kb",
+        "verb": "GET",
+        "path": "/customer/kb(.:format)",
+        "endpoint": "escalated/customer/knowledge_base#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_knowledge_base_accessible!"
+        ]
+      },
+      {
+        "name": "customer_kb_article",
+        "verb": "GET",
+        "path": "/customer/kb/:slug(.:format)",
+        "endpoint": "escalated/customer/knowledge_base#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_knowledge_base_accessible!",
+          "set_article"
+        ]
+      },
+      {
+        "name": "customer_kb_feedback",
+        "verb": "POST",
+        "path": "/customer/kb/:slug/feedback(.:format)",
+        "endpoint": "escalated/customer/knowledge_base#feedback",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_knowledge_base_accessible!",
+          "set_article"
+        ]
+      },
+      {
+        "name": "reply_customer_ticket",
+        "verb": "POST",
+        "path": "/customer/tickets/:id/reply(.:format)",
+        "endpoint": "escalated/customer/tickets#reply",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "close_customer_ticket",
+        "verb": "POST",
+        "path": "/customer/tickets/:id/close(.:format)",
+        "endpoint": "escalated/customer/tickets#close",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "reopen_customer_ticket",
+        "verb": "POST",
+        "path": "/customer/tickets/:id/reopen(.:format)",
+        "endpoint": "escalated/customer/tickets#reopen",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "rate_customer_ticket",
+        "verb": "POST",
+        "path": "/customer/tickets/:id/rate(.:format)",
+        "endpoint": "escalated/customer/satisfaction_ratings#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "new_customer_tickets",
+        "verb": "GET",
+        "path": "/customer/tickets/new(.:format)",
+        "endpoint": "escalated/customer/tickets#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc"
+        ]
+      },
+      {
+        "name": "customer_tickets",
+        "verb": "GET",
+        "path": "/customer/tickets/create(.:format)",
+        "endpoint": "escalated/customer/tickets#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc"
+        ]
+      },
+      {
+        "name": "store_customer_tickets",
+        "verb": "POST",
+        "path": "/customer/tickets(.:format)",
+        "endpoint": "escalated/customer/tickets#store",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "GET",
+        "path": "/customer/tickets(.:format)",
+        "endpoint": "escalated/customer/tickets#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc"
+        ]
+      },
+      {
+        "name": "customer_ticket",
+        "verb": "GET",
+        "path": "/customer/tickets/:id(.:format)",
+        "endpoint": "escalated/customer/tickets#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "agent_dashboard",
+        "verb": "GET",
+        "path": "/agent(.:format)",
+        "endpoint": "escalated/agent/dashboard#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!"
+        ]
+      },
+      {
+        "name": "agent_tickets_bulk",
+        "verb": "POST",
+        "path": "/agent/tickets/bulk(.:format)",
+        "endpoint": "escalated/agent/bulk_actions#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!"
+        ]
+      },
+      {
+        "name": "reply_agent_ticket",
+        "verb": "POST",
+        "path": "/agent/tickets/:id/reply(.:format)",
+        "endpoint": "escalated/agent/tickets#reply",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "note_agent_ticket",
+        "verb": "POST",
+        "path": "/agent/tickets/:id/note(.:format)",
+        "endpoint": "escalated/agent/tickets#note",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "assign_agent_ticket",
+        "verb": "POST",
+        "path": "/agent/tickets/:id/assign(.:format)",
+        "endpoint": "escalated/agent/tickets#assign",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "status_agent_ticket",
+        "verb": "POST",
+        "path": "/agent/tickets/:id/status(.:format)",
+        "endpoint": "escalated/agent/tickets#status",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "priority_agent_ticket",
+        "verb": "POST",
+        "path": "/agent/tickets/:id/priority(.:format)",
+        "endpoint": "escalated/agent/tickets#priority",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "tags_agent_ticket",
+        "verb": "POST",
+        "path": "/agent/tickets/:id/tags(.:format)",
+        "endpoint": "escalated/agent/tickets#tags",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "department_agent_ticket",
+        "verb": "POST",
+        "path": "/agent/tickets/:id/department(.:format)",
+        "endpoint": "escalated/agent/tickets#department",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "macro_agent_ticket",
+        "verb": "POST",
+        "path": "/agent/tickets/:id/macro(.:format)",
+        "endpoint": "escalated/agent/tickets#apply_macro",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "custom_action_agent_ticket",
+        "verb": "POST",
+        "path": "/agent/tickets/:id/actions/:action_key(.:format)",
+        "endpoint": "escalated/agent/tickets#custom_action",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!"
+        ]
+      },
+      {
+        "name": "snooze_agent_ticket",
+        "verb": "POST",
+        "path": "/agent/tickets/:id/snooze(.:format)",
+        "endpoint": "escalated/agent/tickets#snooze",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!"
+        ]
+      },
+      {
+        "name": "unsnooze_agent_ticket",
+        "verb": "POST",
+        "path": "/agent/tickets/:id/unsnooze(.:format)",
+        "endpoint": "escalated/agent/tickets#unsnooze",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!"
+        ]
+      },
+      {
+        "name": "follow_agent_ticket",
+        "verb": "POST",
+        "path": "/agent/tickets/:id/follow(.:format)",
+        "endpoint": "escalated/agent/tickets#follow",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "presence_agent_ticket",
+        "verb": "POST",
+        "path": "/agent/tickets/:id/presence(.:format)",
+        "endpoint": "escalated/agent/tickets#presence",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "reply_pin_agent_ticket",
+        "verb": "POST",
+        "path": "/agent/tickets/:id/replies/:reply_id/pin(.:format)",
+        "endpoint": "escalated/agent/tickets#pin",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "subjects_agent_ticket",
+        "verb": "POST",
+        "path": "/agent/tickets/:id/subjects(.:format)",
+        "endpoint": "escalated/agent/ticket_subjects#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "destroy_subject_agent_ticket",
+        "verb": "DELETE",
+        "path": "/agent/tickets/:id/subjects/:subject_id(.:format)",
+        "endpoint": "escalated/agent/ticket_subjects#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "agent_tickets",
+        "verb": "GET",
+        "path": "/agent/tickets(.:format)",
+        "endpoint": "escalated/agent/tickets#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!"
+        ]
+      },
+      {
+        "name": "agent_ticket",
+        "verb": "GET",
+        "path": "/agent/tickets/:id(.:format)",
+        "endpoint": "escalated/agent/tickets#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PATCH",
+        "path": "/agent/tickets/:id(.:format)",
+        "endpoint": "escalated/agent/tickets#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/agent/tickets/:id(.:format)",
+        "endpoint": "escalated/agent/tickets#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "agent_mentions",
+        "verb": "GET",
+        "path": "/agent/mentions(.:format)",
+        "endpoint": "escalated/agent/mentions#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!"
+        ]
+      },
+      {
+        "name": "agent_mentions_mark_read",
+        "verb": "POST",
+        "path": "/agent/mentions/mark_read(.:format)",
+        "endpoint": "escalated/agent/mentions#mark_read",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!"
+        ]
+      },
+      {
+        "name": "agent_mentions_search_agents",
+        "verb": "GET",
+        "path": "/agent/mentions/search_agents(.:format)",
+        "endpoint": "escalated/agent/mentions#search_agents",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!"
+        ]
+      },
+      {
+        "name": "admin_tickets_bulk",
+        "verb": "POST",
+        "path": "/admin/tickets/bulk(.:format)",
+        "endpoint": "escalated/admin/bulk_actions#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "reply_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/reply(.:format)",
+        "endpoint": "escalated/admin/tickets#reply",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "note_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/note(.:format)",
+        "endpoint": "escalated/admin/tickets#note",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "assign_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/assign(.:format)",
+        "endpoint": "escalated/admin/tickets#assign",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "status_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/status(.:format)",
+        "endpoint": "escalated/admin/tickets#status",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "priority_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/priority(.:format)",
+        "endpoint": "escalated/admin/tickets#priority",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "tags_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/tags(.:format)",
+        "endpoint": "escalated/admin/tickets#tags",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "department_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/department(.:format)",
+        "endpoint": "escalated/admin/tickets#department",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "macro_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/macro(.:format)",
+        "endpoint": "escalated/admin/tickets#apply_macro",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "follow_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/follow(.:format)",
+        "endpoint": "escalated/admin/tickets#follow",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "split_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/split(.:format)",
+        "endpoint": "escalated/admin/tickets#split",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "snooze_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/snooze(.:format)",
+        "endpoint": "escalated/admin/tickets#snooze",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "unsnooze_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/unsnooze(.:format)",
+        "endpoint": "escalated/admin/tickets#unsnooze",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "presence_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/presence(.:format)",
+        "endpoint": "escalated/admin/tickets#presence",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "reply_pin_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/replies/:reply_id/pin(.:format)",
+        "endpoint": "escalated/admin/tickets#pin",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "subjects_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/subjects(.:format)",
+        "endpoint": "escalated/admin/ticket_subjects#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "destroy_subject_admin_ticket",
+        "verb": "DELETE",
+        "path": "/admin/tickets/:id/subjects/:subject_id(.:format)",
+        "endpoint": "escalated/admin/ticket_subjects#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "admin_tickets",
+        "verb": "GET",
+        "path": "/admin/tickets(.:format)",
+        "endpoint": "escalated/admin/tickets#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_ticket",
+        "verb": "GET",
+        "path": "/admin/tickets/:id(.:format)",
+        "endpoint": "escalated/admin/tickets#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "admin_departments",
+        "verb": "GET",
+        "path": "/admin/departments(.:format)",
+        "endpoint": "escalated/admin/departments#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/departments(.:format)",
+        "endpoint": "escalated/admin/departments#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "new_admin_department",
+        "verb": "GET",
+        "path": "/admin/departments/new(.:format)",
+        "endpoint": "escalated/admin/departments#new",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "edit_admin_department",
+        "verb": "GET",
+        "path": "/admin/departments/:id/edit(.:format)",
+        "endpoint": "escalated/admin/departments#edit",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_department"
+        ]
+      },
+      {
+        "name": "admin_department",
+        "verb": "GET",
+        "path": "/admin/departments/:id(.:format)",
+        "endpoint": "escalated/admin/departments#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_department"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PATCH",
+        "path": "/admin/departments/:id(.:format)",
+        "endpoint": "escalated/admin/departments#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_department"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/departments/:id(.:format)",
+        "endpoint": "escalated/admin/departments#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_department"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/departments/:id(.:format)",
+        "endpoint": "escalated/admin/departments#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_department"
+        ]
+      },
+      {
+        "name": "admin_sla_policies",
+        "verb": "GET",
+        "path": "/admin/sla_policies(.:format)",
+        "endpoint": "escalated/admin/sla_policies#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/sla_policies(.:format)",
+        "endpoint": "escalated/admin/sla_policies#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "new_admin_sla_policy",
+        "verb": "GET",
+        "path": "/admin/sla_policies/new(.:format)",
+        "endpoint": "escalated/admin/sla_policies#new",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "edit_admin_sla_policy",
+        "verb": "GET",
+        "path": "/admin/sla_policies/:id/edit(.:format)",
+        "endpoint": "escalated/admin/sla_policies#edit",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_sla_policy"
+        ]
+      },
+      {
+        "name": "admin_sla_policy",
+        "verb": "GET",
+        "path": "/admin/sla_policies/:id(.:format)",
+        "endpoint": "escalated/admin/sla_policies#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_sla_policy"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PATCH",
+        "path": "/admin/sla_policies/:id(.:format)",
+        "endpoint": "escalated/admin/sla_policies#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_sla_policy"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/sla_policies/:id(.:format)",
+        "endpoint": "escalated/admin/sla_policies#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_sla_policy"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/sla_policies/:id(.:format)",
+        "endpoint": "escalated/admin/sla_policies#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_sla_policy"
+        ]
+      },
+      {
+        "name": "admin_escalation_rules",
+        "verb": "GET",
+        "path": "/admin/escalation_rules(.:format)",
+        "endpoint": "escalated/admin/escalation_rules#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/escalation_rules(.:format)",
+        "endpoint": "escalated/admin/escalation_rules#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "new_admin_escalation_rule",
+        "verb": "GET",
+        "path": "/admin/escalation_rules/new(.:format)",
+        "endpoint": "escalated/admin/escalation_rules#new",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "edit_admin_escalation_rule",
+        "verb": "GET",
+        "path": "/admin/escalation_rules/:id/edit(.:format)",
+        "endpoint": "escalated/admin/escalation_rules#edit",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_rule"
+        ]
+      },
+      {
+        "name": "admin_escalation_rule",
+        "verb": "GET",
+        "path": "/admin/escalation_rules/:id(.:format)",
+        "endpoint": "escalated/admin/escalation_rules#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_rule"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PATCH",
+        "path": "/admin/escalation_rules/:id(.:format)",
+        "endpoint": "escalated/admin/escalation_rules#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_rule"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/escalation_rules/:id(.:format)",
+        "endpoint": "escalated/admin/escalation_rules#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_rule"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/escalation_rules/:id(.:format)",
+        "endpoint": "escalated/admin/escalation_rules#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_rule"
+        ]
+      },
+      {
+        "name": "admin_tags",
+        "verb": "GET",
+        "path": "/admin/tags(.:format)",
+        "endpoint": "escalated/admin/tags#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/tags(.:format)",
+        "endpoint": "escalated/admin/tags#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_tag",
+        "verb": "PATCH",
+        "path": "/admin/tags/:id(.:format)",
+        "endpoint": "escalated/admin/tags#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_tag"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/tags/:id(.:format)",
+        "endpoint": "escalated/admin/tags#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_tag"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/tags/:id(.:format)",
+        "endpoint": "escalated/admin/tags#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_tag"
+        ]
+      },
+      {
+        "name": "admin_canned_responses",
+        "verb": "GET",
+        "path": "/admin/canned_responses(.:format)",
+        "endpoint": "escalated/admin/canned_responses#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/canned_responses(.:format)",
+        "endpoint": "escalated/admin/canned_responses#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_canned_response",
+        "verb": "PATCH",
+        "path": "/admin/canned_responses/:id(.:format)",
+        "endpoint": "escalated/admin/canned_responses#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_canned_response"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/canned_responses/:id(.:format)",
+        "endpoint": "escalated/admin/canned_responses#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_canned_response"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/canned_responses/:id(.:format)",
+        "endpoint": "escalated/admin/canned_responses#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_canned_response"
+        ]
+      },
+      {
+        "name": "admin_macros",
+        "verb": "GET",
+        "path": "/admin/macros(.:format)",
+        "endpoint": "escalated/admin/macros#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/macros(.:format)",
+        "endpoint": "escalated/admin/macros#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_macro",
+        "verb": "PATCH",
+        "path": "/admin/macros/:id(.:format)",
+        "endpoint": "escalated/admin/macros#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_macro"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/macros/:id(.:format)",
+        "endpoint": "escalated/admin/macros#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_macro"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/macros/:id(.:format)",
+        "endpoint": "escalated/admin/macros#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_macro"
+        ]
+      },
+      {
+        "name": "admin_api_tokens",
+        "verb": "GET",
+        "path": "/admin/api_tokens(.:format)",
+        "endpoint": "escalated/admin/api_tokens#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/api_tokens(.:format)",
+        "endpoint": "escalated/admin/api_tokens#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_api_token",
+        "verb": "PATCH",
+        "path": "/admin/api_tokens/:id(.:format)",
+        "endpoint": "escalated/admin/api_tokens#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_token"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/api_tokens/:id(.:format)",
+        "endpoint": "escalated/admin/api_tokens#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_token"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/api_tokens/:id(.:format)",
+        "endpoint": "escalated/admin/api_tokens#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_token"
+        ]
+      },
+      {
+        "name": "activate_admin_plugin",
+        "verb": "POST",
+        "path": "/admin/plugins/:id/activate(.:format)",
+        "endpoint": "escalated/admin/plugins#activate",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "deactivate_admin_plugin",
+        "verb": "POST",
+        "path": "/admin/plugins/:id/deactivate(.:format)",
+        "endpoint": "escalated/admin/plugins#deactivate",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "upload_admin_plugins",
+        "verb": "POST",
+        "path": "/admin/plugins/upload(.:format)",
+        "endpoint": "escalated/admin/plugins#upload",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_plugins",
+        "verb": "GET",
+        "path": "/admin/plugins(.:format)",
+        "endpoint": "escalated/admin/plugins#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_plugin",
+        "verb": "DELETE",
+        "path": "/admin/plugins/:id(.:format)",
+        "endpoint": "escalated/admin/plugins#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_reports",
+        "verb": "GET",
+        "path": "/admin/reports(.:format)",
+        "endpoint": "escalated/admin/reports#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_reports_dashboard",
+        "verb": "GET",
+        "path": "/admin/reports/dashboard(.:format)",
+        "endpoint": "escalated/admin/reports#dashboard",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_reports_agents",
+        "verb": "GET",
+        "path": "/admin/reports/agents(.:format)",
+        "endpoint": "escalated/admin/reports#agents",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_reports_sla",
+        "verb": "GET",
+        "path": "/admin/reports/sla(.:format)",
+        "endpoint": "escalated/admin/reports#sla",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_reports_csat",
+        "verb": "GET",
+        "path": "/admin/reports/csat(.:format)",
+        "endpoint": "escalated/admin/reports#csat",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_reports_agent_detail",
+        "verb": "GET",
+        "path": "/admin/reports/agent/:id/detail(.:format)",
+        "endpoint": "escalated/admin/reports#agent_detail",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_reports_sla_trends",
+        "verb": "GET",
+        "path": "/admin/reports/advanced/sla_trends(.:format)",
+        "endpoint": "escalated/admin/advanced_reports#sla_trends",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_period"
+        ]
+      },
+      {
+        "name": "admin_reports_response_times",
+        "verb": "GET",
+        "path": "/admin/reports/advanced/response_times(.:format)",
+        "endpoint": "escalated/admin/advanced_reports#response_times",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_period"
+        ]
+      },
+      {
+        "name": "admin_reports_resolution_times",
+        "verb": "GET",
+        "path": "/admin/reports/advanced/resolution_times(.:format)",
+        "endpoint": "escalated/admin/advanced_reports#resolution_times",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_period"
+        ]
+      },
+      {
+        "name": "admin_reports_agent_ranking",
+        "verb": "GET",
+        "path": "/admin/reports/advanced/agent_ranking(.:format)",
+        "endpoint": "escalated/admin/advanced_reports#agent_ranking",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_period"
+        ]
+      },
+      {
+        "name": "admin_reports_cohorts",
+        "verb": "GET",
+        "path": "/admin/reports/advanced/cohorts(.:format)",
+        "endpoint": "escalated/admin/advanced_reports#cohorts",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_period"
+        ]
+      },
+      {
+        "name": "admin_reports_frt_distribution",
+        "verb": "GET",
+        "path": "/admin/reports/advanced/frt_distribution(.:format)",
+        "endpoint": "escalated/admin/advanced_reports#frt_distribution",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_period"
+        ]
+      },
+      {
+        "name": "admin_reports_frt_trends",
+        "verb": "GET",
+        "path": "/admin/reports/advanced/frt_trends(.:format)",
+        "endpoint": "escalated/admin/advanced_reports#frt_trends",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_period"
+        ]
+      },
+      {
+        "name": "admin_reports_frt_by_agent",
+        "verb": "GET",
+        "path": "/admin/reports/advanced/frt_by_agent(.:format)",
+        "endpoint": "escalated/admin/advanced_reports#frt_by_agent",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_period"
+        ]
+      },
+      {
+        "name": "admin_reports_resolution_distribution",
+        "verb": "GET",
+        "path": "/admin/reports/advanced/resolution_distribution(.:format)",
+        "endpoint": "escalated/admin/advanced_reports#resolution_distribution",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_period"
+        ]
+      },
+      {
+        "name": "admin_reports_resolution_trends",
+        "verb": "GET",
+        "path": "/admin/reports/advanced/resolution_trends(.:format)",
+        "endpoint": "escalated/admin/advanced_reports#resolution_trends",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_period"
+        ]
+      },
+      {
+        "name": "admin_reports_cohort",
+        "verb": "GET",
+        "path": "/admin/reports/advanced/cohort(.:format)",
+        "endpoint": "escalated/admin/advanced_reports#cohort",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_period"
+        ]
+      },
+      {
+        "name": "admin_reports_comparison",
+        "verb": "GET",
+        "path": "/admin/reports/advanced/comparison(.:format)",
+        "endpoint": "escalated/admin/advanced_reports#comparison",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_period"
+        ]
+      },
+      {
+        "name": "admin_reports_export",
+        "verb": "GET",
+        "path": "/admin/reports/advanced/export(.:format)",
+        "endpoint": "escalated/admin/advanced_reports#export",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_period"
+        ]
+      },
+      {
+        "name": "admin_settings",
+        "verb": "GET",
+        "path": "/admin/settings(.:format)",
+        "endpoint": "escalated/admin/settings#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/settings(.:format)",
+        "endpoint": "escalated/admin/settings#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_statuses",
+        "verb": "GET",
+        "path": "/admin/statuses(.:format)",
+        "endpoint": "escalated/admin/statuses#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/statuses(.:format)",
+        "endpoint": "escalated/admin/statuses#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "new_admin_status",
+        "verb": "GET",
+        "path": "/admin/statuses/new(.:format)",
+        "endpoint": "escalated/admin/statuses#new",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "edit_admin_status",
+        "verb": "GET",
+        "path": "/admin/statuses/:id/edit(.:format)",
+        "endpoint": "escalated/admin/statuses#edit",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_status"
+        ]
+      },
+      {
+        "name": "admin_status",
+        "verb": "PATCH",
+        "path": "/admin/statuses/:id(.:format)",
+        "endpoint": "escalated/admin/statuses#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_status"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/statuses/:id(.:format)",
+        "endpoint": "escalated/admin/statuses#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_status"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/statuses/:id(.:format)",
+        "endpoint": "escalated/admin/statuses#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_status"
+        ]
+      },
+      {
+        "name": "admin_business_hours",
+        "verb": "GET",
+        "path": "/admin/business_hours(.:format)",
+        "endpoint": "escalated/admin/business_hours#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/business_hours(.:format)",
+        "endpoint": "escalated/admin/business_hours#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "new_admin_business_hour",
+        "verb": "GET",
+        "path": "/admin/business_hours/new(.:format)",
+        "endpoint": "escalated/admin/business_hours#new",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "edit_admin_business_hour",
+        "verb": "GET",
+        "path": "/admin/business_hours/:id/edit(.:format)",
+        "endpoint": "escalated/admin/business_hours#edit",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_schedule"
+        ]
+      },
+      {
+        "name": "admin_business_hour",
+        "verb": "PATCH",
+        "path": "/admin/business_hours/:id(.:format)",
+        "endpoint": "escalated/admin/business_hours#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_schedule"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/business_hours/:id(.:format)",
+        "endpoint": "escalated/admin/business_hours#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_schedule"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/business_hours/:id(.:format)",
+        "endpoint": "escalated/admin/business_hours#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_schedule"
+        ]
+      },
+      {
+        "name": "admin_roles",
+        "verb": "GET",
+        "path": "/admin/roles(.:format)",
+        "endpoint": "escalated/admin/roles#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_roles_permissions_enabled!",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/roles(.:format)",
+        "endpoint": "escalated/admin/roles#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_roles_permissions_enabled!",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "new_admin_role",
+        "verb": "GET",
+        "path": "/admin/roles/new(.:format)",
+        "endpoint": "escalated/admin/roles#new",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_roles_permissions_enabled!",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "edit_admin_role",
+        "verb": "GET",
+        "path": "/admin/roles/:id/edit(.:format)",
+        "endpoint": "escalated/admin/roles#edit",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_roles_permissions_enabled!",
+          "require_admin!",
+          "set_role"
+        ]
+      },
+      {
+        "name": "admin_role",
+        "verb": "PATCH",
+        "path": "/admin/roles/:id(.:format)",
+        "endpoint": "escalated/admin/roles#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_roles_permissions_enabled!",
+          "require_admin!",
+          "set_role"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/roles/:id(.:format)",
+        "endpoint": "escalated/admin/roles#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_roles_permissions_enabled!",
+          "require_admin!",
+          "set_role"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/roles/:id(.:format)",
+        "endpoint": "escalated/admin/roles#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_roles_permissions_enabled!",
+          "require_admin!",
+          "set_role"
+        ]
+      },
+      {
+        "name": "admin_audit_logs",
+        "verb": "GET",
+        "path": "/admin/audit_logs(.:format)",
+        "endpoint": "escalated/admin/audit_logs#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_users",
+        "verb": "GET",
+        "path": "/admin/users(.:format)",
+        "endpoint": "escalated/admin/users#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_user_role",
+        "verb": "PATCH",
+        "path": "/admin/users/:user_id/role(.:format)",
+        "endpoint": "escalated/admin/users#update_role",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_user_roles",
+        "verb": "PUT",
+        "path": "/admin/users/:user_id/roles(.:format)",
+        "endpoint": "escalated/admin/users#update_roles",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_roles_permissions_enabled!",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "reorder_admin_custom_fields",
+        "verb": "POST",
+        "path": "/admin/custom_fields/reorder(.:format)",
+        "endpoint": "escalated/admin/custom_fields#reorder",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_custom_fields",
+        "verb": "GET",
+        "path": "/admin/custom_fields(.:format)",
+        "endpoint": "escalated/admin/custom_fields#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/custom_fields(.:format)",
+        "endpoint": "escalated/admin/custom_fields#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "new_admin_custom_field",
+        "verb": "GET",
+        "path": "/admin/custom_fields/new(.:format)",
+        "endpoint": "escalated/admin/custom_fields#new",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "edit_admin_custom_field",
+        "verb": "GET",
+        "path": "/admin/custom_fields/:id/edit(.:format)",
+        "endpoint": "escalated/admin/custom_fields#edit",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_field"
+        ]
+      },
+      {
+        "name": "admin_custom_field",
+        "verb": "PATCH",
+        "path": "/admin/custom_fields/:id(.:format)",
+        "endpoint": "escalated/admin/custom_fields#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_field"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/custom_fields/:id(.:format)",
+        "endpoint": "escalated/admin/custom_fields#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_field"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/custom_fields/:id(.:format)",
+        "endpoint": "escalated/admin/custom_fields#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_field"
+        ]
+      },
+      {
+        "name": "links_admin_ticket",
+        "verb": "GET",
+        "path": "/admin/tickets/:id/links(.:format)",
+        "endpoint": "escalated/admin/ticket_links#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "store_link_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/store_link(.:format)",
+        "endpoint": "escalated/admin/ticket_links#store",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "destroy_link_admin_ticket",
+        "verb": "DELETE",
+        "path": "/admin/tickets/:id/links/:link_id(.:format)",
+        "endpoint": "escalated/admin/ticket_links#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "merge_search_admin_ticket",
+        "verb": "GET",
+        "path": "/admin/tickets/:id/merge_search(.:format)",
+        "endpoint": "escalated/admin/ticket_merges#search",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "merge_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/merge(.:format)",
+        "endpoint": "escalated/admin/ticket_merges#merge",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "side_conversations_admin_ticket",
+        "verb": "GET",
+        "path": "/admin/tickets/:id/side_conversations(.:format)",
+        "endpoint": "escalated/admin/side_conversations#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "store_side_conversation_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/store_side_conversation(.:format)",
+        "endpoint": "escalated/admin/side_conversations#store",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "side_conversation_reply_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/side_conversations/:conversation_id/reply(.:format)",
+        "endpoint": "escalated/admin/side_conversations#reply",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket",
+          "set_conversation"
+        ]
+      },
+      {
+        "name": "side_conversation_close_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/side_conversations/:conversation_id/close(.:format)",
+        "endpoint": "escalated/admin/side_conversations#close",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket",
+          "set_conversation"
+        ]
+      },
+      {
+        "name": "split_reply_admin_ticket",
+        "verb": "POST",
+        "path": "/admin/tickets/:id/replies/:reply_id/split(.:format)",
+        "endpoint": "escalated/admin/tickets#split",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "reorder_admin_saved_views",
+        "verb": "POST",
+        "path": "/admin/saved_views/reorder(.:format)",
+        "endpoint": "escalated/admin/saved_views#reorder",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!"
+        ]
+      },
+      {
+        "name": "admin_saved_views",
+        "verb": "GET",
+        "path": "/admin/saved_views(.:format)",
+        "endpoint": "escalated/admin/saved_views#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/saved_views(.:format)",
+        "endpoint": "escalated/admin/saved_views#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!"
+        ]
+      },
+      {
+        "name": "admin_saved_view",
+        "verb": "PATCH",
+        "path": "/admin/saved_views/:id(.:format)",
+        "endpoint": "escalated/admin/saved_views#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_saved_view"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/saved_views/:id(.:format)",
+        "endpoint": "escalated/admin/saved_views#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_saved_view"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/saved_views/:id(.:format)",
+        "endpoint": "escalated/admin/saved_views#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_saved_view"
+        ]
+      },
+      {
+        "name": "admin_articles",
+        "verb": "GET",
+        "path": "/admin/articles(.:format)",
+        "endpoint": "escalated/admin/articles#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "require_knowledge_base_enabled!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/articles(.:format)",
+        "endpoint": "escalated/admin/articles#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "require_knowledge_base_enabled!"
+        ]
+      },
+      {
+        "name": "new_admin_article",
+        "verb": "GET",
+        "path": "/admin/articles/new(.:format)",
+        "endpoint": "escalated/admin/articles#new",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "require_knowledge_base_enabled!"
+        ]
+      },
+      {
+        "name": "edit_admin_article",
+        "verb": "GET",
+        "path": "/admin/articles/:id/edit(.:format)",
+        "endpoint": "escalated/admin/articles#edit",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "require_knowledge_base_enabled!",
+          "set_article"
+        ]
+      },
+      {
+        "name": "admin_article",
+        "verb": "PATCH",
+        "path": "/admin/articles/:id(.:format)",
+        "endpoint": "escalated/admin/articles#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "require_knowledge_base_enabled!",
+          "set_article"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/articles/:id(.:format)",
+        "endpoint": "escalated/admin/articles#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "require_knowledge_base_enabled!",
+          "set_article"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/articles/:id(.:format)",
+        "endpoint": "escalated/admin/articles#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "require_knowledge_base_enabled!",
+          "set_article"
+        ]
+      },
+      {
+        "name": "admin_kb_categories",
+        "verb": "GET",
+        "path": "/admin/kb_categories(.:format)",
+        "endpoint": "escalated/admin/kb_categories#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "require_knowledge_base_enabled!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/kb_categories(.:format)",
+        "endpoint": "escalated/admin/kb_categories#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "require_knowledge_base_enabled!"
+        ]
+      },
+      {
+        "name": "admin_kb_category",
+        "verb": "PATCH",
+        "path": "/admin/kb_categories/:id(.:format)",
+        "endpoint": "escalated/admin/kb_categories#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "require_knowledge_base_enabled!",
+          "set_category"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/kb_categories/:id(.:format)",
+        "endpoint": "escalated/admin/kb_categories#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "require_knowledge_base_enabled!",
+          "set_category"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/kb_categories/:id(.:format)",
+        "endpoint": "escalated/admin/kb_categories#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "require_knowledge_base_enabled!",
+          "set_category"
+        ]
+      },
+      {
+        "name": "admin_skills",
+        "verb": "GET",
+        "path": "/admin/skills(.:format)",
+        "endpoint": "escalated/admin/skills#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/skills(.:format)",
+        "endpoint": "escalated/admin/skills#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "new_admin_skill",
+        "verb": "GET",
+        "path": "/admin/skills/new(.:format)",
+        "endpoint": "escalated/admin/skills#new",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "edit_admin_skill",
+        "verb": "GET",
+        "path": "/admin/skills/:id/edit(.:format)",
+        "endpoint": "escalated/admin/skills#edit",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_skill"
+        ]
+      },
+      {
+        "name": "admin_skill",
+        "verb": "PATCH",
+        "path": "/admin/skills/:id(.:format)",
+        "endpoint": "escalated/admin/skills#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_skill"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/skills/:id(.:format)",
+        "endpoint": "escalated/admin/skills#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_skill"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/skills/:id(.:format)",
+        "endpoint": "escalated/admin/skills#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_skill"
+        ]
+      },
+      {
+        "name": "admin_capacity_index",
+        "verb": "GET",
+        "path": "/admin/capacity(.:format)",
+        "endpoint": "escalated/admin/capacity#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_capacity",
+        "verb": "PATCH",
+        "path": "/admin/capacity/:id(.:format)",
+        "endpoint": "escalated/admin/capacity#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_capacity"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/capacity/:id(.:format)",
+        "endpoint": "escalated/admin/capacity#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_capacity"
+        ]
+      },
+      {
+        "name": "deliveries_admin_webhook",
+        "verb": "GET",
+        "path": "/admin/webhooks/:id/deliveries(.:format)",
+        "endpoint": "escalated/admin/webhooks#deliveries",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_webhook"
+        ]
+      },
+      {
+        "name": "retry_delivery_admin_webhooks",
+        "verb": "POST",
+        "path": "/admin/webhooks/deliveries/:delivery_id/retry(.:format)",
+        "endpoint": "escalated/admin/webhooks#retry_delivery",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_webhooks",
+        "verb": "GET",
+        "path": "/admin/webhooks(.:format)",
+        "endpoint": "escalated/admin/webhooks#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/webhooks(.:format)",
+        "endpoint": "escalated/admin/webhooks#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "new_admin_webhook",
+        "verb": "GET",
+        "path": "/admin/webhooks/new(.:format)",
+        "endpoint": "escalated/admin/webhooks#new",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "edit_admin_webhook",
+        "verb": "GET",
+        "path": "/admin/webhooks/:id/edit(.:format)",
+        "endpoint": "escalated/admin/webhooks#edit",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_webhook"
+        ]
+      },
+      {
+        "name": "admin_webhook",
+        "verb": "PATCH",
+        "path": "/admin/webhooks/:id(.:format)",
+        "endpoint": "escalated/admin/webhooks#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_webhook"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/webhooks/:id(.:format)",
+        "endpoint": "escalated/admin/webhooks#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_webhook"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/webhooks/:id(.:format)",
+        "endpoint": "escalated/admin/webhooks#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_webhook"
+        ]
+      },
+      {
+        "name": "admin_automations",
+        "verb": "GET",
+        "path": "/admin/automations(.:format)",
+        "endpoint": "escalated/admin/automations#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/automations(.:format)",
+        "endpoint": "escalated/admin/automations#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "new_admin_automation",
+        "verb": "GET",
+        "path": "/admin/automations/new(.:format)",
+        "endpoint": "escalated/admin/automations#new",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "edit_admin_automation",
+        "verb": "GET",
+        "path": "/admin/automations/:id/edit(.:format)",
+        "endpoint": "escalated/admin/automations#edit",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_automation"
+        ]
+      },
+      {
+        "name": "admin_automation",
+        "verb": "PATCH",
+        "path": "/admin/automations/:id(.:format)",
+        "endpoint": "escalated/admin/automations#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_automation"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/automations/:id(.:format)",
+        "endpoint": "escalated/admin/automations#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_automation"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/automations/:id(.:format)",
+        "endpoint": "escalated/admin/automations#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_automation"
+        ]
+      },
+      {
+        "name": "admin_newsletters",
+        "verb": "GET",
+        "path": "/admin/newsletters(.:format)",
+        "endpoint": "escalated/admin/newsletters#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc"
+        ]
+      },
+      {
+        "name": "admin_newsletters_new",
+        "verb": "GET",
+        "path": "/admin/newsletters/new(.:format)",
+        "endpoint": "escalated/admin/newsletters#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/newsletters(.:format)",
+        "endpoint": "escalated/admin/newsletters#store",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc"
+        ]
+      },
+      {
+        "name": "admin_newsletters_preview",
+        "verb": "POST",
+        "path": "/admin/newsletters/preview(.:format)",
+        "endpoint": "escalated/admin/newsletters#preview",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc"
+        ]
+      },
+      {
+        "name": "admin_newsletters_test",
+        "verb": "POST",
+        "path": "/admin/newsletters/test(.:format)",
+        "endpoint": "escalated/admin/newsletters#test",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc",
+          "require_newsletter_send_permission!"
+        ]
+      },
+      {
+        "name": "admin_newsletters_lists",
+        "verb": "GET",
+        "path": "/admin/newsletters/lists(.:format)",
+        "endpoint": "escalated/admin/newsletter_lists#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc"
+        ]
+      },
+      {
+        "name": "admin_newsletters_new_list",
+        "verb": "GET",
+        "path": "/admin/newsletters/lists/new(.:format)",
+        "endpoint": "escalated/admin/newsletter_lists#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/newsletters/lists(.:format)",
+        "endpoint": "escalated/admin/newsletter_lists#store",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc"
+        ]
+      },
+      {
+        "name": "admin_newsletters_list",
+        "verb": "GET",
+        "path": "/admin/newsletters/lists/:id(.:format)",
+        "endpoint": "escalated/admin/newsletter_lists#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc",
+          "set_list"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/newsletters/lists/:id(.:format)",
+        "endpoint": "escalated/admin/newsletter_lists#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc",
+          "set_list"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/newsletters/lists/:id(.:format)",
+        "endpoint": "escalated/admin/newsletter_lists#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc",
+          "set_list"
+        ]
+      },
+      {
+        "name": "admin_newsletters_list_members",
+        "verb": "POST",
+        "path": "/admin/newsletters/lists/:id/members(.:format)",
+        "endpoint": "escalated/admin/newsletter_lists#add_member",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc",
+          "set_list"
+        ]
+      },
+      {
+        "name": "admin_newsletters_list_member",
+        "verb": "DELETE",
+        "path": "/admin/newsletters/lists/:id/members/:contact_id(.:format)",
+        "endpoint": "escalated/admin/newsletter_lists#remove_member",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc",
+          "set_list"
+        ]
+      },
+      {
+        "name": "admin_newsletters_list_import",
+        "verb": "POST",
+        "path": "/admin/newsletters/lists/:id/import(.:format)",
+        "endpoint": "escalated/admin/newsletter_lists#import",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc",
+          "set_list"
+        ]
+      },
+      {
+        "name": "admin_newsletters_templates",
+        "verb": "GET",
+        "path": "/admin/newsletters/templates(.:format)",
+        "endpoint": "escalated/admin/newsletter_templates#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc"
+        ]
+      },
+      {
+        "name": "admin_newsletters_new_template",
+        "verb": "GET",
+        "path": "/admin/newsletters/templates/new(.:format)",
+        "endpoint": "escalated/admin/newsletter_templates#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/newsletters/templates(.:format)",
+        "endpoint": "escalated/admin/newsletter_templates#store",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc"
+        ]
+      },
+      {
+        "name": "admin_newsletters_template",
+        "verb": "GET",
+        "path": "/admin/newsletters/templates/:id(.:format)",
+        "endpoint": "escalated/admin/newsletter_templates#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc",
+          "set_template"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/newsletters/templates/:id(.:format)",
+        "endpoint": "escalated/admin/newsletter_templates#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc",
+          "set_template"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/newsletters/templates/:id(.:format)",
+        "endpoint": "escalated/admin/newsletter_templates#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc",
+          "set_template"
+        ]
+      },
+      {
+        "name": "admin_newsletters_settings",
+        "verb": "GET",
+        "path": "/admin/newsletters/settings(.:format)",
+        "endpoint": "escalated/admin/newsletter_settings#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/newsletters/settings(.:format)",
+        "endpoint": "escalated/admin/newsletter_settings#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc"
+        ]
+      },
+      {
+        "name": "admin_newsletters_show",
+        "verb": "GET",
+        "path": "/admin/newsletters/:id(.:format)",
+        "endpoint": "escalated/admin/newsletters#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc",
+          "set_newsletter"
+        ]
+      },
+      {
+        "name": "admin_newsletters_edit",
+        "verb": "GET",
+        "path": "/admin/newsletters/:id/edit(.:format)",
+        "endpoint": "escalated/admin/newsletters#edit",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc",
+          "set_newsletter"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/newsletters/:id(.:format)",
+        "endpoint": "escalated/admin/newsletters#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc",
+          "set_newsletter"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/newsletters/:id(.:format)",
+        "endpoint": "escalated/admin/newsletters#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "ensure_newsletters_enabled!",
+          "Proc",
+          "set_newsletter"
+        ]
+      },
+      {
+        "name": "toggle_admin_workflow",
+        "verb": "POST",
+        "path": "/admin/workflows/:id/toggle(.:format)",
+        "endpoint": "escalated/admin/workflows#toggle",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_workflow"
+        ]
+      },
+      {
+        "name": "logs_admin_workflow",
+        "verb": "GET",
+        "path": "/admin/workflows/:id/logs(.:format)",
+        "endpoint": "escalated/admin/workflows#logs",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_workflow"
+        ]
+      },
+      {
+        "name": "dry_run_admin_workflow",
+        "verb": "POST",
+        "path": "/admin/workflows/:id/dry_run(.:format)",
+        "endpoint": "escalated/admin/workflows#dry_run",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_workflow"
+        ]
+      },
+      {
+        "name": "reorder_admin_workflows",
+        "verb": "POST",
+        "path": "/admin/workflows/reorder(.:format)",
+        "endpoint": "escalated/admin/workflows#reorder",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_workflows",
+        "verb": "GET",
+        "path": "/admin/workflows(.:format)",
+        "endpoint": "escalated/admin/workflows#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/workflows(.:format)",
+        "endpoint": "escalated/admin/workflows#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "new_admin_workflow",
+        "verb": "GET",
+        "path": "/admin/workflows/new(.:format)",
+        "endpoint": "escalated/admin/workflows#new",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "edit_admin_workflow",
+        "verb": "GET",
+        "path": "/admin/workflows/:id/edit(.:format)",
+        "endpoint": "escalated/admin/workflows#edit",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_workflow"
+        ]
+      },
+      {
+        "name": "admin_workflow",
+        "verb": "GET",
+        "path": "/admin/workflows/:id(.:format)",
+        "endpoint": "escalated/admin/workflows#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_workflow"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PATCH",
+        "path": "/admin/workflows/:id(.:format)",
+        "endpoint": "escalated/admin/workflows#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_workflow"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/workflows/:id(.:format)",
+        "endpoint": "escalated/admin/workflows#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_workflow"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/workflows/:id(.:format)",
+        "endpoint": "escalated/admin/workflows#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_workflow"
+        ]
+      },
+      {
+        "name": "admin_settings_two_factor",
+        "verb": "GET",
+        "path": "/admin/settings/two_factor(.:format)",
+        "endpoint": "escalated/admin/two_factor#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_two_factor_enabled!",
+          "require_staff!"
+        ]
+      },
+      {
+        "name": "admin_settings_two_factor_setup",
+        "verb": "POST",
+        "path": "/admin/settings/two_factor/setup(.:format)",
+        "endpoint": "escalated/admin/two_factor#setup",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_two_factor_enabled!",
+          "require_staff!"
+        ]
+      },
+      {
+        "name": "admin_settings_two_factor_confirm",
+        "verb": "POST",
+        "path": "/admin/settings/two_factor/confirm(.:format)",
+        "endpoint": "escalated/admin/two_factor#confirm",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_two_factor_enabled!",
+          "require_staff!"
+        ]
+      },
+      {
+        "name": "admin_settings_two_factor_disable",
+        "verb": "POST",
+        "path": "/admin/settings/two_factor/disable(.:format)",
+        "endpoint": "escalated/admin/two_factor#disable",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_two_factor_enabled!",
+          "require_staff!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "GET",
+        "path": "/admin/settings/two-factor(.:format)",
+        "endpoint": "escalated/admin/two_factor#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_two_factor_enabled!",
+          "require_staff!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/settings/two-factor/setup(.:format)",
+        "endpoint": "escalated/admin/two_factor#setup",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_two_factor_enabled!",
+          "require_staff!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/settings/two-factor/confirm(.:format)",
+        "endpoint": "escalated/admin/two_factor#confirm",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_two_factor_enabled!",
+          "require_staff!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/settings/two-factor/disable(.:format)",
+        "endpoint": "escalated/admin/two_factor#disable",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_two_factor_enabled!",
+          "require_staff!"
+        ]
+      },
+      {
+        "name": "admin_settings_sso",
+        "verb": "GET",
+        "path": "/admin/settings/sso(.:format)",
+        "endpoint": "escalated/admin/settings#sso",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_settings_update_sso",
+        "verb": "POST",
+        "path": "/admin/settings/sso(.:format)",
+        "endpoint": "escalated/admin/settings#update_sso",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_settings_csat",
+        "verb": "GET",
+        "path": "/admin/settings/csat(.:format)",
+        "endpoint": "escalated/admin/csat_settings#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_settings_update_csat",
+        "verb": "POST",
+        "path": "/admin/settings/csat(.:format)",
+        "endpoint": "escalated/admin/csat_settings#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_settings_data_retention",
+        "verb": "GET",
+        "path": "/admin/settings/data-retention(.:format)",
+        "endpoint": "escalated/admin/data_retention#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_settings_update_data_retention",
+        "verb": "POST",
+        "path": "/admin/settings/data-retention(.:format)",
+        "endpoint": "escalated/admin/data_retention#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_settings_email",
+        "verb": "GET",
+        "path": "/admin/settings/email(.:format)",
+        "endpoint": "escalated/admin/email_settings#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_settings_update_email",
+        "verb": "POST",
+        "path": "/admin/settings/email(.:format)",
+        "endpoint": "escalated/admin/email_settings#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_settings_public_tickets",
+        "verb": "GET",
+        "path": "/admin/settings/public-tickets(.:format)",
+        "endpoint": "escalated/admin/public_tickets_settings#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_settings_update_public_tickets",
+        "verb": "POST|PUT",
+        "path": "/admin/settings/public-tickets(.:format)",
+        "endpoint": "escalated/admin/public_tickets_settings#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "GET",
+        "path": "/admin/settings/public_tickets(.:format)",
+        "endpoint": "escalated/admin/public_tickets_settings#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/settings/public_tickets(.:format)",
+        "endpoint": "escalated/admin/public_tickets_settings#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_settings_database",
+        "verb": "GET",
+        "path": "/admin/settings/database(.:format)",
+        "endpoint": "escalated/admin/database_connection#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_settings_database_test",
+        "verb": "POST",
+        "path": "/admin/settings/database/test(.:format)",
+        "endpoint": "escalated/admin/database_connection#check",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_settings_database_update",
+        "verb": "POST",
+        "path": "/admin/settings/database(.:format)",
+        "endpoint": "escalated/admin/database_connection#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "records_admin_custom_object",
+        "verb": "GET",
+        "path": "/admin/custom_objects/:id/records(.:format)",
+        "endpoint": "escalated/admin/custom_objects#records",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_object_definition"
+        ]
+      },
+      {
+        "name": "create_record_admin_custom_object",
+        "verb": "POST",
+        "path": "/admin/custom_objects/:id/records(.:format)",
+        "endpoint": "escalated/admin/custom_objects#store_record",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_object_definition"
+        ]
+      },
+      {
+        "name": "store_record_admin_custom_object",
+        "verb": "POST",
+        "path": "/admin/custom_objects/:id/store_record(.:format)",
+        "endpoint": "escalated/admin/custom_objects#store_record",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_object_definition"
+        ]
+      },
+      {
+        "name": "update_record_admin_custom_object",
+        "verb": "PUT",
+        "path": "/admin/custom_objects/:id/records/:record_id(.:format)",
+        "endpoint": "escalated/admin/custom_objects#update_record",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_object_definition"
+        ]
+      },
+      {
+        "name": "destroy_record_admin_custom_object",
+        "verb": "DELETE",
+        "path": "/admin/custom_objects/:id/records/:record_id(.:format)",
+        "endpoint": "escalated/admin/custom_objects#destroy_record",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_object_definition"
+        ]
+      },
+      {
+        "name": "admin_custom_objects",
+        "verb": "GET",
+        "path": "/admin/custom_objects(.:format)",
+        "endpoint": "escalated/admin/custom_objects#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/custom_objects(.:format)",
+        "endpoint": "escalated/admin/custom_objects#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "new_admin_custom_object",
+        "verb": "GET",
+        "path": "/admin/custom_objects/new(.:format)",
+        "endpoint": "escalated/admin/custom_objects#new",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "edit_admin_custom_object",
+        "verb": "GET",
+        "path": "/admin/custom_objects/:id/edit(.:format)",
+        "endpoint": "escalated/admin/custom_objects#edit",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_object_definition"
+        ]
+      },
+      {
+        "name": "admin_custom_object",
+        "verb": "PATCH",
+        "path": "/admin/custom_objects/:id(.:format)",
+        "endpoint": "escalated/admin/custom_objects#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_object_definition"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "PUT",
+        "path": "/admin/custom_objects/:id(.:format)",
+        "endpoint": "escalated/admin/custom_objects#update",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_object_definition"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/custom_objects/:id(.:format)",
+        "endpoint": "escalated/admin/custom_objects#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_object_definition"
+        ]
+      },
+      {
+        "name": "admin_chat",
+        "verb": "GET",
+        "path": "/admin/chat(.:format)",
+        "endpoint": "escalated/admin/chat#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!"
+        ]
+      },
+      {
+        "name": "admin_chat_queue",
+        "verb": "GET",
+        "path": "/admin/chat/queue(.:format)",
+        "endpoint": "escalated/admin/chat#queue",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!"
+        ]
+      },
+      {
+        "name": "admin_chat_update_status",
+        "verb": "POST",
+        "path": "/admin/chat/update_status(.:format)",
+        "endpoint": "escalated/admin/chat#update_status",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!"
+        ]
+      },
+      {
+        "name": "admin_chat_accept",
+        "verb": "POST",
+        "path": "/admin/chat/:id/accept(.:format)",
+        "endpoint": "escalated/admin/chat#accept",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_session"
+        ]
+      },
+      {
+        "name": "admin_chat_end",
+        "verb": "POST",
+        "path": "/admin/chat/:id/end(.:format)",
+        "endpoint": "escalated/admin/chat#end_chat",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_session"
+        ]
+      },
+      {
+        "name": "admin_chat_transfer",
+        "verb": "POST",
+        "path": "/admin/chat/:id/transfer(.:format)",
+        "endpoint": "escalated/admin/chat#transfer",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_session"
+        ]
+      },
+      {
+        "name": "admin_chat_message",
+        "verb": "POST",
+        "path": "/admin/chat/:id/message(.:format)",
+        "endpoint": "escalated/admin/chat#message",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_session"
+        ]
+      },
+      {
+        "name": "admin_chat_typing",
+        "verb": "POST",
+        "path": "/admin/chat/:id/typing(.:format)",
+        "endpoint": "escalated/admin/chat#typing",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_session"
+        ]
+      },
+      {
+        "name": "admin_import_index",
+        "verb": "GET",
+        "path": "/admin/import(.:format)",
+        "endpoint": "escalated/admin/imports#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_import_progress",
+        "verb": "GET",
+        "path": "/admin/import/progress/:job_id(.:format)",
+        "endpoint": "escalated/admin/imports#progress",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_import_job"
+        ]
+      },
+      {
+        "name": "admin_import_status",
+        "verb": "GET",
+        "path": "/admin/import/status/:job_id(.:format)",
+        "endpoint": "escalated/admin/imports#status",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_import_job"
+        ]
+      },
+      {
+        "name": "admin_import_pause",
+        "verb": "POST",
+        "path": "/admin/import/pause/:job_id(.:format)",
+        "endpoint": "escalated/admin/imports#pause",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_import_job"
+        ]
+      },
+      {
+        "name": "admin_import_resume",
+        "verb": "POST",
+        "path": "/admin/import/resume/:job_id(.:format)",
+        "endpoint": "escalated/admin/imports#resume",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_import_job"
+        ]
+      },
+      {
+        "name": "admin_import_cancel",
+        "verb": "POST",
+        "path": "/admin/import/cancel/:job_id(.:format)",
+        "endpoint": "escalated/admin/imports#cancel",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_import_job"
+        ]
+      },
+      {
+        "name": "admin_import_connect",
+        "verb": "GET",
+        "path": "/admin/import/:platform/connect(.:format)",
+        "endpoint": "escalated/admin/imports#connect",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_adapter"
+        ]
+      },
+      {
+        "name": "admin_import_test_connection",
+        "verb": "POST",
+        "path": "/admin/import/:platform/test-connection(.:format)",
+        "endpoint": "escalated/admin/imports#test_connection",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_adapter"
+        ]
+      },
+      {
+        "name": "admin_import_mapping",
+        "verb": "GET",
+        "path": "/admin/import/:platform/mapping(.:format)",
+        "endpoint": "escalated/admin/imports#mapping",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_adapter"
+        ]
+      },
+      {
+        "name": "admin_import_review",
+        "verb": "POST",
+        "path": "/admin/import/:platform/review(.:format)",
+        "endpoint": "escalated/admin/imports#review",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_import_start",
+        "verb": "POST",
+        "path": "/admin/import/:platform/start(.:format)",
+        "endpoint": "escalated/admin/imports#launch",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_adapter"
+        ]
+      },
+      {
+        "name": "start_admin_import",
+        "verb": "POST",
+        "path": "/admin/imports/:id/start(.:format)",
+        "endpoint": "escalated/admin/imports#start",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_import_job"
+        ]
+      },
+      {
+        "name": "pause_admin_import",
+        "verb": "POST",
+        "path": "/admin/imports/:id/pause(.:format)",
+        "endpoint": "escalated/admin/imports#pause",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_import_job"
+        ]
+      },
+      {
+        "name": "resume_admin_import",
+        "verb": "POST",
+        "path": "/admin/imports/:id/resume(.:format)",
+        "endpoint": "escalated/admin/imports#resume",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_import_job"
+        ]
+      },
+      {
+        "name": "source_maps_admin_import",
+        "verb": "GET",
+        "path": "/admin/imports/:id/source_maps(.:format)",
+        "endpoint": "escalated/admin/imports#source_maps",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_imports",
+        "verb": "GET",
+        "path": "/admin/imports(.:format)",
+        "endpoint": "escalated/admin/imports#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/admin/imports(.:format)",
+        "endpoint": "escalated/admin/imports#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "admin_import",
+        "verb": "GET",
+        "path": "/admin/imports/:id(.:format)",
+        "endpoint": "escalated/admin/imports#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_import_job"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/admin/imports/:id(.:format)",
+        "endpoint": "escalated/admin/imports#destroy",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!",
+          "set_import_job"
+        ]
+      },
+      {
+        "name": "sdk_plugin_page",
+        "verb": "GET",
+        "path": "/admin/plugins/:slug/*page_route",
+        "endpoint": "escalated/plugins/pages#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "widget_script",
+        "verb": "GET",
+        "path": "/widget/embed.js",
+        "endpoint": "escalated/widget_script#show",
+        "defaults": {},
+        "before": [
+          "Proc"
+        ]
+      },
+      {
+        "name": "widget_preflight",
+        "verb": "OPTIONS",
+        "path": "/widget/*path",
+        "endpoint": "escalated/widget#preflight",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "verify_authenticity_token unless:proc",
+          "enforce_rate_limit!",
+          "ensure_widget_enabled!"
+        ]
+      },
+      {
+        "name": "widget_config",
+        "verb": "GET",
+        "path": "/widget/config(.:format)",
+        "endpoint": "escalated/widget#widget_config",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "verify_authenticity_token unless:proc",
+          "enforce_rate_limit!",
+          "ensure_widget_enabled!"
+        ]
+      },
+      {
+        "name": "widget_articles",
+        "verb": "GET",
+        "path": "/widget/articles(.:format)",
+        "endpoint": "escalated/widget#articles",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "verify_authenticity_token unless:proc",
+          "enforce_rate_limit!",
+          "ensure_widget_enabled!",
+          "ensure_knowledge_base_available!"
+        ]
+      },
+      {
+        "name": "widget_article",
+        "verb": "GET",
+        "path": "/widget/articles/:slug(.:format)",
+        "endpoint": "escalated/widget#article",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "verify_authenticity_token unless:proc",
+          "enforce_rate_limit!",
+          "ensure_widget_enabled!",
+          "ensure_knowledge_base_available!"
+        ]
+      },
+      {
+        "name": "widget_create_ticket",
+        "verb": "POST",
+        "path": "/widget/tickets(.:format)",
+        "endpoint": "escalated/widget#create_ticket",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "verify_authenticity_token unless:proc",
+          "enforce_rate_limit!",
+          "ensure_widget_enabled!",
+          "throttle_guest_tickets!"
+        ]
+      },
+      {
+        "name": "widget_lookup_ticket",
+        "verb": "GET",
+        "path": "/widget/tickets/:token(.:format)",
+        "endpoint": "escalated/widget#lookup_ticket",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "verify_authenticity_token unless:proc",
+          "enforce_rate_limit!",
+          "ensure_widget_enabled!"
+        ]
+      },
+      {
+        "name": "widget_verification",
+        "verb": "POST",
+        "path": "/widget/verification(.:format)",
+        "endpoint": "escalated/widget#request_verification",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "throttle_verification_submissions!",
+          "verify_authenticity_token unless:proc",
+          "enforce_rate_limit!",
+          "ensure_widget_enabled!"
+        ]
+      },
+      {
+        "name": "widget_lookup",
+        "verb": "POST",
+        "path": "/widget/lookup(.:format)",
+        "endpoint": "escalated/widget#lookup",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "throttle_lookup_replies!",
+          "verify_authenticity_token unless:proc",
+          "enforce_rate_limit!",
+          "ensure_widget_enabled!"
+        ]
+      },
+      {
+        "name": "widget_chat_availability",
+        "verb": "GET",
+        "path": "/widget/chat/availability(.:format)",
+        "endpoint": "escalated/widget_chat#availability",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "verify_authenticity_token unless:proc",
+          "enforce_rate_limit!",
+          "ensure_widget_enabled!"
+        ]
+      },
+      {
+        "name": "widget_chat_start",
+        "verb": "POST",
+        "path": "/widget/chat/start(.:format)",
+        "endpoint": "escalated/widget_chat#start",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "verify_authenticity_token unless:proc",
+          "enforce_rate_limit!",
+          "ensure_widget_enabled!",
+          "ensure_chat_enabled!",
+          "throttle_guest_tickets!"
+        ]
+      },
+      {
+        "name": "widget_chat_message",
+        "verb": "POST",
+        "path": "/widget/chat/:session_id/message(.:format)",
+        "endpoint": "escalated/widget_chat#message",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "verify_authenticity_token unless:proc",
+          "enforce_rate_limit!",
+          "ensure_widget_enabled!",
+          "throttle_guest_replies!",
+          "set_session"
+        ]
+      },
+      {
+        "name": "widget_chat_messages",
+        "verb": "GET",
+        "path": "/widget/chat/:session_id/messages(.:format)",
+        "endpoint": "escalated/widget_chat#messages",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "verify_authenticity_token unless:proc",
+          "enforce_rate_limit!",
+          "ensure_widget_enabled!",
+          "set_session"
+        ]
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/widget/chat/:session_id/messages(.:format)",
+        "endpoint": "escalated/widget_chat#message",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "verify_authenticity_token unless:proc",
+          "enforce_rate_limit!",
+          "ensure_widget_enabled!",
+          "throttle_guest_replies!",
+          "set_session"
+        ]
+      },
+      {
+        "name": "widget_chat_typing",
+        "verb": "POST",
+        "path": "/widget/chat/:session_id/typing(.:format)",
+        "endpoint": "escalated/widget_chat#typing",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "verify_authenticity_token unless:proc",
+          "enforce_rate_limit!",
+          "ensure_widget_enabled!",
+          "set_session"
+        ]
+      },
+      {
+        "name": "widget_chat_end",
+        "verb": "POST",
+        "path": "/widget/chat/:session_id/end(.:format)",
+        "endpoint": "escalated/widget_chat#end_chat",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "verify_authenticity_token unless:proc",
+          "enforce_rate_limit!",
+          "ensure_widget_enabled!",
+          "set_session"
+        ]
+      },
+      {
+        "name": "widget_chat_rate",
+        "verb": "POST",
+        "path": "/widget/chat/:session_id/rate(.:format)",
+        "endpoint": "escalated/widget_chat#rate",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "verify_authenticity_token unless:proc",
+          "enforce_rate_limit!",
+          "ensure_widget_enabled!",
+          "throttle_guest_replies!",
+          "set_session"
+        ]
+      },
+      {
+        "name": "guest_verification",
+        "verb": "POST",
+        "path": "/guest/verification(.:format)",
+        "endpoint": "escalated/guest/verifications#request_verification",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "throttle_verification_submissions!",
+          "verify_authenticity_token"
+        ]
+      },
+      {
+        "name": "guest_lookup",
+        "verb": "POST",
+        "path": "/guest/lookup(.:format)",
+        "endpoint": "escalated/guest/verifications#lookup",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "throttle_lookup_replies!",
+          "verify_authenticity_token"
+        ]
+      },
+      {
+        "name": "guest_create",
+        "verb": "GET",
+        "path": "/guest/create(.:format)",
+        "endpoint": "escalated/guest/tickets#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "ensure_guest_tickets_enabled",
+          "set_inertia_shared_data if:proc"
+        ]
+      },
+      {
+        "name": "guest_tickets",
+        "verb": "POST",
+        "path": "/guest(.:format)",
+        "endpoint": "escalated/guest/tickets#store",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "ensure_guest_tickets_enabled",
+          "throttle_guest_tickets!",
+          "set_inertia_shared_data if:proc"
+        ]
+      },
+      {
+        "name": "guest_ticket",
+        "verb": "GET",
+        "path": "/guest/:token(.:format)",
+        "endpoint": "escalated/guest/tickets#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "ensure_guest_tickets_enabled",
+          "set_ticket_by_token",
+          "set_inertia_shared_data if:proc"
+        ]
+      },
+      {
+        "name": "guest_ticket_reply",
+        "verb": "POST",
+        "path": "/guest/:token/reply(.:format)",
+        "endpoint": "escalated/guest/tickets#reply",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "ensure_guest_tickets_enabled",
+          "throttle_guest_replies!",
+          "set_ticket_by_token",
+          "set_inertia_shared_data if:proc"
+        ]
+      },
+      {
+        "name": "guest_ticket_rate",
+        "verb": "POST",
+        "path": "/guest/:token/rate(.:format)",
+        "endpoint": "escalated/guest/tickets#rate",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "ensure_guest_tickets_enabled",
+          "set_ticket_by_token",
+          "set_inertia_shared_data if:proc"
+        ]
+      },
+      {
+        "name": "two_factor_challenge",
+        "verb": "GET",
+        "path": "/two-factor/challenge(.:format)",
+        "endpoint": "escalated/two_factor_challenges#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_two_factor_enabled!",
+          "require_staff!"
+        ]
+      },
+      {
+        "name": "two_factor_verify",
+        "verb": "POST",
+        "path": "/two-factor/challenge(.:format)",
+        "endpoint": "escalated/two_factor_challenges#create",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_two_factor_enabled!",
+          "require_staff!",
+          "throttle_verify!"
+        ]
+      },
+      {
+        "name": "sso_login",
+        "verb": "GET",
+        "path": "/sso/login(.:format)",
+        "endpoint": "escalated/sso#login",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_sso_enabled!"
+        ]
+      },
+      {
+        "name": "sso_saml_metadata",
+        "verb": "GET",
+        "path": "/sso/saml/metadata(.:format)",
+        "endpoint": "escalated/sso#metadata",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_sso_enabled!"
+        ]
+      },
+      {
+        "name": "sso_saml_acs",
+        "verb": "POST",
+        "path": "/sso/saml/acs(.:format)",
+        "endpoint": "escalated/sso#saml_acs",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_sso_enabled!"
+        ]
+      },
+      {
+        "name": "sso_oauth_callback",
+        "verb": "GET",
+        "path": "/sso/oauth/callback(.:format)",
+        "endpoint": "escalated/sso#oauth_callback",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_sso_enabled!"
+        ]
+      },
+      {
+        "name": "sso_jwt_callback",
+        "verb": "GET|POST",
+        "path": "/sso/jwt/callback(.:format)",
+        "endpoint": "escalated/sso#jwt_callback",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "ensure_sso_enabled!"
+        ]
+      },
+      {
+        "name": "root",
+        "verb": "GET",
+        "path": "/",
+        "endpoint": "escalated/customer/tickets#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc"
+        ]
+      }
+    ]
+  },
+  "headless": {
+    "host": [
+      {
+        "name": "escalated",
+        "verb": "",
+        "path": "/support",
+        "endpoint": null,
+        "defaults": {},
+        "before": [],
+        "mount": true
+      },
+      {
+        "name": "escalated_api_v1_auth_validate",
+        "verb": "POST",
+        "path": "/support/api/v1/auth/validate(.:format)",
+        "endpoint": "escalated/api/v1/auth#validate",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_auth_login",
+        "verb": "POST",
+        "path": "/support/api/v1/auth/login(.:format)",
+        "endpoint": "escalated/api/v1/auth#login",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_auth_register",
+        "verb": "POST",
+        "path": "/support/api/v1/auth/register(.:format)",
+        "endpoint": "escalated/api/v1/auth#register",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_auth_logout",
+        "verb": "POST",
+        "path": "/support/api/v1/auth/logout(.:format)",
+        "endpoint": "escalated/api/v1/auth#logout",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_auth_refresh",
+        "verb": "POST",
+        "path": "/support/api/v1/auth/refresh(.:format)",
+        "endpoint": "escalated/api/v1/auth#refresh",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_auth_me",
+        "verb": "GET",
+        "path": "/support/api/v1/auth/me(.:format)",
+        "endpoint": "escalated/api/v1/auth#me",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_auth_profile",
+        "verb": "PATCH",
+        "path": "/support/api/v1/auth/profile(.:format)",
+        "endpoint": "escalated/api/v1/auth#profile",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_dashboard",
+        "verb": "GET",
+        "path": "/support/api/v1/dashboard(.:format)",
+        "endpoint": "escalated/api/v1/dashboard#index",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "reply_escalated_api_v1_ticket",
+        "verb": "POST",
+        "path": "/support/api/v1/tickets/:reference/reply(.:format)",
+        "endpoint": "escalated/api/v1/tickets#reply",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": "status_escalated_api_v1_ticket",
+        "verb": "PATCH",
+        "path": "/support/api/v1/tickets/:reference/status(.:format)",
+        "endpoint": "escalated/api/v1/tickets#status",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": "priority_escalated_api_v1_ticket",
+        "verb": "PATCH",
+        "path": "/support/api/v1/tickets/:reference/priority(.:format)",
+        "endpoint": "escalated/api/v1/tickets#priority",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": "assign_escalated_api_v1_ticket",
+        "verb": "POST",
+        "path": "/support/api/v1/tickets/:reference/assign(.:format)",
+        "endpoint": "escalated/api/v1/tickets#assign",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": "follow_escalated_api_v1_ticket",
+        "verb": "POST",
+        "path": "/support/api/v1/tickets/:reference/follow(.:format)",
+        "endpoint": "escalated/api/v1/tickets#follow",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": "apply_macro_escalated_api_v1_ticket",
+        "verb": "POST",
+        "path": "/support/api/v1/tickets/:reference/apply_macro(.:format)",
+        "endpoint": "escalated/api/v1/tickets#apply_macro",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/support/api/v1/tickets/:reference/actions/:action_key(.:format)",
+        "endpoint": "escalated/api/v1/tickets#custom_action",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": "tags_escalated_api_v1_ticket",
+        "verb": "POST",
+        "path": "/support/api/v1/tickets/:reference/tags(.:format)",
+        "endpoint": "escalated/api/v1/tickets#tags",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_tickets",
+        "verb": "GET",
+        "path": "/support/api/v1/tickets(.:format)",
+        "endpoint": "escalated/api/v1/tickets#index",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": null,
+        "verb": "POST",
+        "path": "/support/api/v1/tickets(.:format)",
+        "endpoint": "escalated/api/v1/tickets#create",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_ticket",
+        "verb": "GET",
+        "path": "/support/api/v1/tickets/:reference(.:format)",
+        "endpoint": "escalated/api/v1/tickets#show",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": null,
+        "verb": "DELETE",
+        "path": "/support/api/v1/tickets/:reference(.:format)",
+        "endpoint": "escalated/api/v1/tickets#destroy",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc",
+          "set_ticket"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_agents",
+        "verb": "GET",
+        "path": "/support/api/v1/agents(.:format)",
+        "endpoint": "escalated/api/v1/resources#agents",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_departments",
+        "verb": "GET",
+        "path": "/support/api/v1/departments(.:format)",
+        "endpoint": "escalated/api/v1/resources#departments",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_tags",
+        "verb": "GET",
+        "path": "/support/api/v1/tags(.:format)",
+        "endpoint": "escalated/api/v1/resources#tags",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_canned_responses",
+        "verb": "GET",
+        "path": "/support/api/v1/canned-responses(.:format)",
+        "endpoint": "escalated/api/v1/resources#canned_responses",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_macros",
+        "verb": "GET",
+        "path": "/support/api/v1/macros(.:format)",
+        "endpoint": "escalated/api/v1/resources#macros",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_realtime_config",
+        "verb": "GET",
+        "path": "/support/api/v1/realtime/config(.:format)",
+        "endpoint": "escalated/api/v1/resources#realtime_config",
+        "defaults": {},
+        "before": [
+          "check_api_enabled!",
+          "authenticate_api_token!",
+          "enforce_rate_limit!",
+          "enforce_route_permissions! if:proc"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_mobile_guest_verification",
+        "verb": "POST",
+        "path": "/support/api/v1/mobile/guest/verification",
+        "endpoint": "escalated/api/v1/mobile_guest#request_verification",
+        "defaults": {},
+        "before": [
+          "set_guest_privacy_headers",
+          "check_api_enabled!",
+          "enforce_rate_limit!",
+          "throttle_guest_requests!",
+          "throttle_verification_submissions!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_mobile_guest_lookup",
+        "verb": "POST",
+        "path": "/support/api/v1/mobile/guest/lookup",
+        "endpoint": "escalated/api/v1/mobile_guest#lookup",
+        "defaults": {},
+        "before": [
+          "set_guest_privacy_headers",
+          "check_api_enabled!",
+          "enforce_rate_limit!",
+          "throttle_guest_requests!",
+          "throttle_lookup_replies!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_mobile_guest_tickets",
+        "verb": "POST",
+        "path": "/support/api/v1/mobile/guest/tickets",
+        "endpoint": "escalated/api/v1/mobile_guest#create_ticket",
+        "defaults": {},
+        "before": [
+          "set_guest_privacy_headers",
+          "check_api_enabled!",
+          "enforce_rate_limit!",
+          "throttle_guest_requests!",
+          "throttle_guest_tickets!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_mobile_guest_ticket",
+        "verb": "GET",
+        "path": "/support/api/v1/mobile/guest/tickets/:token",
+        "endpoint": "escalated/api/v1/mobile_guest#show_ticket",
+        "defaults": {},
+        "before": [
+          "set_guest_privacy_headers",
+          "check_api_enabled!",
+          "enforce_rate_limit!",
+          "throttle_guest_requests!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_api_v1_mobile_guest_ticket_replies",
+        "verb": "POST",
+        "path": "/support/api/v1/mobile/guest/tickets/:token/replies",
+        "endpoint": "escalated/api/v1/mobile_guest#reply",
+        "defaults": {},
+        "before": [
+          "set_guest_privacy_headers",
+          "check_api_enabled!",
+          "enforce_rate_limit!",
+          "throttle_guest_requests!",
+          "throttle_guest_replies!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_newsletters_public_open",
+        "verb": "GET",
+        "path": "/escalated/n/o/:token(.:format)",
+        "endpoint": "escalated/newsletter_tracking#open",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "set_inertia_shared_data if:proc",
+          "ensure_newsletters_enabled!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_newsletters_public_click",
+        "verb": "GET",
+        "path": "/escalated/n/c/:token(.:format)",
+        "endpoint": "escalated/newsletter_tracking#click",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "set_inertia_shared_data if:proc",
+          "ensure_newsletters_enabled!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_newsletters_public_unsubscribe",
+        "verb": "GET",
+        "path": "/escalated/n/u/:token(.:format)",
+        "endpoint": "escalated/newsletter_unsubscribe#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "set_inertia_shared_data if:proc",
+          "ensure_newsletters_enabled!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_newsletters_public_unsubscribe_store",
+        "verb": "POST",
+        "path": "/escalated/n/u/:token(.:format)",
+        "endpoint": "escalated/newsletter_unsubscribe#store",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "ensure_newsletters_enabled!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "escalated_newsletters_public_view",
+        "verb": "GET",
+        "path": "/escalated/n/v/:token(.:format)",
+        "endpoint": "escalated/newsletter_view_in_browser#show",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "set_inertia_shared_data if:proc",
+          "ensure_newsletters_enabled!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "postmark",
+        "verb": "POST",
+        "path": "/escalated/webhooks/newsletter/postmark(.:format)",
+        "endpoint": "escalated/newsletter_esp_webhook#postmark",
+        "defaults": {},
+        "before": [
+          "ensure_newsletters_enabled!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "mailgun",
+        "verb": "POST",
+        "path": "/escalated/webhooks/newsletter/mailgun(.:format)",
+        "endpoint": "escalated/newsletter_esp_webhook#mailgun",
+        "defaults": {},
+        "before": [
+          "ensure_newsletters_enabled!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "ses",
+        "verb": "POST",
+        "path": "/escalated/webhooks/newsletter/ses(.:format)",
+        "endpoint": "escalated/newsletter_esp_webhook#ses",
+        "defaults": {},
+        "before": [
+          "ensure_newsletters_enabled!"
+        ],
+        "mount": false
+      },
+      {
+        "name": "sendgrid",
+        "verb": "POST",
+        "path": "/escalated/webhooks/newsletter/sendgrid(.:format)",
+        "endpoint": "escalated/newsletter_esp_webhook#sendgrid",
+        "defaults": {},
+        "before": [
+          "ensure_newsletters_enabled!"
+        ],
+        "mount": false
+      }
+    ],
+    "engine": [
+      {
+        "name": "inbound_webhook",
+        "verb": "POST",
+        "path": "/inbound/:adapter(.:format)",
+        "endpoint": "escalated/inbound#webhook",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "ensure_inbound_enabled"
+        ]
+      },
+      {
+        "name": "cloud_webhook",
+        "verb": "POST",
+        "path": "/cloud/webhook(.:format)",
+        "endpoint": "escalated/cloud_webhook#receive",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc"
+        ]
+      },
+      {
+        "name": "attachment_download",
+        "verb": "GET",
+        "path": "/attachments/:id(.:format)",
+        "endpoint": "escalated/attachments#show",
+        "defaults": {},
+        "before": [
+          "Proc"
+        ]
+      },
+      {
+        "name": "sdk_plugin_endpoint",
+        "verb": "",
+        "path": "/api/plugins/:slug(/*plugin_path)",
+        "endpoint": "escalated/plugins/endpoints#handle",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_admin!"
+        ]
+      },
+      {
+        "name": "sdk_plugin_webhook",
+        "verb": "",
+        "path": "/webhooks/plugins/:slug(/*plugin_path)",
+        "endpoint": "escalated/plugins/webhooks#handle",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "set_inertia_shared_data if:proc",
+          "verify_authenticity_token"
+        ]
+      }
+    ]
+  }
+}

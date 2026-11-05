@@ -232,13 +232,41 @@ module Escalated
 
     # name => { uri:, methods: }, uri without a leading slash, under the
     # configured route prefix, with config.route_overrides merged over it.
+    # While the admin is embedded in the host's admin panel (ADR
+    # 2026-11-05-embeddable-admin) the admin entries are under the host's
+    # prefix instead, as the routes are, so the frontend follows the move.
     def routes
-      prefix = Escalated.configuration.route_prefix.to_s.gsub(%r{\A/+|/+\z}, '')
+      prefix = Escalated::Support::EmbedConfig.route_prefix
+      embedded = Escalated::Support::EmbedConfig.enabled?
       built = ENTRIES.to_h do |name, (path, methods)|
-        [name, { uri: [prefix, path].reject(&:empty?).join('/'), methods: methods }]
+        uri = if embedded && moved?(name, path)
+                [Escalated::Support::EmbedConfig.prefix, path.delete_prefix('admin/')].join('/')
+              else
+                [prefix, path].reject(&:empty?).join('/')
+              end
+        [name, { uri: uri, methods: methods }]
       end
 
       built.merge(overrides)
+    end
+
+    # The admin entries that move while the admin is embedded: all but
+    # two-factor enrolment, which is personal to every staff user.
+    def moved?(name, path)
+      path.start_with?('admin/') && !name.start_with?('escalated.admin.two-factor.')
+    end
+
+    # The route name the frontend knows +path+ by (for `escalated.embed.route`),
+    # or nil. GET entries are tried first, in the order listed.
+    def name_for(path, method = 'GET')
+      path = path.to_s.delete_prefix('/').delete_suffix('/')
+      candidates = routes.select { |_name, entry| entry[:methods].include?(method.to_s.upcase) }
+      candidates.find { |_name, entry| uri_pattern(entry[:uri]).match?(path) }&.first
+    end
+
+    def uri_pattern(uri)
+      parts = uri.split(/(\{\w+\??\})/).map { |part| part.start_with?('{') ? '[^/]+' : Regexp.escape(part) }
+      /\A#{parts.join}\z/
     end
 
     # The `ziggy` prop for one request.

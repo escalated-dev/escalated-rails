@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <%= csrf_meta_tags %>
+  <%= escalated_route_helper_tag %>
+</head>
+<body>
+  <header>Host admin</header>
+  <aside data-host-admin-sidebar>
+    <p class="menu-heading">Support</p>
+    <ul>
+      <% escalated_admin_navigation.each do |item| %>
+        <li><a href="<%= item[:url] %>"<% if item[:active] %> class="active" aria-current="page"<% end %>><%= item[:label] %></a></li>
+      <% end %>
+    </ul>
+  </aside>
+  <main><%= yield %></main>
+</body>
+</html>

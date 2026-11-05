@@ -280,9 +280,15 @@ module Escalated
       end
 
       # SDK plugins' page menu entries, pointing at where the engine mounts
-      # each page: {prefix}/admin/plugins/{slug}/{route}.
+      # each page: {prefix}/admin/plugins/{slug}/{route}, or under the host's
+      # prefix while the admin is embedded (ADR 2026-11-05).
       def add_sdk_menu_items(menu, admin, allows)
-        prefix = Escalated.configuration.route_prefix.to_s.delete_prefix('/').delete_suffix('/')
+        base = if Escalated::Support::EmbedConfig.enabled?
+                 "#{Escalated::Support::EmbedConfig.prefix}/plugins"
+               else
+                 prefix = Escalated.configuration.route_prefix.to_s.delete_prefix('/').delete_suffix('/')
+                 [prefix, 'admin/plugins'].reject(&:empty?).join('/')
+               end
         sdk_manifests.each do |name, manifest|
           slug = self.class.slug(name)
           Array(manifest['pages']).each do |page|
@@ -295,7 +301,7 @@ module Escalated
             section = (menu_item['section'] || 'admin').to_s
             next if (section == 'admin' && !admin) || !allows.call(page['capability'])
 
-            url = "/#{[prefix, 'admin/plugins', slug, route].reject(&:empty?).join('/')}"
+            url = "/#{[base, slug, route].reject(&:empty?).join('/')}"
             menu << {
               label: menu_item['label'] || page['component'], route: url, icon: menu_item['icon'],
               position: menu_item['position'] || 100, section: section, plugin: slug

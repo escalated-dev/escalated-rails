@@ -58,9 +58,11 @@ module Escalated
       end
 
       token = verifier.generate(data, expires_in: expires_in, purpose: PURPOSE)
-      Escalated::Engine.routes.url_helpers.attachment_download_path(
-        attachment.id, token: token, script_name: "/#{Escalated.configuration.route_prefix}"
-      )
+      # The engine's mount point: route_prefix, or the root while the admin
+      # is embedded (the engine then draws route_prefix itself).
+      script_name = Escalated::Support::EmbedConfig.enabled? ? '' : "/#{Escalated.configuration.route_prefix}"
+      helpers = Escalated::Engine.routes.url_helpers
+      helpers.attachment_download_path(attachment.id, token: token, script_name: script_name)
     end
 
     # The link's payload when it is genuine, unexpired and names this

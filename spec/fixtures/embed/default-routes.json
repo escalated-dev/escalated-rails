@@ -679,7 +679,8 @@
           "verify_authenticity_token",
           "apply_middleware",
           "set_inertia_shared_data if:proc",
-          "set_ticket"
+          "set_ticket",
+          "record_customer_presence"
         ]
       },
       {
@@ -693,7 +694,8 @@
           "verify_authenticity_token",
           "apply_middleware",
           "set_inertia_shared_data if:proc",
-          "set_ticket"
+          "set_ticket",
+          "record_customer_presence"
         ]
       },
       {
@@ -707,7 +709,8 @@
           "verify_authenticity_token",
           "apply_middleware",
           "set_inertia_shared_data if:proc",
-          "set_ticket"
+          "set_ticket",
+          "record_customer_presence"
         ]
       },
       {
@@ -734,7 +737,8 @@
           "Proc",
           "verify_authenticity_token",
           "apply_middleware",
-          "set_inertia_shared_data if:proc"
+          "set_inertia_shared_data if:proc",
+          "record_customer_presence"
         ]
       },
       {
@@ -747,7 +751,8 @@
           "Proc",
           "verify_authenticity_token",
           "apply_middleware",
-          "set_inertia_shared_data if:proc"
+          "set_inertia_shared_data if:proc",
+          "record_customer_presence"
         ]
       },
       {
@@ -760,7 +765,8 @@
           "Proc",
           "verify_authenticity_token",
           "apply_middleware",
-          "set_inertia_shared_data if:proc"
+          "set_inertia_shared_data if:proc",
+          "record_customer_presence"
         ]
       },
       {
@@ -773,7 +779,8 @@
           "Proc",
           "verify_authenticity_token",
           "apply_middleware",
-          "set_inertia_shared_data if:proc"
+          "set_inertia_shared_data if:proc",
+          "record_customer_presence"
         ]
       },
       {
@@ -787,7 +794,8 @@
           "verify_authenticity_token",
           "apply_middleware",
           "set_inertia_shared_data if:proc",
-          "set_ticket"
+          "set_ticket",
+          "record_customer_presence"
         ]
       },
       {
@@ -816,6 +824,109 @@
           "apply_middleware",
           "set_inertia_shared_data if:proc",
           "require_agent!"
+        ]
+      },
+      {
+        "name": "agent_status",
+        "verb": "PUT|PATCH|POST",
+        "path": "/agent/status(.:format)",
+        "endpoint": "escalated/agent/panel#status",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!"
+        ]
+      },
+      {
+        "name": "agent_kb_search",
+        "verb": "GET",
+        "path": "/agent/kb/search(.:format)",
+        "endpoint": "escalated/agent/panel#kb_search",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!"
+        ]
+      },
+      {
+        "name": "agent_notifications",
+        "verb": "GET",
+        "path": "/agent/notifications(.:format)",
+        "endpoint": "escalated/agent/notifications#index",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "require_feed!"
+        ]
+      },
+      {
+        "name": "agent_notifications_read_all",
+        "verb": "POST",
+        "path": "/agent/notifications/read-all(.:format)",
+        "endpoint": "escalated/agent/notifications#read_all",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "require_feed!"
+        ]
+      },
+      {
+        "name": "agent_notification_read",
+        "verb": "POST",
+        "path": "/agent/notifications/:id/read(.:format)",
+        "endpoint": "escalated/agent/notifications#read",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "require_feed!"
+        ]
+      },
+      {
+        "name": "agent_ticket_read",
+        "verb": "POST",
+        "path": "/agent/tickets/:id/read(.:format)",
+        "endpoint": "escalated/agent/panel#mark_read",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_ticket"
+        ]
+      },
+      {
+        "name": "agent_ticket_unread",
+        "verb": "POST",
+        "path": "/agent/tickets/:id/unread(.:format)",
+        "endpoint": "escalated/agent/panel#mark_unread",
+        "defaults": {},
+        "before": [
+          "Proc",
+          "verify_authenticity_token",
+          "apply_middleware",
+          "set_inertia_shared_data if:proc",
+          "require_agent!",
+          "set_ticket"
         ]
       },
       {
@@ -5727,7 +5838,8 @@
           "Proc",
           "verify_authenticity_token",
           "apply_middleware",
-          "set_inertia_shared_data if:proc"
+          "set_inertia_shared_data if:proc",
+          "record_customer_presence"
         ]
       }
     ]

@@ -53,6 +53,14 @@ module Escalated
       'escalated.agent.tickets.custom-action' => ['agent/tickets/{id}/actions/{action_key}', POST],
       'escalated.agent.tickets.snooze' => ['agent/tickets/{id}/snooze', POST],
       'escalated.agent.tickets.unsnooze' => ['agent/tickets/{id}/unsnooze', POST],
+      # The agent panel's data (ADR 2026-11-05-agent-panel-data)
+      'escalated.agent.tickets.read' => ['agent/tickets/{id}/read', POST],
+      'escalated.agent.tickets.unread' => ['agent/tickets/{id}/unread', POST],
+      'escalated.agent.status' => ['agent/status', %w[PUT PATCH POST]],
+      'escalated.agent.kb.search' => ['agent/kb/search', GET],
+      'escalated.agent.notifications.index' => ['agent/notifications', GET],
+      'escalated.agent.notifications.read-all' => ['agent/notifications/read-all', POST],
+      'escalated.agent.notifications.read' => ['agent/notifications/{id}/read', POST],
 
       # Admin tickets
       **ticket_actions('admin'),

@@ -79,6 +79,15 @@ Escalated::Engine.routes.draw do
     namespace :agent do
       get '/', to: 'dashboard#index', as: :dashboard
       post 'tickets/bulk', to: 'bulk_actions#create', as: :tickets_bulk
+
+      # The agent panel's data (ADR 2026-11-05-agent-panel-data).
+      match 'status', to: 'panel#status', via: %i[put patch post], as: :status
+      get 'kb/search', to: 'panel#kb_search', as: :kb_search
+      get 'notifications', to: 'notifications#index', as: :notifications
+      post 'notifications/read-all', to: 'notifications#read_all', as: :notifications_read_all
+      post 'notifications/:id/read', to: 'notifications#read', as: :notification_read
+      post 'tickets/:id/read', to: 'panel#mark_read', as: :ticket_read
+      post 'tickets/:id/unread', to: 'panel#mark_unread', as: :ticket_unread
       resources :tickets, only: %i[index show update] do
         member do
           post :reply

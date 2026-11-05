@@ -153,6 +153,9 @@ module Escalated
       ticket = widget_ticket
       return render json: { error: 'Ticket not found', message: 'Ticket not found' }, status: :not_found unless ticket
 
+      # The customer is on the site (only agent pages ever show it).
+      Services::CustomerPresenceTracker.quietly { Services::CustomerPresenceTracker.see_ticket_customer(ticket) }
+
       render json: {
         reference: ticket.reference,
         subject: ticket.subject,

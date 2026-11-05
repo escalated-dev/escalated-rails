@@ -4,6 +4,9 @@ module Escalated
   module Customer
     class TicketsController < Escalated::ApplicationController
       before_action :set_ticket, only: %i[show reply close reopen]
+      # The customer is on the site (agent pages show them online; ADR
+      # 2026-11-05-agent-panel-data). Staff browsing the portal are skipped.
+      before_action :record_customer_presence
 
       def index
         scope = Escalated::Ticket.where(
@@ -111,6 +114,12 @@ module Escalated
       end
 
       private
+
+      def record_customer_presence
+        Services::CustomerPresenceTracker.quietly do
+          Services::CustomerPresenceTracker.see_user(escalated_current_user)
+        end
+      end
 
       # Customer/Show and TicketList link by reference; the id still works.
       def set_ticket

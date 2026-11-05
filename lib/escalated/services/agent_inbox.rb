@@ -114,6 +114,13 @@ module Escalated
             unassigned: count_open('unassigned' => 1),
             all: count_open({})
           },
+          # Of the same open tickets, those unread for this agent
+          # (ADR 2026-11-05-agent-panel-data).
+          unread: {
+            mine: count_open_unread('assigned_to' => @me),
+            unassigned: count_open_unread('unassigned' => 1),
+            all: count_open_unread({})
+          },
           views: views.map do |view|
             { id: view[:id], name: view[:name], count: count_open(view[:filters]), filters: view[:filters] }
           end,
@@ -165,13 +172,25 @@ module Escalated
 
       # Unresolved tickets, unless the filters ask for a status themselves.
       def count_open(filters)
+        count(open_filters(filters))
+      end
+
+      # Of the same open tickets, those unread for this agent.
+      def count_open_unread(filters)
+        TicketReads.only_unread(scope_for(open_filters(filters)), @agent).count
+      end
+
+      def open_filters(filters)
         filters = filters.stringify_keys
-        filters = filters.merge('open' => 1) if filters['status'].blank?
-        count(filters)
+        filters['status'].blank? ? filters.merge('open' => 1) : filters
       end
 
       def count(filters)
-        Support::TicketListFilters.apply(Escalated::Ticket.all, filters, @agent).count
+        scope_for(filters).count
+      end
+
+      def scope_for(filters)
+        Support::TicketListFilters.apply(Escalated::Ticket.all, filters, @agent)
       end
 
       # Filters as strings, without empty values or order, for comparing a URL with a view.

@@ -64,6 +64,7 @@ module Escalated
       )
 
       chat = result[:session]
+      record_presence(chat)
       agent = chat_agent(chat)
       # As in escalated-laravel: `id` and `session_id` are both the chat token;
       # the numeric session and ticket ids stay internal.
@@ -174,9 +175,17 @@ module Escalated
     # Unknown and expired tokens are both 404, as in escalated-laravel.
     def set_session
       @session = Escalated::ChatSession.for_visitor_token(params[:session_id])
-      return if @session
+      return record_presence(@session) if @session
 
       render json: { error: 'Chat session not found', message: 'Chat session not found' }, status: :not_found
+    end
+
+    # The visitor is on the site: agent pages show the chat's customer online.
+    def record_presence(chat)
+      Services::CustomerPresenceTracker.quietly do
+        Services::CustomerPresenceTracker.see_ticket_customer(chat.ticket) if chat.ticket
+      end
+      nil
     end
 
     def render_ended(message)

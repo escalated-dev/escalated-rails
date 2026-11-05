@@ -26,7 +26,10 @@ module Escalated
         'tags' => %w[ticket.edit],
         'department' => %w[ticket.edit],
         'close' => %w[ticket.edit ticket.close],
-        'delete' => %w[ticket.delete]
+        'delete' => %w[ticket.delete],
+        # Personal read markers: viewing the ticket is enough.
+        'mark_read' => [],
+        'mark_unread' => []
       }.freeze
 
       A = 'escalated/admin'
@@ -48,6 +51,11 @@ module Escalated
       MAP = [
         # ---- Personal ------------------------------------------------------
         ["#{A}/two_factor#*", []],
+        # The agent panel's personal routes (ADR 2026-11-05-agent-panel-data).
+        ["#{G}/panel#status", []],
+        ["#{G}/notifications#*", []],
+        ["#{G}/panel\#{mark_read,mark_unread}", VIEW],
+        ["#{G}/panel#kb_search", %w[kb.view]],
 
         # ---- Tickets (admin and agent panels, staff API) ---------------------
         ["#{G}/dashboard#index", VIEW],

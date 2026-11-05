@@ -14,6 +14,12 @@ module Escalated
     attr_accessor :mode,
                   # Seconds the agent panel's inbox counts are cached per agent (0 = off)
                   :agent_inbox_cache_seconds,
+                  # Agent pages show a customer as online when the portal or the
+                  # widget saw them within this many seconds
+                  # (ESCALATED_PRESENCE_ONLINE_WINDOW, default 120).
+                  :presence_online_window_seconds,
+                  # The agents' in-app notifications feed and bell (default true).
+                  :agent_notifications,
                   :visibility,
                   :accounts,
                   :user_class,
@@ -147,6 +153,8 @@ module Escalated
     def initialize
       @mode = :self_hosted
       @agent_inbox_cache_seconds = (ENV['ESCALATED_AGENT_INBOX_CACHE_SECONDS'] || 10).to_i
+      @presence_online_window_seconds = (ENV['ESCALATED_PRESENCE_ONLINE_WINDOW'] || 120).to_i
+      @agent_notifications = true
       @visibility = 'all'
       @accounts = { enabled: false, scope_agents: false, resolver: nil }
       @user_class = 'User'

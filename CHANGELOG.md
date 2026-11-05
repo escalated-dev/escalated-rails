@@ -7,9 +7,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Upgrading
+- **New migration `070_create_escalated_agent_panel_data`:** `tickets.last_customer_activity_at` and the `ticket_reads`, `customer_presence` and `notifications` tables. Existing tickets get no activity, so none of them turn unread.
+- **Assigning a ticket to yourself no longer emails you** (and creates no in-app notification).
+- **Agents get in-app notifications** (`config.agent_notifications = false` turns them off). An in-app `ticket_reply` is sent only for customer-side replies; other agents' replies still email as before.
 - **Optional: embed the admin in your own admin panel (off by default; no change unless configured).** With no `config.embed` / `embed_admin` and no `ESCALATED_EMBED` env var, every route, `before_action` guard, page, shared prop, layout and header is unchanged: a spec compares the whole route table (host and engine routes, with each action's guards) with a snapshot taken before this change, and the framing middleware is not installed. See docs/embedding-admin.md.
 
 ### Added
+- **Agent panel data** (ADR 2026-11-05-agent-panel-data, see docs/agent-panel.md): `escalated.agent.status` (PUT/POST) for every agent, stored in `agent_profiles.chat_status` with the admin chat status route kept as an alias, and shared `escalated.agent_status` / `agent_statuses`; `escalated.agent.kb.search`; per-agent unread markers (`is_unread`, `inbox.unread`, `escalated.agent.tickets.read` / `.unread`, bulk `mark_read` / `mark_unread`, opening a ticket marks it read); customer online status on agent pages only (`requester_online`, `requester_last_seen_at`, `config.presence_online_window_seconds`); the notifications feed (`ticket_assigned`, `ticket_reply`, `mention`, `sla_warning`, `sla_breached`, `chat_transferred`, three routes, shared `escalated.notifications.unread_count`, redaction, `notification.created` on `escalated_agent_{id}`).
 - **Embedding the admin in your own admin panel** (optional; ADR 2026-11-05-embeddable-admin). `config.embed_admin(prefix:, middleware:, layout:, root_view:, mode:, replace_admin_gate:, frame_ancestors:)` (also `Escalated.embed_admin`), or `config.embed = { ... }`, or `ESCALATED_EMBED`, `ESCALATED_EMBED_MODE`, `ESCALATED_EMBED_PREFIX`, `ESCALATED_EMBED_FRAME_ANCESTORS`:
   - the engine is mounted at the root and draws `route_prefix` itself; the admin screens (including plugin admin, API tokens, import, chat) and SDK plugin admin pages move under the host's prefix with the same route helper names, the `ziggy` route list follows, and the old `/support/admin/...` URLs are no longer routed. The host's `middleware` (`before_action` method names or blocks; `nil` keeps `config.middleware`) runs in place of `config.middleware`; Escalated's admin gate stays unless `replace_admin_gate` is set (refused without host middleware), and two-factor and route permissions always apply. Agent, customer, guest, widget, API, SDK plugin endpoints, SSO, two-factor and newsletter routes do not move;
   - every Inertia page shares `escalated.embed` (`enabled` on embedded pages only, `mode`, `layout`, `route`, `base_url`, `allowed_origins`) and `escalated.navigation`, the admin menu filtered by the admin gate, feature switches and route permissions, with plugin admin items; `Escalated.admin_navigation(user, request)` and the `escalated_admin_navigation` view helper return the same for ERB layouts;
@@ -17,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   - iframe mode: `Escalated::EmbedFrameHeaders` (installed at the top of the Rack stack only while embedding is on) adds `Content-Security-Policy: frame-ancestors 'self' <origins>` (a host CSP is kept as a second policy) and drops `X-Frame-Options` on embedded responses only.
 
 ### Fixed
+- Knowledge-base search takes `%` and `_` literally and ignores case on PostgreSQL (`Escalated::Article.search`, used by the customer knowledge base and the widget).
 - A malformed ticket-list filter sends the visit back to the admin list or the agent list by controller, not by `/admin/` in the URL (an agent list under a `route_prefix` containing `admin` was sent to the admin list; the embedded admin has no `/admin/` in its URLs).
 
 ## [0.7.11] - 2026-11-04

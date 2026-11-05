@@ -100,6 +100,16 @@ module Escalated
         )
 
         Rails.logger.info("Escalated mention notification: user=#{mention.user_id} ticket=#{ticket.reference}")
+
+        # The agent feed: @mentions in internal notes (ADR 2026-11-05-agent-panel-data).
+        next unless reply.is_internal
+
+        author = reply.author
+        Escalated::Services::AgentNotificationFeed.notify(
+          mention.user_id, 'mention', ticket,
+          data: { 'mentioned_by' => author.respond_to?(:name) ? author.name.to_s : author&.email.to_s },
+          causer_id: author&.id
+        )
       end
     end
 

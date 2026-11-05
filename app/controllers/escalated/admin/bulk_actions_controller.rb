@@ -28,6 +28,11 @@ module Escalated
             Services::TicketService.close(ticket, actor: escalated_current_user)
           when 'delete'
             ticket.destroy!
+          # Per-agent read markers (ADR 2026-11-05-agent-panel-data).
+          when 'mark_read'
+            Services::TicketReads.mark_read(escalated_current_user, ticket)
+          when 'mark_unread'
+            Services::TicketReads.mark_unread(escalated_current_user, ticket)
           end
           success_count += 1
         rescue StandardError => e

@@ -27,11 +27,12 @@ module Escalated
         scope = Support::TicketListFilters.order(scope, filters)
 
         result = paginate(scope)
+        rows = result[:data].includes(:requester, :department, :assignee, :tags).to_a
+        panel = Services::TicketReads.row_fields(escalated_current_user, rows)
 
         render_page 'Escalated/Agent/TicketIndex', {
           # TicketList reads `tickets.data`; a bare array rendered "No tickets found".
-          tickets: paginated_page(result, result[:data].includes(:requester, :department, :assignee, :tags)
-                                                     .map { |t| ticket_list_json(t) }),
+          tickets: paginated_page(result, rows.map { |t| ticket_list_json(t).merge(panel[t.id] || {}) }),
           meta: result[:meta],
           filters: {
             status: params[:status],
@@ -64,11 +65,12 @@ module Escalated
         @ticket.ticket_subjects.load
         inbox = Services::AgentInbox.new(escalated_current_user)
         queue = inbox.recalled(session)
+        panel = Services::TicketReads.opened(escalated_current_user, @ticket)
 
         render_page 'Escalated/Agent/TicketShow', {
           # The page reads the thread and activity from `ticket.replies` and
           # `ticket.activities`, not from props beside the ticket.
-          ticket: ticket_detail_json(@ticket).merge(
+          ticket: ticket_detail_json(@ticket).merge(panel).merge(
             replies: replies.map { |r| reply_json(r) },
             activities: activities.map { |a| activity_json(a) }
           ),

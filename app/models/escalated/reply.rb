@@ -20,8 +20,13 @@ module Escalated
     scope :chronological, -> { order(created_at: :asc) }
     scope :reverse_chronological, -> { order(created_at: :desc) }
 
+    # Set on a public reply a workflow or automation writes with no author, so
+    # it is not mistaken for the customer's (agent unread markers).
+    attr_accessor :system_authored
+
     after_create :touch_ticket
     after_create :process_mentions
+    after_create :record_customer_activity
 
     def public?
       !is_internal
@@ -43,6 +48,12 @@ module Escalated
 
     def touch_ticket
       ticket.touch
+    end
+
+    # A customer-side public reply is unread activity for agents
+    # (ADR 2026-11-05-agent-panel-data).
+    def record_customer_activity
+      Escalated::Services::TicketReads.reply_created(self)
     end
 
     def process_mentions

@@ -65,11 +65,13 @@ module Escalated
         def assign(ticket, agent, actor:)
           result = driver.assign_ticket(ticket, agent, actor: actor)
 
-          if Escalated.configuration.notification_channels.include?(:email)
+          # Assigning a ticket to yourself tells you nothing.
+          self_assigned = actor && agent && actor.id.to_s == agent.id.to_s
+          if !self_assigned && Escalated.configuration.notification_channels.include?(:email)
             Escalated::TicketMailer.ticket_assigned(result).deliver_later
           end
 
-          Services::NotificationService.dispatch(:ticket_assigned, ticket: result, agent: agent)
+          Services::NotificationService.dispatch(:ticket_assigned, ticket: result, agent: agent, actor: actor)
           Escalated::Broadcasting.ticket_assigned(result, agent)
 
           result

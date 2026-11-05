@@ -65,7 +65,7 @@ RSpec.describe 'Agent inbox props', type: :request do
     expect(page['component']).to eq('Escalated/Agent/TicketIndex')
 
     inbox = page['props']['inbox']
-    expect(inbox.keys).to eq(%w[counts views stats])
+    expect(inbox.keys).to eq(%w[counts unread views stats])
     # Unresolved, unsnoozed tickets in each queue.
     expect(inbox['counts']).to eq('mine' => 2, 'unassigned' => 1, 'all' => 4)
     expect(inbox['views'].pluck('id')).to eq(built_in_view_ids)
@@ -304,9 +304,9 @@ RSpec.describe 'Agent inbox props', type: :request do
 
     expect(row['latest_reply']['body']).to eq('Customer-visible answer')
     expect(Time.zone.parse(row['last_reply_at'])).to be_within(3.seconds).of(5.minutes.ago)
-    # Escalated tracks no per-agent read state or customer presence, so it sends neither.
-    expect(row).not_to have_key('is_unread')
-    expect(row).not_to have_key('requester_online')
+    # The new ticket is customer activity; the agent's own replies are not.
+    expect(row['is_unread']).to be(true)
+    expect(row['requester_online']).to be(false)
   end
 
   it 'sends inbox and the queue the agent last opened on the ticket page' do
@@ -317,7 +317,7 @@ RSpec.describe 'Agent inbox props', type: :request do
     expect(page['component']).to eq('Escalated/Agent/TicketShow')
     expect(page['props']['queue']).to eq('key' => 'all', 'title' => 'All tickets')
     expect(page['props']['inbox']['counts']).to eq('mine' => 1, 'unassigned' => 1, 'all' => 2)
-    expect(page['props']['inbox'].keys).to eq(%w[counts views stats])
+    expect(page['props']['inbox'].keys).to eq(%w[counts unread views stats])
 
     props_for('/support/agent/tickets', assigned_to: agent.id)
 

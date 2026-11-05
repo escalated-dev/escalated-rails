@@ -84,8 +84,10 @@ module Escalated
           return
         end
 
+        # The same field as the agent route (escalated.agent.status); this
+        # route is kept as an alias for it.
         profile.update!(chat_status: params[:status])
-        render json: { status: profile.chat_status }
+        render json: { status: profile.chat_status, agent_status: profile.chat_status }
       end
 
       # POST /admin/chat/:id/message

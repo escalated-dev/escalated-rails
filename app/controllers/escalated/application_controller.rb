@@ -150,6 +150,11 @@ module Escalated
         ziggy: Escalated::RouteList.ziggy(request)
       }
 
+      # The agent panel's data (ADR 2026-11-05-agent-panel-data), agents only.
+      if current_user_data&.dig(:is_agent) || current_user_data&.dig(:is_admin)
+        shared[:escalated].merge!(agent_panel_shared)
+      end
+
       # Plugin menus, slots and widgets, in the shape the shared frontend's
       # usePluginExtensions() reads (domain-model/plugin-contract.md).
       shared[:escalated][:plugins] = Escalated.plugin_ui.shared_extensions(
@@ -166,6 +171,18 @@ module Escalated
       end
 
       inertia_share(**shared)
+    end
+
+    # `agent_status`, `agent_statuses` and, while the feed is on, `notifications`.
+    def agent_panel_shared
+      user = escalated_current_user
+      data = { agent_status: Escalated::AgentStatus.for(user), agent_statuses: Escalated::AgentStatus.values }
+      if Escalated::Services::AgentNotificationFeed.available?
+        data[:notifications] = { unread_count: Escalated::Services::AgentNotificationFeed.unread_count(user) }
+      end
+      data
+    rescue ActiveRecord::StatementInvalid
+      {} # The tables may not be migrated yet.
     end
 
     # Whether the signed-in staff user must enrol in two-factor before going on.

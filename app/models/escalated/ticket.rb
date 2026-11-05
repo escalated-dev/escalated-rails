@@ -75,6 +75,10 @@ module Escalated
 
     before_validation :resolve_requester_account, on: :create
     before_create :set_reference
+    # A new ticket is customer activity: unread for agents until opened
+    # (ADR 2026-11-05-agent-panel-data). Imported tickets are not.
+    before_create :set_customer_activity
+    has_many :ticket_reads, class_name: 'Escalated::TicketRead', dependent: :delete_all
     # A new guest email has not been verified: its proof, grants and any
     # legacy guest token stop working.
     before_update :revoke_guest_access, if: :will_save_change_to_guest_email?
@@ -320,6 +324,13 @@ module Escalated
       return if account_type.nil? == account_id.nil?
 
       errors.add(:account, 'requires both account_type and account_id')
+    end
+
+    def set_customer_activity
+      return if Escalated::Support::ImportContext.importing?
+      return unless has_attribute?(:last_customer_activity_at)
+
+      self.last_customer_activity_at ||= Time.current
     end
 
     def set_reference

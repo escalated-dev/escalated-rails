@@ -166,7 +166,8 @@ module Escalated
       when 'add_note'
         ticket.replies.create!(body: interpolate_variables(value.to_s, ticket), is_internal: true)
       when 'insert_canned_reply'
-        ticket.replies.create!(body: interpolate_variables(value.to_s, ticket), is_internal: false)
+        ticket.replies.create!(body: interpolate_variables(value.to_s, ticket), is_internal: false,
+                               system_authored: true)
       when 'send_webhook'
         send_webhook(action, ticket)
       when 'set_type'

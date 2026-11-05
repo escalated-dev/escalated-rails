@@ -19,6 +19,8 @@ module Escalated
           instrument_event(event, payload)
           fire_hooks(event, payload)
           PluginActions.deliver(event, payload)
+          # The agents' in-app notifications (ADR 2026-11-05-agent-panel-data).
+          AgentNotificationFeed.deliver(event, payload)
         end
 
         def send_webhook(event, payload)

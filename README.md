@@ -37,6 +37,7 @@ A full-featured, embeddable support ticket system for Rails. Drop it into any ap
 - **Agent dashboard** — Ticket queue with filters, bulk actions, internal notes, canned responses
 - **Customer portal** — Self-service ticket creation, replies, and status tracking
 - **Admin panel** — Manage departments, SLA policies, escalation rules, tags, and view reports
+- **Admin inside your own admin panel (optional)** — Off by default; mount the admin under your prefix and guards, inside your Inertia layout, ERB layout or an allow-listed iframe, with its menu in your sidebar; see [embedding the admin](docs/embedding-admin.md)
 - **File attachments** — Drag-and-drop uploads with configurable storage and size limits
 - **Activity timeline** — Full audit log of every action on every ticket
 - **Email notifications** — Configurable per-event notifications with webhook support
@@ -89,6 +90,23 @@ end
 ```
 
 Visit `/support` — you're live.
+
+## Embedding the admin in your own admin panel (optional)
+
+Escalated's admin is a standalone panel at `/support/admin`, and that stays the default: nothing below changes anything until you turn it on. If your app already has an admin panel, you can mount Escalated's admin screens under your prefix and guards instead, render them inside your Inertia/Vue layout or your ERB admin layout (or an allow-listed iframe), and list Escalated's admin menu in your own sidebar:
+
+```ruby
+# config/initializers/escalated.rb
+Escalated.configure do |config|
+  config.embed_admin(
+    prefix: 'admin/support',
+    middleware: [:authenticate_user!, -> { head :forbidden unless current_user&.admin? }],
+    layout: 'Layouts/AdminLayout'
+  )
+end
+```
+
+Route names stay the same, so links follow the move; Escalated's admin gate, two-factor and route permissions stay on. The agent panel, customer portal, widget, API, SSO, two-factor and newsletter URLs do not move. Setup for each kind of host, the `ESCALATED_EMBED*` env vars and the security notes are in [docs/embedding-admin.md](docs/embedding-admin.md).
 
 ## Ticket subjects
 

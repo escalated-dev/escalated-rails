@@ -72,15 +72,38 @@ module Escalated
       end
     end
 
-    # escalated_route_helper_tag, for the host's Inertia layout.
+    # escalated_route_helper_tag and escalated_admin_navigation, for the
+    # host's layouts.
     initializer 'escalated.route_helper' do
       ActiveSupport.on_load(:action_view) { include Escalated::RouteListHelper }
     end
 
     initializer 'escalated.append_routes' do |app|
       app.routes.append do
-        mount Escalated::Engine, at: "/#{Escalated.configuration.route_prefix}"
+        # While the admin is embedded in the host's admin panel (ADR
+        # 2026-11-05-embeddable-admin) the engine is mounted at the root and
+        # draws route_prefix itself, so the admin can move under the host's
+        # prefix while every other route keeps its URL. Unmatched requests
+        # fall through to the host's later routes either way.
+        if Escalated::Support::EmbedConfig.enabled?
+          mount Escalated::Engine, at: '/'
+        else
+          mount Escalated::Engine, at: "/#{Escalated.configuration.route_prefix}"
+        end
       end
+    end
+
+    # iframe framing headers for the embedded admin, at the top of the host's
+    # Rack stack so they are applied after any host middleware. Only while
+    # embedding is on: otherwise the stack is untouched.
+    initializer 'escalated.embed_frame_headers', after: :load_config_initializers do |app|
+      Escalated::Engine.install_embed_frame_headers(app.config.middleware)
+    end
+
+    def self.install_embed_frame_headers(middleware)
+      return unless Escalated::Support::EmbedConfig.enabled?
+
+      middleware.insert_before(0, Escalated::EmbedFrameHeaders)
     end
 
     initializer 'escalated.api_routes' do |app|

@@ -48,13 +48,64 @@ module Escalated
         errors['account_id'] = ['The account id field is required when account type is present.']
       end
       errors = { 'account' => [error.message] } if errors.empty?
-      fallback = request.path.include?('/admin/') ? escalated.admin_tickets_path : escalated.agent_tickets_path
+      admin = controller_path.start_with?('escalated/admin/')
+      fallback = admin ? escalated.admin_tickets_path : escalated.agent_tickets_path
       invalid_list_filters(errors, fallback)
     end
 
     def apply_middleware
+      return apply_embedded_admin_middleware if escalated_embedded_request?
+
+      apply_configured_middleware
+    end
+
+    def apply_configured_middleware
       Escalated.configuration.middleware.each do |middleware_method|
         send(middleware_method) if respond_to?(middleware_method, true)
+      end
+    end
+
+    # Whether this request was routed to the admin embedded in the host's
+    # admin panel (ADR 2026-11-05-embeddable-admin). Always false while
+    # embedding is off.
+    def escalated_embedded_request?
+      Escalated::Support::EmbedConfig.embedded_request?(request)
+    end
+
+    # The embedded admin runs the host's guards (config.embed[:middleware])
+    # instead of config.middleware, which it keeps when none are set:
+    # before_action method names or callables taking the controller, in
+    # order, stopping at the first that renders or redirects. A method name
+    # this controller does not have is an error rather than skipped: a guard
+    # that silently does nothing is not one. In iframe mode it marks the
+    # response for Escalated::EmbedFrameHeaders.
+    def apply_embedded_admin_middleware
+      if Escalated::Support::EmbedConfig.iframe?
+        request.env[Escalated::Support::EmbedConfig::FRAME_ENV] =
+          Escalated::Support::EmbedConfig.frame_ancestors_directive
+      end
+
+      guards = Escalated::Support::EmbedConfig.middleware
+      return apply_configured_middleware if guards.nil?
+
+      guards.each do |guard|
+        run_embedded_admin_guard(guard)
+        break if performed?
+      end
+    end
+
+    def run_embedded_admin_guard(guard)
+      case guard
+      when Symbol, String
+        unless respond_to?(guard, true)
+          raise ArgumentError, "Escalated embed middleware #{guard.inspect} is not a method of #{self.class.name}."
+        end
+
+        send(guard)
+      when Proc
+        guard.arity.zero? ? instance_exec(&guard) : instance_exec(self, &guard)
+      else
+        guard.call(self)
       end
     end
 
@@ -107,6 +158,13 @@ module Escalated
         viewer: escalated_current_user
       )
 
+      # Embedding the admin in the host's admin panel (optional; ADR
+      # 2026-11-05). Neither key exists while it is off.
+      if Escalated::Support::EmbedConfig.enabled?
+        shared[:escalated][:embed] = Escalated::Support::EmbedConfig.shared(request)
+        shared[:escalated][:navigation] = Escalated.admin_navigation(escalated_current_user, request)
+      end
+
       inertia_share(**shared)
     end
 
@@ -156,13 +214,20 @@ module Escalated
     end
 
     # The host's admin gate, then the action's permission (see require_agent!).
+    # On the embedded admin, a host that set replace_admin_gate has its own
+    # guards decide instead (apply_embedded_admin_middleware); two-factor and
+    # permissions still apply.
     def require_admin!
-      unless current_user_data&.dig(:is_admin)
+      unless current_user_data&.dig(:is_admin) || embedded_admin_gate_replaced?
         return redirect_to main_app.root_path,
                            alert: I18n.t('escalated.middleware.not_admin')
       end
 
       enforce_two_factor! && enforce_route_permissions!
+    end
+
+    def embedded_admin_gate_replaced?
+      escalated_embedded_request? && Escalated::Support::EmbedConfig.replace_admin_gate?
     end
 
     # Agents and admins, for screens about the staff member's own account

@@ -36,6 +36,15 @@ Escalated.configure do |config|
   # Additional middleware for admin routes (nil = same as middleware)
   config.admin_middleware = nil
 
+  # Optional: show Escalated's admin inside your own admin panel instead of
+  # the standalone admin at /support/admin (off by default; see
+  # docs/embedding-admin.md).
+  # config.embed_admin(
+  #   prefix: 'admin/support',
+  #   middleware: [:authenticate_user!, -> { head :forbidden unless current_user&.admin? }],
+  #   layout: 'Layouts/AdminLayout'
+  # )
+
   # ============================================================
   # Ticket Settings
   # ============================================================

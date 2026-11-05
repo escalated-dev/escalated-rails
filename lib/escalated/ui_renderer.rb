@@ -24,7 +24,14 @@ module Escalated
 
     # Default renderer that delegates to the inertia-rails gem.
     class InertiaRenderer < Base
+      # An embedded admin response renders in the host's layout when
+      # config.embed[:root_view] is set (ADR 2026-11-05-embeddable-admin).
       def render_page(controller, page, props = {}, status: :ok)
+        root_view = Escalated::Support::EmbedConfig.root_view
+        if root_view && Escalated::Support::EmbedConfig.embedded_request?(controller.request)
+          return controller.render inertia: page, props: props, status: status, layout: root_view
+        end
+
         controller.render inertia: page, props: props, status: status
       end
     end

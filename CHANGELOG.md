@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.12] - 2026-11-05
+
 ### Upgrading
 - **New migration `070_create_escalated_agent_panel_data`:** `tickets.last_customer_activity_at` and the `ticket_reads`, `customer_presence` and `notifications` tables. Existing tickets get no activity, so none of them turn unread.
 - **Assigning a ticket to yourself no longer emails you** (and creates no in-app notification).

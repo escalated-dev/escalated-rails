@@ -1,14 +1,20 @@
 source 'https://rubygems.org'
 
-ruby '>= 3.1'
+ruby '>= 3.2'
 
-gem 'rails', '~> 7.1'
+gem 'rails', '~> 8.0'
 gem 'pg', '~> 1.1'
 gem 'puma', '>= 5.0'
 gem 'bootsnap', require: false
 gem 'tzinfo-data', platforms: %i[mingw mswin x64_mingw jruby]
 
 gem 'escalated', path: '/package'
+# escalated-locale is not on rubygems.org; the gem's own Gemfile takes it
+# from git the same way.
+gem 'escalated-locale',
+    git: 'https://github.com/escalated-dev/escalated-locale.git',
+    glob: 'packages/rubygems/escalated-locale.gemspec',
+    tag: 'v0.1.8'
 gem 'inertia_rails', '~> 3.0'
 gem 'pundit'
 

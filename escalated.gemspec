@@ -17,13 +17,14 @@ Gem::Specification.new do |spec|
   spec.add_dependency 'csv'
   spec.add_dependency 'escalated-locale', '~> 0.1'
   spec.add_dependency 'inertia_rails', '>= 3.0'
-  spec.add_dependency 'jwt', '>= 2.10', '< 4'
-  spec.add_dependency 'oauth2', '~> 2.0'
+  # 2.10.3 and 3.2.0 fix GHSA-c32j-vqhx-rx3x; 3.0.0-3.1.2 are affected.
+  spec.add_dependency 'jwt', '>= 2.10.3', '< 4', '!= 3.0.0', '!= 3.1.0', '!= 3.1.1', '!= 3.1.2'
+  spec.add_dependency 'oauth2', '~> 2.0', '>= 2.0.22' # GHSA-pp92-crg2-gfv9
   spec.add_dependency 'pundit', '>= 2.0'
   spec.add_dependency 'rails', '>= 8.0'
-  spec.add_dependency 'rexml', '>= 3.2'
+  spec.add_dependency 'rexml', '>= 3.4.2' # GHSA-c2f4-jgmc-q2r5 and earlier ReDoS fixes
   spec.add_dependency 'rotp', '~> 6.3'
-  spec.add_dependency 'ruby-saml', '~> 1.18'
+  spec.add_dependency 'ruby-saml', '~> 1.18', '>= 1.18.1' # GHSA-rrqh-93c8-j966
 
   spec.add_development_dependency 'factory_bot_rails'
   spec.add_development_dependency 'faker'

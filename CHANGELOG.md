@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Security
+- **Raised dependency floors past known advisories** so a host's resolver can no longer pick a vulnerable release: `jwt >= 2.10.3` and not 3.0.0-3.1.2 (GHSA-c32j-vqhx-rx3x), `oauth2 >= 2.0.22` (GHSA-pp92-crg2-gfv9), `ruby-saml >= 1.18.1` (GHSA-rrqh-93c8-j966) and `rexml >= 3.4.2` (GHSA-c2f4-jgmc-q2r5 and the 2024 ReDoS fixes). Hosts already on current releases see no change; `bundle update jwt oauth2 ruby-saml rexml` if Bundler reports a conflict.
+
+### Fixed
+- The Docker demo host's Gemfile asked for Rails `~> 7.1` while the gem requires Rails 8, and took `escalated-locale` from rubygems.org, where it is not published, so it could not resolve. It now uses Rails `~> 8.0` and the same `escalated-locale` git tag as the gem's own Gemfile.
+
 ## [0.7.12] - 2026-11-05
 
 ### Upgrading

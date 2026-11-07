@@ -5,8 +5,8 @@ RUN apk add --no-cache build-base postgresql-dev postgresql-client git nodejs np
 
 WORKDIR /host
 
-# Bootstrap a minimal Rails 7.1 skeleton, then layer the gem + host overrides on top.
-RUN gem install rails -v '~> 7.1' --no-document \
+# Bootstrap a minimal Rails 8 skeleton (the gemspec requires Rails >= 8.0), then layer the gem + host overrides on top.
+RUN gem install rails -v '~> 8.0' --no-document \
     && rails new . --database=postgresql --skip-bundle --skip-git --skip-test --skip-system-test \
        --skip-kamal --skip-jbuilder --skip-action-mailbox --skip-action-text --skip-active-storage \
        --skip-asset-pipeline --skip-javascript --skip-hotwire

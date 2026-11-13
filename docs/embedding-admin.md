@@ -155,7 +155,7 @@ import AdminLayout from '../layouts/AdminLayout.vue'
 import AppLayout from '../layouts/AppLayout.vue'
 
 createInertiaApp({
-  resolve: (name) => { /* the resolver from the README's Page Resolver section */ },
+  resolve: (name) => { /* the resolver from the Page Resolver section of frontend-integration.md */ },
   setup({ el, App, props, plugin }) {
     createApp({ render: () => h(App, props) })
       .use(plugin)

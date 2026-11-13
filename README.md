@@ -1,68 +1,163 @@
-<p align="center">
-  <a href="docs/translations/README.ar.md">العربية</a> •
-  <a href="docs/translations/README.de.md">Deutsch</a> •
-  <b>English</b> •
-  <a href="docs/translations/README.es.md">Español</a> •
-  <a href="docs/translations/README.fr.md">Français</a> •
-  <a href="docs/translations/README.it.md">Italiano</a> •
-  <a href="docs/translations/README.ja.md">日本語</a> •
-  <a href="docs/translations/README.ko.md">한국어</a> •
-  <a href="docs/translations/README.nl.md">Nederlands</a> •
-  <a href="docs/translations/README.pl.md">Polski</a> •
-  <a href="docs/translations/README.pt-BR.md">Português (BR)</a> •
-  <a href="docs/translations/README.ru.md">Русский</a> •
-  <a href="docs/translations/README.tr.md">Türkçe</a> •
+<p align="center"><sub>
+  <a href="docs/translations/README.ar.md">العربية</a> ·
+  <a href="docs/translations/README.de.md">Deutsch</a> ·
+  <b>English</b> ·
+  <a href="docs/translations/README.es.md">Español</a> ·
+  <a href="docs/translations/README.fr.md">Français</a> ·
+  <a href="docs/translations/README.it.md">Italiano</a> ·
+  <a href="docs/translations/README.ja.md">日本語</a> ·
+  <a href="docs/translations/README.ko.md">한국어</a> ·
+  <a href="docs/translations/README.nl.md">Nederlands</a> ·
+  <a href="docs/translations/README.pl.md">Polski</a> ·
+  <a href="docs/translations/README.pt-BR.md">Português (BR)</a> ·
+  <a href="docs/translations/README.ru.md">Русский</a> ·
+  <a href="docs/translations/README.tr.md">Türkçe</a> ·
   <a href="docs/translations/README.zh-CN.md">简体中文</a>
+</sub></p>
+
+<p align="center">
+  <a href="https://escalated.dev"><img src="https://raw.githubusercontent.com/escalated-dev/escalated/main/docs/assets/readme/logo.png" width="72" height="72" alt="Escalated"></a>
 </p>
 
-# Escalated for Rails
+<h1 align="center">Escalated for Rails</h1>
 
-[![Tests](https://github.com/escalated-dev/escalated-rails/actions/workflows/run-tests.yml/badge.svg)](https://github.com/escalated-dev/escalated-rails/actions/workflows/run-tests.yml)[![Ruby](https://img.shields.io/badge/ruby-3.1+-CC342D?logo=ruby&logoColor=white)](https://www.ruby-lang.org/)
-[![Rails](https://img.shields.io/badge/rails-7.0+-D30001?logo=rubyonrails&logoColor=white)](https://rubyonrails.org/)
-[![Gem Downloads](https://img.shields.io/gem/dt/escalated)](https://rubygems.org/gems/escalated)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Views](https://hits.sh/github.com/escalated-dev/escalated-rails.svg?style=flat&label=views&color=007ec6)](https://hits.sh/github.com/escalated-dev/escalated-rails/)
+<p align="center">
+  Add a complete helpdesk to your Rails app.<br>
+  Tickets, SLAs, escalation rules, an agent inbox and a customer portal, running on your own database.
+</p>
 
-A full-featured, embeddable support ticket system for Rails. Drop it into any app — get a complete helpdesk with SLA tracking, escalation rules, agent workflows, and a customer portal. No external services required.
+<p align="center">
+  <a href="https://escalated.dev"><b>Website</b></a> ·
+  <a href="https://escalated.dev/docs"><b>Docs</b></a> ·
+  <a href="https://escalated.dev/cloud"><b>Cloud</b></a> ·
+  <a href="CHANGELOG.md"><b>Changelog</b></a>
+</p>
 
-> **[escalated.dev](https://escalated.dev)** — Learn more, view demos, and compare Cloud vs Self-Hosted options.
+<br>
 
-**Three hosting modes.** Run entirely self-hosted, sync to a central cloud for multi-app visibility, or proxy everything to the cloud. Switch modes with a single config change.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/escalated-dev/escalated/main/docs/assets/readme/inbox-dark.png">
+  <img src="https://raw.githubusercontent.com/escalated-dev/escalated/main/docs/assets/readme/inbox-light.png" alt="The Escalated agent inbox: saved views with counts, SLA countdowns and priorities on every ticket" width="100%">
+</picture>
+
+## What it does
+
+<table>
+  <tr>
+    <td width="40%">
+      <h3>An inbox your agents can work in all day</h3>
+      Conversation, internal notes, canned replies and SLA timers on one screen. Tickets also arrive by email through Mailgun, Postmark, SES or IMAP.
+    </td>
+    <td width="60%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/escalated-dev/escalated/main/docs/assets/readme/ticket-dark.png">
+        <img src="https://raw.githubusercontent.com/escalated-dev/escalated/main/docs/assets/readme/ticket-light.png" alt="A ticket open in the agent workspace with the reply composer">
+      </picture>
+    </td>
+  </tr>
+  <tr>
+    <td width="60%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/escalated-dev/escalated/main/docs/assets/readme/dashboard-dark.png">
+        <img src="https://raw.githubusercontent.com/escalated-dev/escalated/main/docs/assets/readme/dashboard-light.png" alt="The admin reports page with response times, CSAT and SLA breaches">
+      </picture>
+    </td>
+    <td width="40%">
+      <h3>SLAs and escalation rules you can see</h3>
+      Response and resolution targets per priority with business hours, rules that escalate or reassign when they slip, and reports on breaches.
+    </td>
+  </tr>
+  <tr>
+    <td width="40%">
+      <h3>A customer portal that's already built</h3>
+      Customers open tickets, reply and check status inside your app. Embed the widget on other sites with one script tag.
+    </td>
+    <td width="60%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/escalated-dev/escalated/main/docs/assets/readme/portal-dark.png">
+        <img src="https://raw.githubusercontent.com/escalated-dev/escalated/main/docs/assets/readme/portal-light.png" alt="The customer portal ticket list">
+      </picture>
+    </td>
+  </tr>
+</table>
 
 ## Features
 
-- **Ticket lifecycle** — Create, assign, reply, resolve, close, reopen with configurable status transitions
-- **SLA engine** — Per-priority response and resolution targets, business hours calculation, automatic breach detection
-- **Escalation rules** — Condition-based rules that auto-escalate, reprioritize, reassign, or notify
-- **Agent dashboard** — Ticket queue with filters, bulk actions, internal notes, canned responses
-- **Customer portal** — Self-service ticket creation, replies, and status tracking
-- **Admin panel** — Manage departments, SLA policies, escalation rules, tags, and view reports
-- **Admin inside your own admin panel (optional)** — Off by default; mount the admin under your prefix and guards, inside your Inertia layout, ERB layout or an allow-listed iframe, with its menu in your sidebar; see [embedding the admin](docs/embedding-admin.md)
-- **File attachments** — Drag-and-drop uploads with configurable storage and size limits
-- **Activity timeline** — Full audit log of every action on every ticket
-- **Email notifications** — Configurable per-event notifications with webhook support
-- **Department routing** — Organize agents into departments with auto-assignment (round-robin)
-- **Tagging system** — Categorize tickets with colored tags
-- **Access control** — Roles & permissions as an install-level switch, enforced on every admin, agent and staff API action when on and hidden when off; see [access control](docs/access-control.md)
-- **Guest tickets** — Anonymous ticket submission with magic-link access via guest token
-- **Inbound email** — Create and reply to tickets via email (Mailgun, Postmark, AWS SES, IMAP)
-- **Inertia.js + Vue 3 UI** — Shared frontend via [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated)
-- **Ticket splitting** — Split a reply into a new standalone ticket while preserving the original context
-- **Ticket snooze** — Snooze tickets with presets (1h, 4h, tomorrow, next week); `rake escalated:wake_snoozed_tickets` auto-wakes them on schedule
-- **Saved views / custom queues** — Save, name, and share filter presets as reusable ticket views
-- **Embeddable support widget** — Lightweight `<script>` widget with KB search, ticket form, and status check
-- **Email threading** — Outbound emails include proper `In-Reply-To` and `References` headers for correct threading in mail clients
-- **Branded email templates** — Configurable logo, primary color, and footer text for all outbound emails
-- **Real-time broadcasting** — Opt-in broadcasting via ActionCable with automatic polling fallback
-- **Knowledge base toggle** — Enable or disable the public knowledge base from admin settings
+<table>
+<tr>
+<td width="33%" valign="top">
 
-## Requirements
+**Tickets and inbox**
+- Full lifecycle with status transitions
+- Queue filters and bulk actions
+- Internal notes and canned responses
+- Split a reply into a new ticket
+- Snooze with presets and auto-wake
+- Saved views and shared queues
 
-- Ruby 3.1+
-- Rails 7.1+
-- Node.js 18+ (for frontend assets)
+</td>
+<td width="33%" valign="top">
 
-## Quick Start
+**SLAs and escalation**
+- Per-priority response and resolution targets
+- Business hours and breach detection
+- Rules that escalate, reassign or notify
+- Department routing with round-robin
+
+</td>
+<td width="33%" valign="top">
+
+**Customers**
+- Self-service customer portal
+- Guest tickets with magic-link access
+- Embeddable widget with KB search
+- Public knowledge base you can switch off
+
+</td>
+</tr>
+<tr>
+<td width="33%" valign="top">
+
+**Email**
+- Inbound via Mailgun, Postmark, SES or IMAP
+- Threaded replies in mail clients
+- Branded email templates
+- Per-event notifications and webhooks
+
+</td>
+<td width="33%" valign="top">
+
+**Admin and access**
+- Departments, SLAs, rules, tags and reports
+- Optional embed in your own admin
+- Roles and permissions as an install switch
+- Activity timeline on every ticket
+
+</td>
+<td width="33%" valign="top">
+
+**Under the hood**
+- Shared Vue 3 and Inertia.js UI
+- Uploads with storage and size limits
+- Colored tags to sort tickets
+- ActionCable real-time with polling fallback
+
+</td>
+</tr>
+</table>
+
+<p align="center"><sub><a href="docs/features.md">Every feature in detail</a></sub></p>
+
+<p align="center"><b>Built with</b></p>
+
+<p align="center">
+  <a href="https://rubyonrails.org"><img src="https://img.shields.io/badge/Ruby%20on%20Rails-D30001?style=for-the-badge&logo=rubyonrails&logoColor=white" alt="Ruby on Rails"></a>
+  <a href="https://www.ruby-lang.org"><img src="https://img.shields.io/badge/Ruby-CC342D?style=for-the-badge&logo=ruby&logoColor=white" alt="Ruby"></a>
+  <a href="https://vuejs.org"><img src="https://img.shields.io/badge/Vue.js-4FC08D?style=for-the-badge&logo=vuedotjs&logoColor=white" alt="Vue.js"></a>
+  <a href="https://inertiajs.com"><img src="https://img.shields.io/badge/Inertia-9553E9?style=for-the-badge&logo=inertia&logoColor=white" alt="Inertia"></a>
+</p>
+
+## Quick start
 
 ```bash
 bundle add escalated
@@ -71,641 +166,19 @@ rails generate escalated:install
 rails db:migrate
 ```
 
-Add the `Ticketable` concern to your User model:
+Then visit `/support`. Needs Ruby 3.1+ and Rails 7.1+. The [getting started guide](docs/getting-started.md) covers the `Ticketable` concern and access checks.
 
-```ruby
-class User < ApplicationRecord
-  include Escalated::Ticketable
-end
-```
+## Learn more
 
-Define authorization in your `ApplicationController` or an initializer:
+- [All features](docs/features.md) · [Getting started](docs/getting-started.md) · [Frontend integration](docs/frontend-integration.md)
+- [Configuration, hosting modes, events and routes](docs/operations.md) · [Named routes](docs/named-routes.md)
+- [Agent panel](docs/agent-panel.md) · [Access control](docs/access-control.md) · [Ticket access and routing](docs/ticket-access-and-routing.md)
+- [Inbound email](docs/inbound-email.md) · [Embedding the widget](docs/embedding-the-widget.md) · [Embedding the admin](docs/embedding-admin.md)
+- [Guest access](docs/guest-access.md) · [Private attachments](docs/private-attachments.md)
+- [Plugin SDK](docs/plugin-sdk.md) · [Plugins](docs/plugins.md) · [Newsletters](docs/newsletters.md)
 
-```ruby
-# config/initializers/escalated.rb
-Escalated.configure do |config|
-  config.admin_check = ->(user) { user.admin? }
-  config.agent_check = ->(user) { user.agent? || user.admin? }
-end
-```
-
-Visit `/support` — you're live.
-
-## Embedding the admin in your own admin panel (optional)
-
-Escalated's admin is a standalone panel at `/support/admin`, and that stays the default: nothing below changes anything until you turn it on. If your app already has an admin panel, you can mount Escalated's admin screens under your prefix and guards instead, render them inside your Inertia/Vue layout or your ERB admin layout (or an allow-listed iframe), and list Escalated's admin menu in your own sidebar:
-
-```ruby
-# config/initializers/escalated.rb
-Escalated.configure do |config|
-  config.embed_admin(
-    prefix: 'admin/support',
-    middleware: [:authenticate_user!, -> { head :forbidden unless current_user&.admin? }],
-    layout: 'Layouts/AdminLayout'
-  )
-end
-```
-
-Route names stay the same, so links follow the move; Escalated's admin gate, two-factor and route permissions stay on. The agent panel, customer portal, widget, API, SSO, two-factor and newsletter URLs do not move. Setup for each kind of host, the `ESCALATED_EMBED*` env vars and the security notes are in [docs/embedding-admin.md](docs/embedding-admin.md).
-
-## Ticket subjects
-
-A ticket has a **requester** (who raised it) and a **subject line** (free text). You can also attach host-app entities the ticket is *about* — a Project, Customer, asset, and so on — so agents see context and can jump into your app.
-
-Include `Escalated::PresentsAsTicketSubject` on any attachable model and override presentation methods as needed:
-
-```ruby
-class Project < ApplicationRecord
-  include Escalated::PresentsAsTicketSubject
-
-  def ticket_subject_subtitle
-    "Project · #{customer.name}"
-  end
-
-  def ticket_subject_url
-    project_path(self)
-  end
-
-  def ticket_subject_color
-    '#2563eb'
-  end
-
-  def ticket_subject_icon
-    'folder'
-  end
-end
-```
-
-Attach, detach, or sync subjects on a ticket (several allowed):
-
-```ruby
-ticket.attach_subject(project, role: 'project')
-ticket.attach_subject(customer, role: 'account')
-ticket.sync_subjects([[project, 'primary'], customer])
-ticket.detach_subject(project)
-```
-
-Each subject is serialized on the ticket as `{ type, id, role, title, subtitle, url, color, icon, missing }`. `subject_id` is stored as a string so integer, UUID, and string host keys all work.
-
-Allow agent/admin attach endpoints by listing permitted models in configuration (empty list disables the API; programmatic attach still works when empty):
-
-```ruby
-Escalated.configure do |config|
-  config.ticket_subject_types = [
-    'Project',
-    'Customer',
-    # morph alias => class
-    # 'project' => 'Project',
-  ]
-end
-```
-
-Endpoints: `POST /support/agent/tickets/:id/subjects` and `DELETE .../subjects/:subject_id` (admin routes mirror under `/support/admin/`). Pass `type`, `subject_id`, and optional `role` in the body, or nest them under `subject` (useful when you need Laravel-style `id` without colliding with the ticket route param).
-
-## Frontend Setup
-
-Escalated uses Inertia.js with Vue 3. The frontend components are provided by the [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated) npm package.
-
-### Tailwind Content
-
-Add the Escalated package to your Tailwind `content` config so its classes aren't purged:
-
-```js
-// tailwind.config.js
-content: [
-    // ... your existing paths
-    './node_modules/@escalated-dev/escalated/src/**/*.vue',
-],
-```
-
-### Page Resolver
-
-Add the Escalated pages to your Inertia page resolver:
-
-```javascript
-// app/javascript/entrypoints/application.js
-import { createApp, h } from 'vue'
-import { createInertiaApp } from '@inertiajs/vue3'
-
-createInertiaApp({
-  resolve: name => {
-    if (name.startsWith('Escalated/')) {
-      const escalatedPages = import.meta.glob(
-        '../../../node_modules/@escalated-dev/escalated/src/pages/**/*.vue',
-        { eager: true }
-      )
-      const pageName = name.replace('Escalated/', '')
-      return escalatedPages[`../../../node_modules/@escalated-dev/escalated/src/pages/${pageName}.vue`]
-    }
-
-    const pages = import.meta.glob('../pages/**/*.vue', { eager: true })
-    return pages[`../pages/${name}.vue`]
-  },
-  setup({ el, App, props, plugin }) {
-    createApp({ render: () => h(App, props) })
-      .use(plugin)
-      .mount(el)
-  },
-})
-```
-
-### Named routes
-
-The shared components build URLs with Laravel's Ziggy-style `route(name, params)`. The engine ships the list itself: every Escalated Inertia page gets a `ziggy` prop with the names mapped to this engine's paths under `route_prefix`. Install the matching `route()` helper in your Inertia layout, before the script that mounts the app:
-
-```erb
-<%= escalated_route_helper_tag %>
-<%= vite_javascript_tag 'application' %>
-```
-
-No hand-mapped `window.route` shim is needed. A `window.route` or `window.Ziggy` your app already installs still wins, and `config.route_overrides` replaces or adds single names (for example `'login' => '/users/sign_in'`). See [docs/named-routes.md](docs/named-routes.md).
-
-### Theming (Optional)
-
-Register the `EscalatedPlugin` to render Escalated pages inside your app's layout — no page duplication needed:
-
-```javascript
-import { EscalatedPlugin } from '@escalated-dev/escalated'
-import AppLayout from '@/layouts/AppLayout.vue'
-
-createInertiaApp({
-  setup({ el, App, props, plugin }) {
-    createApp({ render: () => h(App, props) })
-      .use(plugin)
-      .use(EscalatedPlugin, {
-        layout: AppLayout,
-        theme: {
-          primary: '#3b82f6',
-          radius: '0.75rem',
-        }
-      })
-      .mount(el)
-  },
-})
-```
-
-Your layout component must accept a `#header` slot and a default slot. Escalated will render its sub-navigation in the header and page content in the default slot. Without the plugin, Escalated uses its own standalone layout.
-
-See the [`@escalated-dev/escalated` README](https://github.com/escalated-dev/escalated) for full theming documentation and CSS custom properties.
-
-## Hosting Modes
-
-### Self-Hosted (default)
-
-Everything stays in your database. No external calls. Full autonomy.
-
-```ruby
-Escalated.configure do |config|
-  config.mode = :self_hosted
-end
-```
-
-### Synced
-
-Local database + automatic sync to `cloud.escalated.dev` for unified inbox across multiple apps. If the cloud is unreachable, your app keeps working — events queue and retry.
-
-```ruby
-Escalated.configure do |config|
-  config.mode = :synced
-  config.hosted_api_url = "https://cloud.escalated.dev/api/v1"
-  config.hosted_api_key = ENV["ESCALATED_API_KEY"]
-end
-```
-
-Agent actions taken in the cloud portal come back through a signed webhook. Set the
-site's signing secret (shown on the connected site in the cloud dashboard) and give
-the cloud this URL:
-
-```ruby
-config.hosted_signing_secret = ENV["ESCALATED_CLOUD_SIGNING_SECRET"]
-# Webhook URL for the connected site: https://your-app.example.com/support/cloud/webhook
-```
-
-The receiver verifies `X-Escalated-Signature` (HMAC-SHA256 of the raw body), ignores replayed
-`event_id`s for 24 hours, and applies subject, description, priority and status from
-`ticket.updated` / `ticket.status_changed` to the local ticket whose `reference` matches the
-projection's `external_id`. Changes run through the local driver, so your listeners fire, and
-are not echoed back to the cloud.
-
-### Cloud
-
-All ticket data proxied to the cloud API. Your app handles auth and renders UI, but storage lives in the cloud.
-
-```ruby
-Escalated.configure do |config|
-  config.mode = :cloud
-  config.hosted_api_url = "https://cloud.escalated.dev/api/v1"
-  config.hosted_api_key = ENV["ESCALATED_API_KEY"]
-end
-```
-
-All three modes share the same controllers, UI, and business logic. The driver pattern handles the rest.
-
-## Configuration
-
-Create or edit `config/initializers/escalated.rb`:
-
-```ruby
-Escalated.configure do |config|
-  config.mode = :self_hosted
-  config.user_class = "User"
-  config.table_prefix = "escalated_"
-  config.route_prefix = "support"
-  config.default_priority = :medium
-
-  # Host user key type for the engine's user-referencing FK columns.
-  # :auto (default) introspects your `user_class` primary key; override with
-  # :bigint | :uuid | :string if your User model uses a UUID/string PK. Run
-  # `escalated:install:migrations` AFTER setting this so the generated
-  # migrations emit matching column types.
-  config.user_id_type = :auto
-
-  # Middleware
-  config.middleware = [:authenticate_user!]
-  config.admin_middleware = nil
-
-  # Tickets
-  config.allow_customer_close = true
-  config.auto_close_resolved_after_days = 7
-  config.max_attachments_per_reply = 5
-  config.max_attachment_size_kb = 10240
-
-  # SLA
-  config.sla = {
-    enabled: true,
-    business_hours_only: true,
-    business_hours: {
-      start: 9, end: 17,
-      timezone: "UTC",
-      working_days: [1, 2, 3, 4, 5]
-    }
-  }
-
-  # Notifications
-  config.notification_channels = [:email]
-  config.webhook_url = nil
-  config.webhook_secret = nil              # signs requests to webhook_url (X-Escalated-Signature)
-  config.allow_private_webhook_urls = false # let admin webhooks reach private addresses
-
-  # Storage (ActiveStorage)
-  config.storage_service = :local
-end
-```
-
-## Scheduling
-
-Add these to your scheduler for SLA and escalation automation:
-
-```ruby
-# config/schedule.rb (whenever gem) or use solid_queue/sidekiq-cron
-every 1.minute do
-  runner "Escalated::CheckSlaJob.perform_now"
-end
-
-every 5.minutes do
-  runner "Escalated::EvaluateEscalationsJob.perform_now"
-end
-
-every 1.day do
-  runner "Escalated::CloseResolvedJob.perform_now"
-end
-
-every 1.week do
-  runner "Escalated::PurgeActivitiesJob.perform_now"
-end
-
-# SDK plugins' cron schedules (only with the plugin runtime)
-every 1.minute do
-  rake "escalated:plugins:cron"
-end
-```
-
-`Escalated::PurgeExpiredDataJob` (also `rake escalated:purge_expired`, with `DRY_RUN=1` to only count) applies the retention periods set on the admin Data Retention screen. Every period defaults to `never`, so until one is set it only clears expired guest verification codes. Purged tickets are destroyed, not soft-deleted:
-
-```ruby
-every 1.day do
-  runner "Escalated::PurgeExpiredDataJob.perform_now"
-end
-```
-
-## Routes
-
-Routes are automatically mounted when the engine loads. By default they mount at `/support`.
-
-| Route | Method | Description |
-|-------|--------|-------------|
-| `/support` | GET | Customer ticket list |
-| `/support/create` | GET | New ticket form |
-| `/support/{ticket}` | GET | Ticket detail |
-| `/support/agent` | GET | Agent dashboard |
-| `/support/agent/tickets` | GET | Agent ticket queue |
-| `/support/agent/tickets/{ticket}` | GET | Agent ticket view |
-| `/support/admin/reports` | GET | Admin reports |
-| `/support/admin/departments` | GET | Department management |
-| `/support/admin/sla-policies` | GET | SLA policy management |
-| `/support/admin/escalation-rules` | GET | Escalation rule management |
-| `/support/admin/tags` | GET | Tag management |
-| `/support/admin/canned-responses` | GET | Canned response management |
-| `/support/agent/tickets/bulk` | POST | Bulk actions on multiple tickets |
-| `/support/agent/tickets/{ticket}/follow` | POST | Follow/unfollow a ticket |
-| `/support/agent/tickets/{ticket}/macro` | POST | Apply a macro to a ticket |
-| `/support/agent/tickets/{ticket}/presence` | POST | Update presence on a ticket |
-| `/support/agent/tickets/{ticket}/pin/{reply}` | POST | Pin/unpin an internal note |
-| `/support/{ticket}/rate` | POST | Submit satisfaction rating |
-
-## Events
-
-Connect to ticket lifecycle events via ActiveSupport::Notifications:
-
-```ruby
-ActiveSupport::Notifications.subscribe("escalated.ticket_created") do |event|
-  ticket = event.payload[:ticket]
-  # Handle new ticket
-end
-```
-
-## Custom Ticket Actions
-
-Host applications can add custom buttons to the agent ticket screen and handle
-clicks with a normal notification subscriber. Register actions in the initializer:
-
-```ruby
-Escalated.configure do |config|
-  config.ticket_actions = [
-    {
-      key: 'sync-crm',
-      label: 'Sync CRM',
-      variant: 'primary',                       # primary | secondary | danger
-      confirmation: 'Sync this ticket to the CRM?',
-      metadata: { icon: 'refresh-cw' },
-      # visible / enabled may be a value or a ->(ticket, user) callable
-      enabled: ->(ticket, _user) { !ticket.metadata['crm_synced'] }
-    }
-  ]
-end
-```
-
-Visible actions are exposed on the agent ticket show page as `customActions` and
-on the API ticket detail response as `custom_actions` (each with a `url` and
-`method`). Triggering one (`POST /support/agent/tickets/:id/actions/:action_key`
-or the API equivalent) validates the action is visible (404) and enabled (403),
-then dispatches the `custom_action_triggered` notification:
-
-```ruby
-ActiveSupport::Notifications.subscribe('escalated.notification.custom_action_triggered') do |event|
-  payload = event.payload
-  next unless payload[:action_key] == 'sync-crm'
-  # payload[:ticket], payload[:user], payload[:payload], payload[:metadata]
-end
-```
-
-Escalated also records an internal note on the ticket whenever an action fires,
-for auditability.
-
-## Inbound Email
-
-Create and reply to tickets from incoming emails. Supports **Mailgun**, **Postmark**, **AWS SES** webhooks, and **IMAP** polling.
-
-### Enable
-
-```ruby
-# config/initializers/escalated.rb
-Escalated.configure do |config|
-  config.inbound_email_enabled = true
-  config.inbound_email_adapter = :mailgun
-  config.inbound_email_address = "support@yourapp.com"
-
-  # Signs the Reply-To on outbound mail (reply+{id}.{hmac8}@domain). Once set,
-  # only that signed address links an inbound email to a ticket.
-  config.email_domain = "support.yourapp.com"
-  config.email_inbound_secret = ENV["ESCALATED_EMAIL_INBOUND_SECRET"]
-
-  # Mailgun
-  config.mailgun_signing_key = ENV["ESCALATED_MAILGUN_SIGNING_KEY"]
-
-  # Postmark
-  config.postmark_inbound_token = ENV["ESCALATED_POSTMARK_INBOUND_TOKEN"]
-
-  # AWS SES
-  config.ses_region = "us-east-1"
-  config.ses_topic_arn = ENV["ESCALATED_SES_TOPIC_ARN"]
-
-  # IMAP
-  config.imap_host = ENV["ESCALATED_IMAP_HOST"]
-  config.imap_port = 993
-  config.imap_encryption = :ssl
-  config.imap_username = ENV["ESCALATED_IMAP_USERNAME"]
-  config.imap_password = ENV["ESCALATED_IMAP_PASSWORD"]
-  config.imap_mailbox = "INBOX"
-end
-```
-
-### Webhook URLs
-
-| Provider | URL |
-|----------|-----|
-| Mailgun | `POST /support/inbound/mailgun` |
-| Postmark | `POST /support/inbound/postmark` |
-| AWS SES | `POST /support/inbound/ses` |
-
-### IMAP Polling
-
-Schedule `Escalated::PollImapJob` with Solid Queue, Sidekiq, or whenever:
-
-```ruby
-# config/recurring.yml (Solid Queue)
-poll_imap:
-  class: Escalated::PollImapJob
-  schedule: every minute
-```
-
-### Features
-
-- Thread detection via the signed Reply-To address when `email_inbound_secret` is set; without a secret, via our `In-Reply-To` / `References` Message-IDs and the subject reference
-- Replies accepted only from the ticket's requester (the guest email or the requester's email, case-insensitive) and posted as that requester. Staff identity is never taken from the `From` header, so agents reply in the app. Any other sender gets a new ticket of their own
-- Guest tickets for unknown senders with auto-derived display names
-- Auto-reopen resolved/closed tickets when the requester replies by email
-- Duplicate detection via `Message-ID` headers
-- Attachment handling with configurable size and count limits
-- Audit logging of every inbound email
-- All settings configurable from admin panel with env fallback
-
-## Plugin SDK
-
-Escalated supports framework-agnostic plugins built with the [Plugin SDK](https://github.com/escalated-dev/escalated-plugin-sdk). Plugins are written once in TypeScript and work across all Escalated backends.
-
-### Requirements
-
-- Node.js 20+
-- `@escalated-dev/plugin-runtime` installed in your project
-
-### Installing Plugins
-
-```bash
-npm install @escalated-dev/plugin-runtime
-npm install @escalated-dev/plugin-slack
-npm install @escalated-dev/plugin-jira
-```
-
-### Enabling SDK Plugins
-
-```ruby
-# config/initializers/escalated.rb
-Escalated.configure do |config|
-  # ... existing config ...
-  config.sdk_plugins_enabled = true
-end
-```
-
-### How It Works
-
-SDK plugins run as a long-lived Node.js subprocess managed by `@escalated-dev/plugin-runtime`, communicating with Rails over JSON-RPC 2.0 via stdio. The subprocess is spawned lazily on first use and automatically restarted with exponential backoff if it crashes. Every ticket lifecycle event is dual-dispatched to both Rails event handlers and the plugin runtime.
-
-### Building Your Own Plugin
-
-```typescript
-import { definePlugin } from '@escalated-dev/plugin-sdk'
-
-export default definePlugin({
-  name: 'my-plugin',
-  version: '1.0.0',
-  actions: {
-    'ticket.created': async (event, ctx) => {
-      ctx.log.info('New ticket!', event)
-    },
-  },
-})
-```
-
-### Resources
-
-- [Plugin SDK](https://github.com/escalated-dev/escalated-plugin-sdk) — TypeScript SDK for building plugins
-- [Plugin Runtime](https://github.com/escalated-dev/escalated-plugin-runtime) — Runtime host for plugins
-- [Plugin Development Guide](https://github.com/escalated-dev/escalated-docs) — Full documentation
-
-## Internationalization
-
-Translations are sourced from the central [`escalated-locale`](https://github.com/escalated-dev/escalated-locale)
-RubyGem, which is the canonical source of truth for every Escalated
-plugin in the portfolio. The engine appends the gem's `locales/*.yml`
-files to `I18n.load_path` automatically — you do not need to require
-anything in your host app.
-
-Override order (last wins):
-
-1. `escalated-locale` gem — central, portfolio-wide
-2. `config/locales/*.yml` inside this engine — plugin-local overrides
-3. `config/locales/overrides/*.yml` inside this engine — host-specific
-   tweaks that should not be upstreamed
-4. The host application's own `config/locales/*.yml`
-
-Missing keys in the lower layers fall through to the central gem via
-`I18n.fallbacks`.
-
-## Also Available For
-
-- **[Escalated for Laravel](https://github.com/escalated-dev/escalated-laravel)** — Laravel Composer package
-- **[Escalated for Rails](https://github.com/escalated-dev/escalated-rails)** — Ruby on Rails engine (you are here)
-- **[Escalated for Django](https://github.com/escalated-dev/escalated-django)** — Django reusable app
-- **[Escalated for AdonisJS](https://github.com/escalated-dev/escalated-adonis)** — AdonisJS v6 package
-- **[Escalated for Filament](https://github.com/escalated-dev/escalated-filament)** — Filament v3 admin panel plugin
-- **[Shared Frontend](https://github.com/escalated-dev/escalated)** — Vue 3 + Inertia.js UI components
-
-Same architecture, same Vue UI, same three hosting modes — for every major backend framework.
-
-## Newsletters (optional, disabled by default)
-
-Admin-only broadcast feature for sending Markdown emails to contacts. Off by default — when disabled, no dispatcher tick runs.
-
-```ruby
-Escalated.configure do |config|
-  config.enable_newsletters = true
-  config.app_url = 'https://support.example.com'
-  config.newsletter_default_from = 'hi@example.com'
-  config.newsletter_default_theme = 'default'
-  config.newsletter_brand_physical_address = 'Acme Inc. · 123 Main St · Springfield USA'
-
-  # Register a Markdown renderer (CommonMarker recommended; Redcarpet works too):
-  require 'commonmarker'
-  config.newsletter_markdown_renderer = ->(md) { Commonmarker.to_html(md) }
-end
-```
-
-Schedule the dispatcher every minute (cron, sidekiq-cron, whatever your stack uses):
-
-```ruby
-Escalated::Newsletter::Dispatcher.new.dispatch_batch
-```
-
-Custom themes go in `app/views/escalated/newsletter_themes/<slug>.html.erb`. Each theme receives `subject`, `body` (pre-rendered HTML), `unsubscribe_url`, `view_in_browser_url`, and `brand` (hash with `:name`, `:accent`, `:logo_url`, `:physical_address`).
-
-## Testing
-
-```bash
-bundle exec rspec
-```
-
-## Database connection
-
-By default Escalated's tables live on your application's primary database. Name
-a different one to keep them somewhere else — a schema shared with a legacy
-system, a multi-tenant split, a separate reporting store, or simply out of your
-primary database:
-
-```ruby
-# config/initializers/escalated.rb
-Escalated.configure do |config|
-  config.database_connection = :support
-end
-```
-
-`:support` is an entry in your `config/database.yml`. Hosts already using
-Rails' role-based multiple databases can pass the mapping instead, and the
-reading/writing split is preserved:
-
-```ruby
-config.database_connection = { writing: :support_primary, reading: :support_replica }
-```
-
-Every Escalated model inherits `Escalated::ApplicationRecord`, so one setting
-moves all of them together. A spec enumerates `app/models/escalated` and fails
-if a model is ever added that does not inherit it.
-
-**Your user table does not move.** It belongs to your application, and
-Escalated stores host user ids as plain unconstrained columns precisely so the
-two can live on different connections — there is no foreign key that would have
-to span them.
-
-### Migrations
-
-Rails decides which database a migration runs against by which migration path
-it lives in, so install Escalated's into the path for that database rather than
-the primary one:
-
-```ruby
-# config/database.yml
-support:
-  adapter: postgresql
-  database: support
-  migrations_paths: db/support_migrate
-```
-
-```bash
-bin/rails escalated:install:migrations MIGRATIONS_PATH=db/support_migrate
-bin/rails db:migrate:support
-```
-
-Setting `database_connection` on an existing install does not move existing
-data. Migrate the tables and copy the rows across before pointing Escalated at
-the new database.
+Escalated is also available for [Laravel](https://github.com/escalated-dev/escalated-laravel), [Django](https://github.com/escalated-dev/escalated-django), [NestJS](https://github.com/escalated-dev/escalated-nestjs), [AdonisJS](https://github.com/escalated-dev/escalated-adonis), [Symfony](https://github.com/escalated-dev/escalated-symfony), [Phoenix](https://github.com/escalated-dev/escalated-phoenix), [Go](https://github.com/escalated-dev/escalated-go), [.NET](https://github.com/escalated-dev/escalated-dotnet), [Spring](https://github.com/escalated-dev/escalated-spring), [WordPress](https://github.com/escalated-dev/escalated-wordpress) and [Filament](https://github.com/escalated-dev/escalated-filament). The UI lives in [escalated](https://github.com/escalated-dev/escalated).
 
 ## License
 
-MIT - Copyright (c) Escalated.dev. See [LICENSE](LICENSE).
-
-See [ticket access and routing](docs/ticket-access-and-routing.md) for opt-in
-department/account visibility and targeted SLA configuration.
-
-See [private attachments](docs/private-attachments.md) for how attachment downloads are signed and checked.
-
-See [verified guest access](docs/guest-access.md) for the email codes and expiring guest links.
+MIT. Copyright (c) 2026 Escalated.dev. See [LICENSE](LICENSE).

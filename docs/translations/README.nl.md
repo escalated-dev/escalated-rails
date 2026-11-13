@@ -1,66 +1,163 @@
-<p align="center">
-  <a href="README.ar.md">العربية</a> •
-  <a href="README.de.md">Deutsch</a> •
-  <a href="../../README.md">English</a> •
-  <a href="README.es.md">Español</a> •
-  <a href="README.fr.md">Français</a> •
-  <a href="README.it.md">Italiano</a> •
-  <a href="README.ja.md">日本語</a> •
-  <a href="README.ko.md">한국어</a> •
-  <b>Nederlands</b> •
-  <a href="README.pl.md">Polski</a> •
-  <a href="README.pt-BR.md">Português (BR)</a> •
-  <a href="README.ru.md">Русский</a> •
-  <a href="README.tr.md">Türkçe</a> •
+<p align="center"><sub>
+  <a href="README.ar.md">العربية</a> ·
+  <a href="README.de.md">Deutsch</a> ·
+  <a href="../../README.md">English</a> ·
+  <a href="README.es.md">Español</a> ·
+  <a href="README.fr.md">Français</a> ·
+  <a href="README.it.md">Italiano</a> ·
+  <a href="README.ja.md">日本語</a> ·
+  <a href="README.ko.md">한국어</a> ·
+  <b>Nederlands</b> ·
+  <a href="README.pl.md">Polski</a> ·
+  <a href="README.pt-BR.md">Português (BR)</a> ·
+  <a href="README.ru.md">Русский</a> ·
+  <a href="README.tr.md">Türkçe</a> ·
   <a href="README.zh-CN.md">简体中文</a>
+</sub></p>
+
+<p align="center">
+  <a href="https://escalated.dev"><img src="https://raw.githubusercontent.com/escalated-dev/escalated/main/docs/assets/readme/logo.png" width="72" height="72" alt="Escalated"></a>
 </p>
 
-# Escalated for Rails
+<h1 align="center">Escalated for Rails</h1>
 
-[![Tests](https://github.com/escalated-dev/escalated-rails/actions/workflows/run-tests.yml/badge.svg)](https://github.com/escalated-dev/escalated-rails/actions/workflows/run-tests.yml)
-[![FOSSA Status](https://app.fossa.com/api/projects/custom%2B62107%2Fgithub.com%2Fescalated-dev%2Fescalated-rails.svg?type=shield)](https://app.fossa.com/projects/custom%2B62107%2Fgithub.com%2Fescalated-dev%2Fescalated-rails?ref=badge_shield)
-[![Ruby](https://img.shields.io/badge/ruby-3.1+-CC342D?logo=ruby&logoColor=white)](https://www.ruby-lang.org/)
-[![Rails](https://img.shields.io/badge/rails-7.0+-D30001?logo=rubyonrails&logoColor=white)](https://rubyonrails.org/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+<p align="center">
+  Voeg een complete helpdesk toe aan je Rails-app.<br>
+  Tickets, SLA's, escalatieregels, een inbox voor agents en een klantportaal, gewoon op je eigen database.
+</p>
 
-Een volledig uitgerust, inbedbaar support-ticketsysteem voor Rails. Voeg het toe aan elke app — krijg een complete helpdesk met SLA-tracking, escalatieregels, agent-workflows en een klantenportaal. Geen externe diensten vereist.
+<p align="center">
+  <a href="https://escalated.dev"><b>Website</b></a> ·
+  <a href="https://escalated.dev/docs"><b>Documentatie</b></a> ·
+  <a href="https://escalated.dev/cloud"><b>Cloud</b></a> ·
+  <a href="../../CHANGELOG.md"><b>Wijzigingslog</b></a>
+</p>
 
-> **[escalated.dev](https://escalated.dev)** — Meer informatie, bekijk demo's en vergelijk Cloud- met Self-Hosted-opties.
+<br>
 
-**Drie hostingmodi.** Volledig zelf hosten, synchroniseren met een centrale cloud voor multi-app-zichtbaarheid, of alles via de cloud proxyen. Wissel van modus met één configuratiewijziging.
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/escalated-dev/escalated/main/docs/assets/readme/inbox-dark.png">
+  <img src="https://raw.githubusercontent.com/escalated-dev/escalated/main/docs/assets/readme/inbox-light.png" alt="De agent-inbox van Escalated: opgeslagen weergaven met tellers, SLA-afteltimers en prioriteiten op elk ticket" width="100%">
+</picture>
+
+## Wat het doet
+
+<table>
+  <tr>
+    <td width="40%">
+      <h3>Een inbox waarin je agents de hele dag kunnen werken</h3>
+      Gesprek, interne notities, standaardantwoorden en SLA-timers op één scherm. Tickets komen ook per e-mail binnen via Mailgun, Postmark, SES of IMAP.
+    </td>
+    <td width="60%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/escalated-dev/escalated/main/docs/assets/readme/ticket-dark.png">
+        <img src="https://raw.githubusercontent.com/escalated-dev/escalated/main/docs/assets/readme/ticket-light.png" alt="Een geopend ticket in de agent-werkruimte met de antwoordeditor">
+      </picture>
+    </td>
+  </tr>
+  <tr>
+    <td width="60%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/escalated-dev/escalated/main/docs/assets/readme/dashboard-dark.png">
+        <img src="https://raw.githubusercontent.com/escalated-dev/escalated/main/docs/assets/readme/dashboard-light.png" alt="De rapportagepagina in het beheer met reactietijden, CSAT en SLA-overschrijdingen">
+      </picture>
+    </td>
+    <td width="40%">
+      <h3>SLA's en escalatieregels die je kunt zien</h3>
+      Reactie- en oplosdoelen per prioriteit met kantooruren, regels die escaleren of opnieuw toewijzen als een doel niet wordt gehaald, en rapporten over overschrijdingen.
+    </td>
+  </tr>
+  <tr>
+    <td width="40%">
+      <h3>Een klantportaal dat al klaar is</h3>
+      Klanten openen tickets, reageren en bekijken de status in je eigen app. Met één scripttag plaats je de widget op andere websites.
+    </td>
+    <td width="60%">
+      <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/escalated-dev/escalated/main/docs/assets/readme/portal-dark.png">
+        <img src="https://raw.githubusercontent.com/escalated-dev/escalated/main/docs/assets/readme/portal-light.png" alt="De ticketlijst in het klantportaal">
+      </picture>
+    </td>
+  </tr>
+</table>
 
 ## Functies
 
-- **Ticketlevenscyclus** — Aanmaken, toewijzen, beantwoorden, oplossen, sluiten, heropenen met configureerbare statusovergangen
-- **SLA-engine** — Respons- en oplossingsdoelen per prioriteit, berekening van kantooruren, automatische schendingsdetectie
-- **Escalatieregels** — Voorwaardelijke regels die automatisch escaleren, herprioriteren, hertoewijzen of notificeren
-- **Agentdashboard** — Ticketwachtrij met filters, bulkacties, interne notities, standaardantwoorden
-- **Klantenportaal** — Zelfbediening voor ticketaanmaak, antwoorden en statustracking
-- **Beheerpaneel** — Beheer afdelingen, SLA-beleid, escalatieregels, tags en bekijk rapporten
-- **Bestandsbijlagen** — Drag-and-drop uploads met configureerbare opslag en groottelimieten
-- **Activiteitstijdlijn** — Volledig auditlogboek van elke actie op elk ticket
-- **E-mailnotificaties** — Configureerbare notificaties per gebeurtenis met webhook-ondersteuning
-- **Afdelingsroutering** — Agents organiseren in afdelingen met automatische toewijzing (round-robin)
-- **Taggingsysteem** — Tickets categoriseren met gekleurde tags
-- **Gasttickets** — Anonieme ticketindiening met magic-link toegang via gasttoken
-- **Inkomende e-mail** — Tickets aanmaken en beantwoorden via e-mail (Mailgun, Postmark, AWS SES, IMAP)
-- **Inertia.js + Vue 3 UI** — Gedeelde frontend via [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated)
-- **Ticket splitsen** — Een antwoord afsplitsen naar een nieuw zelfstandig ticket met behoud van de originele context
-- **Ticket snooze** — Tickets snoozen met voorinstellingen (1u, 4u, morgen, volgende week); `rake escalated:wake_snoozed_tickets` wekt ze automatisch volgens schema
-- **Opgeslagen weergaven / aangepaste wachtrijen** — Filterpresets opslaan, benoemen en delen als herbruikbare ticketweergaven
-- **Inbedbare supportwidget** — Lichtgewicht `<script>`-widget met KB-zoeken, ticketformulier en statuscontrole
-- **E-mailthreading** — Uitgaande e-mails bevatten de juiste `In-Reply-To`- en `References`-headers voor correcte threading in mailclients
-- **E-mailsjablonen met branding** — Configureerbaar logo, primaire kleur en voettekst voor alle uitgaande e-mails
-- **Real-time broadcasting** — Opt-in broadcasting via ActionCable met automatische polling-fallback
-- **Kennisbank-schakelaar** — De publieke kennisbank in- of uitschakelen vanuit beheerinstellingen
+<table>
+<tr>
+<td width="33%" valign="top">
 
-## Vereisten
+**Tickets en inbox**
+- Volledige levenscyclus met statusovergangen
+- Wachtrijfilters en bulkacties
+- Interne notities en standaardantwoorden
+- Een antwoord afsplitsen naar een nieuw ticket
+- Snoozen met voorinstellingen en automatisch wekken
+- Opgeslagen weergaven en gedeelde wachtrijen
 
-- Ruby 3.1+
-- Rails 7.1+
-- Node.js 18+ (voor frontend-assets)
+</td>
+<td width="33%" valign="top">
 
-## Snelstart
+**SLA's en escalatie**
+- Reactie- en oplosdoelen per prioriteit
+- Kantooruren en detectie van overschrijdingen
+- Regels die escaleren, opnieuw toewijzen of melden
+- Routering per afdeling met round-robin
+
+</td>
+<td width="33%" valign="top">
+
+**Klanten**
+- Selfservice-klantportaal
+- Gasttickets met toegang via magic link
+- Insluitbare widget met zoeken in de kennisbank
+- Openbare kennisbank die je kunt uitschakelen
+
+</td>
+</tr>
+<tr>
+<td width="33%" valign="top">
+
+**E-mail**
+- Inkomend via Mailgun, Postmark, SES of IMAP
+- Antwoorden als thread in mailclients
+- E-mailsjablonen in je eigen huisstijl
+- Meldingen en webhooks per gebeurtenis
+
+</td>
+<td width="33%" valign="top">
+
+**Beheer en toegang**
+- Afdelingen, SLA's, regels, tags en rapporten
+- Optioneel ingebed in je eigen beheeromgeving
+- Rollen en rechten als schakelaar bij installatie
+- Activiteitentijdlijn op elk ticket
+
+</td>
+<td width="33%" valign="top">
+
+**Onder de motorkap**
+- Gedeelde UI met Vue 3 en Inertia.js
+- Uploads met opslag- en groottelimieten
+- Gekleurde tags om tickets te sorteren
+- Realtime via ActionCable met polling als terugval
+
+</td>
+</tr>
+</table>
+
+<p align="center"><sub><a href="../features.md">Alle functies in detail</a></sub></p>
+
+<p align="center"><b>Gebouwd met</b></p>
+
+<p align="center">
+  <a href="https://rubyonrails.org"><img src="https://img.shields.io/badge/Ruby%20on%20Rails-D30001?style=for-the-badge&logo=rubyonrails&logoColor=white" alt="Ruby on Rails"></a>
+  <a href="https://www.ruby-lang.org"><img src="https://img.shields.io/badge/Ruby-CC342D?style=for-the-badge&logo=ruby&logoColor=white" alt="Ruby"></a>
+  <a href="https://vuejs.org"><img src="https://img.shields.io/badge/Vue.js-4FC08D?style=for-the-badge&logo=vuedotjs&logoColor=white" alt="Vue.js"></a>
+  <a href="https://inertiajs.com"><img src="https://img.shields.io/badge/Inertia-9553E9?style=for-the-badge&logo=inertia&logoColor=white" alt="Inertia"></a>
+</p>
+
+## Snel aan de slag
 
 ```bash
 bundle add escalated
@@ -69,372 +166,19 @@ rails generate escalated:install
 rails db:migrate
 ```
 
-Add the `Ticketable` concern to your User model:
+Ga daarna naar `/support`. Vereist Ruby 3.1+ en Rails 7.1+. De [handleiding om te beginnen](../getting-started.md) behandelt de `Ticketable`-concern en de toegangscontroles.
 
-```ruby
-class User < ApplicationRecord
-  include Escalated::Ticketable
-end
-```
+## Meer weten
 
-Define authorization in your `ApplicationController` or an initializer:
+- [Alle functies](../features.md) · [Aan de slag](../getting-started.md) · [Frontend-integratie](../frontend-integration.md)
+- [Configuratie, hostingmodi, events en routes](../operations.md) · [Benoemde routes](../named-routes.md)
+- [Agentpaneel](../agent-panel.md) · [Toegangsbeheer](../access-control.md) · [Tickettoegang en routering](../ticket-access-and-routing.md)
+- [Inkomende e-mail](../inbound-email.md) · [De widget insluiten](../embedding-the-widget.md) · [Het beheer insluiten](../embedding-admin.md)
+- [Gasttoegang](../guest-access.md) · [Privébijlagen](../private-attachments.md)
+- [Plugin-SDK](../plugin-sdk.md) · [Plugins](../plugins.md) · [Nieuwsbrieven](../newsletters.md)
 
-```ruby
-# config/initializers/escalated.rb
-Escalated.configure do |config|
-  config.admin_check = ->(user) { user.admin? }
-  config.agent_check = ->(user) { user.agent? || user.admin? }
-end
-```
-
-Visit `/support` — you're live.
-
-## Frontend-configuratie
-
-Escalated gebruikt Inertia.js met Vue 3. De frontend-componenten worden geleverd door het npm-pakket [`@escalated-dev/escalated`](https://github.com/escalated-dev/escalated).
-
-### Tailwind-inhoud
-
-Voeg het Escalated-pakket toe aan uw Tailwind `content`-configuratie zodat de klassen niet worden verwijderd:
-
-```js
-// tailwind.config.js
-content: [
-    // ... your existing paths
-    './node_modules/@escalated-dev/escalated/src/**/*.vue',
-],
-```
-
-### Pagina-resolver
-
-Voeg de Escalated-pagina's toe aan uw Inertia-pagina-resolver:
-
-```javascript
-// app/javascript/entrypoints/application.js
-import { createApp, h } from 'vue'
-import { createInertiaApp } from '@inertiajs/vue3'
-
-createInertiaApp({
-  resolve: name => {
-    if (name.startsWith('Escalated/')) {
-      const escalatedPages = import.meta.glob(
-        '../../../node_modules/@escalated-dev/escalated/src/pages/**/*.vue',
-        { eager: true }
-      )
-      const pageName = name.replace('Escalated/', '')
-      return escalatedPages[`../../../node_modules/@escalated-dev/escalated/src/pages/${pageName}.vue`]
-    }
-
-    const pages = import.meta.glob('../pages/**/*.vue', { eager: true })
-    return pages[`../pages/${name}.vue`]
-  },
-  setup({ el, App, props, plugin }) {
-    createApp({ render: () => h(App, props) })
-      .use(plugin)
-      .mount(el)
-  },
-})
-```
-
-### Theming (Optioneel)
-
-Registreer de `EscalatedPlugin` om Escalated-pagina's in de layout van uw app te renderen — geen paginaduplicatie nodig:
-
-```javascript
-import { EscalatedPlugin } from '@escalated-dev/escalated'
-import AppLayout from '@/layouts/AppLayout.vue'
-
-createInertiaApp({
-  setup({ el, App, props, plugin }) {
-    createApp({ render: () => h(App, props) })
-      .use(plugin)
-      .use(EscalatedPlugin, {
-        layout: AppLayout,
-        theme: {
-          primary: '#3b82f6',
-          radius: '0.75rem',
-        }
-      })
-      .mount(el)
-  },
-})
-```
-
-Your layout component must accept a `#header` slot and a default slot. Escalated will render its sub-navigation in the header and page content in the default slot. Without the plugin, Escalated uses its own standalone layout.
-
-Zie de [`@escalated-dev/escalated` README](https://github.com/escalated-dev/escalated) voor volledige theming-documentatie en CSS custom properties.
-
-## Hostingmodi
-
-### Self-Hosted (standaard)
-
-Alles blijft in uw database. Geen externe oproepen. Volledige autonomie.
-
-```ruby
-Escalated.configure do |config|
-  config.mode = :self_hosted
-end
-```
-
-### Gesynchroniseerd
-
-Lokale database + automatische synchronisatie naar `cloud.escalated.dev` voor een uniforme inbox over meerdere apps. Als de cloud onbereikbaar is, blijft uw app werken — gebeurtenissen worden in de wachtrij geplaatst en opnieuw geprobeerd.
-
-```ruby
-Escalated.configure do |config|
-  config.mode = :synced
-  config.hosted_api_url = "https://cloud.escalated.dev/api/v1"
-  config.hosted_api_key = ENV["ESCALATED_API_KEY"]
-end
-```
-
-### Cloud
-
-Alle ticketgegevens worden geproxyd naar de cloud-API. Uw app handelt authenticatie af en rendert de UI, maar opslag bevindt zich in de cloud.
-
-```ruby
-Escalated.configure do |config|
-  config.mode = :cloud
-  config.hosted_api_url = "https://cloud.escalated.dev/api/v1"
-  config.hosted_api_key = ENV["ESCALATED_API_KEY"]
-end
-```
-
-Alle drie modi delen dezelfde controllers, UI en bedrijfslogica. Het driver-patroon regelt de rest.
-
-## Configuratie
-
-Create or edit `config/initializers/escalated.rb`:
-
-```ruby
-Escalated.configure do |config|
-  config.mode = :self_hosted
-  config.user_class = "User"
-  config.table_prefix = "escalated_"
-  config.route_prefix = "support"
-  config.default_priority = :medium
-
-  # Middleware
-  config.middleware = [:authenticate_user!]
-  config.admin_middleware = nil
-
-  # Tickets
-  config.allow_customer_close = true
-  config.auto_close_resolved_after_days = 7
-  config.max_attachments_per_reply = 5
-  config.max_attachment_size_kb = 10240
-
-  # SLA
-  config.sla = {
-    enabled: true,
-    business_hours_only: true,
-    business_hours: {
-      start: 9, end: 17,
-      timezone: "UTC",
-      working_days: [1, 2, 3, 4, 5]
-    }
-  }
-
-  # Notifications
-  config.notification_channels = [:email]
-  config.webhook_url = nil
-
-  # Storage (ActiveStorage)
-  config.storage_service = :local
-end
-```
-
-## Planning
-
-Voeg deze toe aan uw planner voor SLA- en escalatie-automatisering:
-
-```ruby
-# config/schedule.rb (whenever gem) or use solid_queue/sidekiq-cron
-every 1.minute do
-  runner "Escalated::CheckSlaJob.perform_now"
-end
-
-every 5.minutes do
-  runner "Escalated::EvaluateEscalationsJob.perform_now"
-end
-
-every 1.day do
-  runner "Escalated::CloseResolvedJob.perform_now"
-end
-
-every 1.week do
-  runner "Escalated::PurgeActivitiesJob.perform_now"
-end
-```
-
-## Routes
-
-Routes are automatically mounted when the engine loads. By default they mount at `/support`.
-
-| Route | Method | Description |
-|-------|--------|-------------|
-| `/support` | GET | Customer ticket list |
-| `/support/create` | GET | New ticket form |
-| `/support/{ticket}` | GET | Ticket detail |
-| `/support/agent` | GET | Agent dashboard |
-| `/support/agent/tickets` | GET | Agent ticket queue |
-| `/support/agent/tickets/{ticket}` | GET | Agent ticket view |
-| `/support/admin/reports` | GET | Admin reports |
-| `/support/admin/departments` | GET | Department management |
-| `/support/admin/sla-policies` | GET | SLA policy management |
-| `/support/admin/escalation-rules` | GET | Escalation rule management |
-| `/support/admin/tags` | GET | Tag management |
-| `/support/admin/canned-responses` | GET | Canned response management |
-| `/support/agent/tickets/bulk` | POST | Bulk actions on multiple tickets |
-| `/support/agent/tickets/{ticket}/follow` | POST | Follow/unfollow a ticket |
-| `/support/agent/tickets/{ticket}/macro` | POST | Apply a macro to a ticket |
-| `/support/agent/tickets/{ticket}/presence` | POST | Update presence on a ticket |
-| `/support/agent/tickets/{ticket}/pin/{reply}` | POST | Pin/unpin an internal note |
-| `/support/{ticket}/rate` | POST | Submit satisfaction rating |
-
-## Gebeurtenissen
-
-Connect to ticket lifecycle events via ActiveSupport::Notifications:
-
-```ruby
-ActiveSupport::Notifications.subscribe("escalated.ticket_created") do |event|
-  ticket = event.payload[:ticket]
-  # Handle new ticket
-end
-```
-
-## Inkomende E-mail
-
-Create and reply to tickets from incoming emails. Supports **Mailgun**, **Postmark**, **AWS SES** webhooks, and **IMAP** polling.
-
-### Inschakelen
-
-```ruby
-# config/initializers/escalated.rb
-Escalated.configure do |config|
-  config.inbound_email_enabled = true
-  config.inbound_email_adapter = :mailgun
-  config.inbound_email_address = "support@yourapp.com"
-
-  # Mailgun
-  config.mailgun_signing_key = ENV["ESCALATED_MAILGUN_SIGNING_KEY"]
-
-  # Postmark
-  config.postmark_inbound_token = ENV["ESCALATED_POSTMARK_INBOUND_TOKEN"]
-
-  # AWS SES
-  config.ses_region = "us-east-1"
-  config.ses_topic_arn = ENV["ESCALATED_SES_TOPIC_ARN"]
-
-  # IMAP
-  config.imap_host = ENV["ESCALATED_IMAP_HOST"]
-  config.imap_port = 993
-  config.imap_encryption = :ssl
-  config.imap_username = ENV["ESCALATED_IMAP_USERNAME"]
-  config.imap_password = ENV["ESCALATED_IMAP_PASSWORD"]
-  config.imap_mailbox = "INBOX"
-end
-```
-
-### Webhook-URL's
-
-| Provider | URL |
-|----------|-----|
-| Mailgun | `POST /support/inbound/mailgun` |
-| Postmark | `POST /support/inbound/postmark` |
-| AWS SES | `POST /support/inbound/ses` |
-
-### IMAP-polling
-
-Schedule `Escalated::PollImapJob` with Solid Queue, Sidekiq, or whenever:
-
-```ruby
-# config/recurring.yml (Solid Queue)
-poll_imap:
-  class: Escalated::PollImapJob
-  schedule: every minute
-```
-
-### Functies
-
-- Thread detection via subject reference and `In-Reply-To` / `References` headers
-- Guest tickets for unknown senders with auto-derived display names
-- Auto-reopen resolved/closed tickets on email reply
-- Duplicate detection via `Message-ID` headers
-- Attachment handling with configurable size and count limits
-- Audit logging of every inbound email
-- All settings configurable from admin panel with env fallback
-
-## Plugin-SDK
-
-Escalated ondersteunt framework-agnostische plugins gebouwd met de [Plugin SDK](https://github.com/escalated-dev/escalated-plugin-sdk). Plugins worden eenmaal geschreven in TypeScript en werken op alle Escalated-backends.
-
-### Vereisten
-
-- Node.js 20+
-- `@escalated-dev/plugin-runtime` installed in your project
-
-### Plugins Installeren
-
-```bash
-npm install @escalated-dev/plugin-runtime
-npm install @escalated-dev/plugin-slack
-npm install @escalated-dev/plugin-jira
-```
-
-### SDK-plugins Inschakelen
-
-```ruby
-# config/initializers/escalated.rb
-Escalated.configure do |config|
-  # ... existing config ...
-  config.sdk_plugins_enabled = true
-end
-```
-
-### Hoe Het Werkt
-
-SDK plugins run as a long-lived Node.js subprocess managed by `@escalated-dev/plugin-runtime`, communicating with Rails over JSON-RPC 2.0 via stdio. The subprocess is spawned lazily on first use and automatically restarted with exponential backoff if it crashes. Every ticket lifecycle event is dual-dispatched to both Rails event handlers and the plugin runtime.
-
-### Uw Eigen Plugin Bouwen
-
-```typescript
-import { definePlugin } from '@escalated-dev/plugin-sdk'
-
-export default definePlugin({
-  name: 'my-plugin',
-  version: '1.0.0',
-  actions: {
-    'ticket.created': async (event, ctx) => {
-      ctx.log.info('New ticket!', event)
-    },
-  },
-})
-```
-
-### Bronnen
-
-- [Plugin SDK](https://github.com/escalated-dev/escalated-plugin-sdk) — TypeScript SDK voor het bouwen van plugins
-- [Plugin Runtime](https://github.com/escalated-dev/escalated-plugin-runtime) — Runtime-host voor plugins
-- [Plugin Development Guide](https://github.com/escalated-dev/escalated-docs) — Volledige documentatie
-
-## Ook Beschikbaar Voor
-
-- **[Escalated for Laravel](https://github.com/escalated-dev/escalated-laravel)** — Laravel Composer-pakket
-- **[Escalated for Rails](https://github.com/escalated-dev/escalated-rails)** — Ruby on Rails-engine (u bent hier)
-- **[Escalated for Django](https://github.com/escalated-dev/escalated-django)** — Herbruikbare Django-app
-- **[Escalated for AdonisJS](https://github.com/escalated-dev/escalated-adonis)** — AdonisJS v6-pakket
-- **[Escalated for Filament](https://github.com/escalated-dev/escalated-filament)** — Filament v3 admin-paneel-plugin
-- **[Shared Frontend](https://github.com/escalated-dev/escalated)** — Vue 3 + Inertia.js UI-componenten
-
-Dezelfde architectuur, dezelfde Vue-UI, dezelfde drie hostingmodi — voor elk belangrijk backend-framework.
-
-## Testen
-
-```bash
-bundle exec rspec
-```
+Escalated is ook beschikbaar voor [Laravel](https://github.com/escalated-dev/escalated-laravel), [Django](https://github.com/escalated-dev/escalated-django), [NestJS](https://github.com/escalated-dev/escalated-nestjs), [AdonisJS](https://github.com/escalated-dev/escalated-adonis), [Symfony](https://github.com/escalated-dev/escalated-symfony), [Phoenix](https://github.com/escalated-dev/escalated-phoenix), [Go](https://github.com/escalated-dev/escalated-go), [.NET](https://github.com/escalated-dev/escalated-dotnet), [Spring](https://github.com/escalated-dev/escalated-spring), [WordPress](https://github.com/escalated-dev/escalated-wordpress) en [Filament](https://github.com/escalated-dev/escalated-filament). De UI staat in [escalated](https://github.com/escalated-dev/escalated).
 
 ## Licentie
 
-MIT
+MIT. Copyright (c) 2026 Escalated.dev. Zie [LICENSE](../../LICENSE).

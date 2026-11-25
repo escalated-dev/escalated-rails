@@ -8,7 +8,7 @@ module Escalated
   class UserModelNotConfigured < StandardError
     def self.for(user_class)
       new(
-        "#{user_class} does not implement Escalated's user contract: define #escalated_agent? and " \
+        "#{user_class.name || user_class} does not implement Escalated's user contract: define #escalated_agent? and " \
         '#escalated_admin? (true for support agents / admins) and a .escalated_agents scope on it. ' \
         '`rails generate escalated:install` adds all three to app/models/user.rb; see ' \
         'docs/getting-started.md. Run `bin/rails escalated:doctor` to check the setup.'

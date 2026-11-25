@@ -247,6 +247,7 @@ module Escalated
     # permission from the user's roles. Both must pass.
     def require_agent!
       unless current_user_data&.dig(:is_agent) || current_user_data&.dig(:is_admin)
+        ensure_staff_contract!
         return redirect_to main_app.root_path, alert: I18n.t('escalated.middleware.not_agent')
       end
 
@@ -259,11 +260,23 @@ module Escalated
     # permissions still apply.
     def require_admin!
       unless current_user_data&.dig(:is_admin) || embedded_admin_gate_replaced?
+        ensure_staff_contract!
         return redirect_to main_app.root_path,
                            alert: I18n.t('escalated.middleware.not_admin')
       end
 
       enforce_two_factor! && enforce_route_permissions!
+    end
+
+    # A signed-in user turned away from a staff screen because their model
+    # cannot say who is staff (no escalated_agent? / escalated_admin?) gets
+    # Escalated::UserModelNotConfigured, naming the contract, instead of the
+    # "not an agent" redirect every user would otherwise get.
+    def ensure_staff_contract!
+      user = escalated_current_user
+      return if user.nil? || Escalated::SetupCheck.staff_contract?(user)
+
+      raise Escalated::UserModelNotConfigured.for(user.class)
     end
 
     def embedded_admin_gate_replaced?
@@ -274,6 +287,7 @@ module Escalated
     # (two-factor enrolment): the gate and the challenge, no permission.
     def require_staff!
       unless current_user_data&.dig(:is_agent) || current_user_data&.dig(:is_admin)
+        ensure_staff_contract!
         return redirect_to main_app.root_path, alert: I18n.t('escalated.middleware.not_agent')
       end
 

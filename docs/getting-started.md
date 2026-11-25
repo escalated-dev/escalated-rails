@@ -15,23 +15,41 @@ rails generate escalated:install
 rails db:migrate
 ```
 
-Add the `Ticketable` concern to your User model:
+`rails generate escalated:install` adds three methods to `app/models/user.rb`. They are how
+Escalated tells staff from customers; edit them to match your own roles:
 
 ```ruby
 class User < ApplicationRecord
-  include Escalated::Ticketable
+  def escalated_agent?     # support agents (return true for admins as well)
+    %w[agent admin].include?(role)
+  end
+
+  def escalated_admin?     # support admins
+    role == "admin"
+  end
+
+  def self.escalated_agents # every agent, for assignee lists
+    where(role: %w[agent admin])
+  end
 end
 ```
 
-Define authorization in your `ApplicationController` or an initializer:
+If your User model has none of them, signing in to the agent or admin screens raises
+`Escalated::UserModelNotConfigured`, which names the missing methods. Check the setup at any time
+with:
 
-```ruby
-# config/initializers/escalated.rb
-Escalated.configure do |config|
-  config.admin_check = ->(user) { user.admin? }
-  config.agent_check = ->(user) { user.agent? || user.admin? }
-end
+```bash
+bin/rails escalated:doctor
 ```
+
+### Required: schedule the recurring jobs
+
+SLA checks, escalation rules, automations and snooze wake-ups only run when your app schedules
+`Escalated::CheckSlaJob`, `Escalated::EvaluateEscalationsJob`, `Escalated::RunAutomationsJob` and
+`Escalated::WakeSnoozedTicketsJob` (plus the daily and weekly housekeeping jobs). The intervals and
+a Solid Queue / `whenever` recipe are in [docs/operations.md](operations.md#required-schedule-the-recurring-jobs).
+Until the SLA check runs, the admin Settings and Reports pages warn that the jobs are not
+running.
 
 Visit `/support` — you're live.
 

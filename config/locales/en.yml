@@ -167,5 +167,7 @@ en:
         step3: "3. Add escalated_agent? and escalated_admin? methods to your User model"
         step4: "4. Install Vue components: copy from vendor/escalated/resources/js/"
         step5: "5. Set up your Inertia page resolver to include Escalated pages"
+        step6: "6. Required: schedule the recurring jobs (docs/operations.md)"
+        checking_setup: "Checking the setup (bin/rails escalated:doctor):"
       guest_not_enabled: "Guest tickets are not enabled."
       ticket_not_found: "Ticket not found."

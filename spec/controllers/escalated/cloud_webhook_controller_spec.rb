@@ -8,6 +8,16 @@ RSpec.describe 'Escalated::CloudWebhookController', type: :request do
   let(:secret) { 'whsec_site' }
   let(:ticket) { create(:escalated_ticket, subject: 'Before', description: 'Body', status: 'open', priority: 'medium') }
 
+  # The route is drawn only while a signing secret is configured.
+  around do |example|
+    Escalated.configuration.hosted_signing_secret = 'whsec_site'
+    Rails.application.reload_routes!
+    example.run
+  ensure
+    Escalated.configuration.hosted_signing_secret = nil
+    Rails.application.reload_routes!
+  end
+
   before do
     allow(Escalated.configuration).to receive_messages(hosted_signing_secret: secret, notification_channels: [])
     Rails.cache.clear
@@ -29,7 +39,7 @@ RSpec.describe 'Escalated::CloudWebhookController', type: :request do
     response.parsed_body
   end
 
-  it 'answers 503 until a signing secret is configured' do
+  it 'answers 503 if the signing secret is removed after the routes were drawn' do
     allow(Escalated.configuration).to receive(:hosted_signing_secret).and_return(nil)
     post_event('ticket.updated', projected)
     expect(response).to have_http_status(:service_unavailable)

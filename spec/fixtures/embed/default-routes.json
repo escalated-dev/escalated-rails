@@ -578,17 +578,6 @@
         ]
       },
       {
-        "name": "cloud_webhook",
-        "verb": "POST",
-        "path": "/cloud/webhook(.:format)",
-        "endpoint": "escalated/cloud_webhook#receive",
-        "defaults": {},
-        "before": [
-          "Proc",
-          "set_inertia_shared_data if:proc"
-        ]
-      },
-      {
         "name": "attachment_download",
         "verb": "GET",
         "path": "/attachments/:id(.:format)",
@@ -6420,17 +6409,6 @@
           "Proc",
           "set_inertia_shared_data if:proc",
           "ensure_inbound_enabled"
-        ]
-      },
-      {
-        "name": "cloud_webhook",
-        "verb": "POST",
-        "path": "/cloud/webhook(.:format)",
-        "endpoint": "escalated/cloud_webhook#receive",
-        "defaults": {},
-        "before": [
-          "Proc",
-          "set_inertia_shared_data if:proc"
         ]
       },
       {

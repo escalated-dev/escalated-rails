@@ -121,7 +121,7 @@ module Escalated
           allow_customer_close: Escalated.configuration.allow_customer_close,
           max_attachments: Escalated.configuration.max_attachments,
           max_attachment_size_kb: Escalated.configuration.max_attachment_size_kb,
-          guest_tickets_enabled: Escalated::EscalatedSetting.guest_tickets_enabled?,
+          guest_tickets_enabled: guest_tickets_shared?,
           show_powered_by: Escalated::EscalatedSetting.get_bool('show_powered_by', default: true),
           plugins_enabled: Escalated.configuration.plugins_enabled?,
           knowledge_base_enabled: Escalated::EscalatedSetting.knowledge_base_enabled?,
@@ -171,6 +171,12 @@ module Escalated
       end
 
       inertia_share(**shared)
+    end
+
+    # False while the guest routes are not drawn (config.guest_routes_enabled),
+    # so the portal does not link to them.
+    def guest_tickets_shared?
+      Escalated.configuration.guest_routes_enabled? && Escalated::EscalatedSetting.guest_tickets_enabled?
     end
 
     # `agent_status`, `agent_statuses` and, while the feed is on, `notifications`.

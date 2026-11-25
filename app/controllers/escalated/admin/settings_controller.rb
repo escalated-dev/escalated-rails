@@ -15,7 +15,9 @@ module Escalated
         end
 
         render_page 'Escalated/Admin/Settings', {
-          settings: settings
+          settings: settings,
+          # Whether the recurring jobs run (Escalated::SchedulerHealth).
+          scheduler: Escalated::SchedulerHealth.status_with_warning
         }
       end
 

@@ -5,6 +5,10 @@ module Escalated
     queue_as :escalated
 
     def perform
+      # The heartbeat the admin pages read (Escalated::SchedulerHealth): it
+      # shows the host schedules the recurring jobs, SLA on or off.
+      Escalated::SchedulerHealth.beat!
+
       return unless Escalated.configuration.sla_enabled?
 
       Rails.logger.info('[Escalated::CheckSlaJob] Checking SLA breaches...')

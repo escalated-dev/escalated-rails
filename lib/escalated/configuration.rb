@@ -35,6 +35,11 @@ module Escalated
                   :route_overrides,
                   :middleware,
                   :admin_middleware,
+                  # Extra guards on the customer portal and customer knowledge
+                  # base, run after `middleware`: before_action method names or
+                  # callables taking the controller (default []). Set e.g.
+                  # [:require_staff!] to make the portal staff-only.
+                  :customer_middleware,
                   :hosted_api_url,
                   :hosted_api_key,
                   :hosted_signing_secret,
@@ -174,6 +179,7 @@ module Escalated
       @route_overrides = {}
       @middleware = [:authenticate_user!]
       @admin_middleware = nil
+      @customer_middleware = []
       @hosted_api_url = nil
       @hosted_api_key = nil
       @hosted_signing_secret = nil

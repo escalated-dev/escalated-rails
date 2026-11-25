@@ -57,6 +57,23 @@ module Escalated
       return apply_embedded_admin_middleware if escalated_embedded_request?
 
       apply_configured_middleware
+      apply_customer_middleware if customer_route? && !performed?
+    end
+
+    # The customer portal and the customer knowledge base.
+    def customer_route?
+      controller_path.start_with?('escalated/customer/')
+    end
+
+    # config.customer_middleware, after config.middleware, on the customer
+    # routes only: the host's extra guards, e.g. [:require_staff!] for a
+    # staff-only install. Same forms as the embedded admin's guards, stopping
+    # at the first that renders or redirects.
+    def apply_customer_middleware
+      Array(Escalated.configuration.customer_middleware).each do |guard|
+        run_guard(guard, 'customer_middleware')
+        break if performed?
+      end
     end
 
     def apply_configured_middleware
@@ -89,16 +106,16 @@ module Escalated
       return apply_configured_middleware if guards.nil?
 
       guards.each do |guard|
-        run_embedded_admin_guard(guard)
+        run_guard(guard, 'embed middleware')
         break if performed?
       end
     end
 
-    def run_embedded_admin_guard(guard)
+    def run_guard(guard, setting)
       case guard
       when Symbol, String
         unless respond_to?(guard, true)
-          raise ArgumentError, "Escalated embed middleware #{guard.inspect} is not a method of #{self.class.name}."
+          raise ArgumentError, "Escalated #{setting} #{guard.inspect} is not a method of #{self.class.name}."
         end
 
         send(guard)

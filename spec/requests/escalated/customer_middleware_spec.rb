@@ -88,7 +88,12 @@ RSpec.describe 'Customer route guards (config.customer_middleware)', type: :requ
   it 'rejects a guard name the controller does not have' do
     Escalated.configuration.customer_middleware = [:no_such_guard!]
     sign_in_as(customer)
+    config = Rails.application.env_config
+    previous = config['action_dispatch.show_exceptions']
+    config['action_dispatch.show_exceptions'] = :none # let the error reach the spec
 
     expect { get '/support/customer/tickets' }.to raise_error(ArgumentError, /customer_middleware :no_such_guard!/)
+  ensure
+    config['action_dispatch.show_exceptions'] = previous if config
   end
 end

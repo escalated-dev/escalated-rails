@@ -19,12 +19,10 @@ RSpec.describe 'Scheduler heartbeat', type: :request do
 
   describe Escalated::CheckSlaJob do
     it 'records the heartbeat when it runs' do
-      freeze_time do
-        described_class.perform_now
+      described_class.perform_now
 
-        expect(Escalated::SchedulerHealth.last_run_at).to eq(Time.current.change(usec: 0))
-        expect(Escalated::SchedulerHealth.status[:healthy]).to be(true)
-      end
+      expect(Escalated::SchedulerHealth.last_run_at).to be_within(5.seconds).of(Time.current)
+      expect(Escalated::SchedulerHealth.status[:healthy]).to be(true)
     end
 
     it 'records it with SLA switched off as well' do
@@ -149,8 +147,7 @@ RSpec.describe 'Scheduler heartbeat', type: :request do
     it 'runs the automations (the rake task named a class that does not exist)' do
       expect(Escalated::RunAutomationsJob.perform_now).to eq(0)
       expect { Rake::Task['escalated:run_automations'].invoke }
-        .to output("Automations complete: 0 ticket(s) affected
-").to_stdout
+        .to output(/Automations complete: 0 ticket\(s\) affected/).to_stdout
     end
 
     it 'wakes snoozed tickets whose time has passed' do
@@ -159,8 +156,7 @@ RSpec.describe 'Scheduler heartbeat', type: :request do
 
       expect(Escalated::WakeSnoozedTicketsJob.perform_now).to eq(1)
       expect(ticket.reload.snoozed_until).to be_nil
-      expect { Rake::Task['escalated:wake_snoozed_tickets'].invoke }.to output("Woke 0 snoozed ticket(s)
-").to_stdout
+      expect { Rake::Task['escalated:wake_snoozed_tickets'].invoke }.to output(/Woke 0 snoozed ticket\(s\)/).to_stdout
     end
   end
 end

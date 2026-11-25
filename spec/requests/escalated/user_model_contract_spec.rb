@@ -27,6 +27,16 @@ RSpec.describe 'Host user model contract', type: :request do
   end
 
   describe 'staff screens' do
+    # Let the exception reach the spec instead of the error page.
+    around do |example|
+      config = Rails.application.env_config
+      previous = config['action_dispatch.show_exceptions']
+      config['action_dispatch.show_exceptions'] = :none
+      example.run
+    ensure
+      config['action_dispatch.show_exceptions'] = previous
+    end
+
     it 'raises an error naming the contract for an agent screen' do
       sign_in_as(bare_user)
 

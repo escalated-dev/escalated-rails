@@ -134,8 +134,13 @@ Escalated.configure do |config|
   config.widget_allowed_origins = [...] # default: ESCALATED_WIDGET_ALLOWED_ORIGINS, comma separated
   config.widget_preflight_max_age = 600 # seconds browsers may cache a preflight
   config.widget_serve_script = true     # mount {route_prefix}/widget/embed.js
+  config.widget_enabled = true          # default: ESCALATED_WIDGET_ENABLED; false draws no widget route
 end
 ```
+
+`widget_enabled = false` (or `ESCALATED_WIDGET_ENABLED=false`) leaves every
+`{route_prefix}/widget/...` route undrawn, `embed.js` and widget chat included,
+for installs that never embed the widget. Restart after changing it.
 
 ## Troubleshooting
 

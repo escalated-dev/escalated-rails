@@ -23,6 +23,15 @@ widget's `/config` says `guest_verification_required: true`.
 - Keep `secret_key_base` the same on every process. It keys the code digests
   and encrypts the grants.
 
+## Turning the guest routes off
+
+`config.guest_routes_enabled = false` (or `ESCALATED_GUEST_ROUTES=false`) leaves
+every `{route_prefix}/guest/...` route undrawn, for installs where guests never
+raise tickets. The default is on. While it is on, the admin's guest tickets
+setting still turns the portal off at runtime (the routes answer 404). The
+mobile guest API is drawn only with the REST API (`config.api_enabled`) and is
+not affected. See "Staff-only installs" in [operations.md](operations.md).
+
 ## Email codes
 
 Each prefix has `POST verification` and `POST lookup`:

@@ -7,7 +7,7 @@ module Escalated
         def index
           user_id = current_user.id
 
-          render json: {
+          payload = {
             stats: {
               open: Escalated::Ticket.by_open.count,
               my_assigned: Escalated::Ticket.assigned_to(user_id).by_open.count,
@@ -46,9 +46,18 @@ module Escalated
                                   .count
             }
           }
+          # Headless installs have no admin pages: admins get whether the
+          # recurring jobs run here (Escalated::SchedulerHealth).
+          payload[:scheduler] = Escalated::SchedulerHealth.status_with_warning if admin_caller?
+
+          render json: payload
         end
 
         private
+
+        def admin_caller?
+          current_user.respond_to?(:escalated_admin?) && current_user.escalated_admin? == true
+        end
 
         def ticket_summary_json(ticket)
           {

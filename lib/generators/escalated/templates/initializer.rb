@@ -36,6 +36,20 @@ Escalated.configure do |config|
   # Additional middleware for admin routes (nil = same as middleware)
   config.admin_middleware = nil
 
+  # Extra guards on the customer portal and customer knowledge base, run after
+  # `middleware`. [:require_staff!] makes the portal staff-only.
+  config.customer_middleware = []
+
+  # Public routes, each drawn only while on (restart after changing):
+  # the embeddable widget (ESCALATED_WIDGET_ENABLED) and the guest portal
+  # (ESCALATED_GUEST_ROUTES). For a staff-only install turn both off.
+  # config.widget_enabled = false
+  # config.guest_routes_enabled = false
+
+  # Required: schedule the recurring jobs (SLA checks, escalation rules,
+  # automations, snooze wake-ups). See docs/operations.md; the admin Settings
+  # page warns while they are not running.
+
   # Optional: show Escalated's admin inside your own admin panel instead of
   # the standalone admin at /support/admin (off by default; see
   # docs/embedding-admin.md).

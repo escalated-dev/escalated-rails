@@ -6,6 +6,21 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Upgrading
+- **`POST /support/cloud/webhook` is drawn only while `config.hosted_signing_secret` is set.** Without a secret it could only answer 503; Synced installs that set the secret see no change.
+- **Staff screens raise `Escalated::UserModelNotConfigured` when the signed-in user's model defines neither `escalated_agent?` nor `escalated_admin?`.** Such an install could not have any staff (every staff request was redirected with "not an agent"); the error names the missing methods.
+
+### Added
+- `config.widget_enabled` (`ESCALATED_WIDGET_ENABLED`, default true) and `config.guest_routes_enabled` (`ESCALATED_GUEST_ROUTES`, default true): off draws none of the widget or guest routes. The guest tickets admin setting still works while the routes are on, and the shared `guest_tickets_enabled` is false while they are off.
+- `config.customer_middleware` (default `[]`): extra guards on the customer portal and customer knowledge base, run after `config.middleware`, e.g. `[:require_staff!]` for a staff-only install (docs/operations.md, "Staff-only installs").
+- Scheduler heartbeat: `Escalated::CheckSlaJob` records when it ran; the admin Settings, Reports and Reports dashboard pages get a `scheduler` prop (`healthy`, `last_run_at`, `message`, `commands`) that is unhealthy when the heartbeat is missing or more than 15 minutes old, a warning is logged, and admin API tokens get the same object in `GET {api_prefix}/dashboard`.
+- `Escalated::RunAutomationsJob` and `Escalated::WakeSnoozedTicketsJob`, so every recurring task can be scheduled as an ActiveJob (Solid Queue `config/recurring.yml`); the rake tasks now call them. README and docs/operations.md gain "Required: schedule the recurring jobs".
+- `bin/rails escalated:doctor`: checks the user model's role methods and the scheduler heartbeat; `rails generate escalated:install` runs it at the end.
+
+### Fixed
+- `rake escalated:run_automations` called `Escalated::AutomationRunner`, which does not exist (`Escalated::Services::AutomationRunner` does), so it raised `NameError` on every run.
+- docs/getting-started.md told hosts to `include Escalated::Ticketable` and set `config.admin_check` / `config.agent_check`, none of which exist; it now describes the role methods the install generator adds.
+
 ## [0.7.13] - 2026-11-07
 
 ### Security

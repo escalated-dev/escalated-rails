@@ -60,6 +60,16 @@ module Escalated
         say "    #{I18n.t('escalated.commands.install.inject_agents_scope')}"
       end
 
+      # The setup check (`bin/rails escalated:doctor`), in a fresh process so it
+      # sees the role methods just added to the User model. Before
+      # `db:migrate` it cannot read the scheduler heartbeat and says so.
+      def check_setup
+        say ''
+        say I18n.t('escalated.commands.install.checking_setup',
+                   default: 'Checking the setup (bin/rails escalated:doctor):')
+        rails_command 'escalated:doctor', abort_on_failure: false
+      end
+
       def show_post_install
         say ''
         say I18n.t('escalated.commands.install.success'), :green
@@ -70,6 +80,8 @@ module Escalated
         say "  #{I18n.t('escalated.commands.install.step3')}"
         say "  #{I18n.t('escalated.commands.install.step4')}"
         say "  #{I18n.t('escalated.commands.install.step5')}"
+        say "  #{I18n.t('escalated.commands.install.step6',
+                        default: '6. Required: schedule the recurring jobs (docs/operations.md)')}"
         say ''
       end
     end

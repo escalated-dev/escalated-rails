@@ -57,6 +57,23 @@ module Escalated
       return apply_embedded_admin_middleware if escalated_embedded_request?
 
       apply_configured_middleware
+      apply_customer_middleware if customer_route? && !performed?
+    end
+
+    # The customer portal and the customer knowledge base.
+    def customer_route?
+      controller_path.start_with?('escalated/customer/')
+    end
+
+    # config.customer_middleware, after config.middleware, on the customer
+    # routes only: the host's extra guards, e.g. [:require_staff!] for a
+    # staff-only install. Same forms as the embedded admin's guards, stopping
+    # at the first that renders or redirects.
+    def apply_customer_middleware
+      Array(Escalated.configuration.customer_middleware).each do |guard|
+        run_guard(guard, 'customer_middleware')
+        break if performed?
+      end
     end
 
     def apply_configured_middleware
@@ -89,16 +106,16 @@ module Escalated
       return apply_configured_middleware if guards.nil?
 
       guards.each do |guard|
-        run_embedded_admin_guard(guard)
+        run_guard(guard, 'embed middleware')
         break if performed?
       end
     end
 
-    def run_embedded_admin_guard(guard)
+    def run_guard(guard, setting)
       case guard
       when Symbol, String
         unless respond_to?(guard, true)
-          raise ArgumentError, "Escalated embed middleware #{guard.inspect} is not a method of #{self.class.name}."
+          raise ArgumentError, "Escalated #{setting} #{guard.inspect} is not a method of #{self.class.name}."
         end
 
         send(guard)
@@ -121,7 +138,7 @@ module Escalated
           allow_customer_close: Escalated.configuration.allow_customer_close,
           max_attachments: Escalated.configuration.max_attachments,
           max_attachment_size_kb: Escalated.configuration.max_attachment_size_kb,
-          guest_tickets_enabled: Escalated::EscalatedSetting.guest_tickets_enabled?,
+          guest_tickets_enabled: guest_tickets_shared?,
           show_powered_by: Escalated::EscalatedSetting.get_bool('show_powered_by', default: true),
           plugins_enabled: Escalated.configuration.plugins_enabled?,
           knowledge_base_enabled: Escalated::EscalatedSetting.knowledge_base_enabled?,
@@ -171,6 +188,12 @@ module Escalated
       end
 
       inertia_share(**shared)
+    end
+
+    # False while the guest routes are not drawn (config.guest_routes_enabled),
+    # so the portal does not link to them.
+    def guest_tickets_shared?
+      Escalated.configuration.guest_routes_enabled? && Escalated::EscalatedSetting.guest_tickets_enabled?
     end
 
     # `agent_status`, `agent_statuses` and, while the feed is on, `notifications`.
@@ -224,6 +247,7 @@ module Escalated
     # permission from the user's roles. Both must pass.
     def require_agent!
       unless current_user_data&.dig(:is_agent) || current_user_data&.dig(:is_admin)
+        ensure_staff_contract!
         return redirect_to main_app.root_path, alert: I18n.t('escalated.middleware.not_agent')
       end
 
@@ -236,11 +260,23 @@ module Escalated
     # permissions still apply.
     def require_admin!
       unless current_user_data&.dig(:is_admin) || embedded_admin_gate_replaced?
+        ensure_staff_contract!
         return redirect_to main_app.root_path,
                            alert: I18n.t('escalated.middleware.not_admin')
       end
 
       enforce_two_factor! && enforce_route_permissions!
+    end
+
+    # A signed-in user turned away from a staff screen because their model
+    # cannot say who is staff (no escalated_agent? / escalated_admin?) gets
+    # Escalated::UserModelNotConfigured, naming the contract, instead of the
+    # "not an agent" redirect every user would otherwise get.
+    def ensure_staff_contract!
+      user = escalated_current_user
+      return if user.nil? || Escalated::SetupCheck.staff_contract?(user)
+
+      raise Escalated::UserModelNotConfigured.for(user.class)
     end
 
     def embedded_admin_gate_replaced?
@@ -251,6 +287,7 @@ module Escalated
     # (two-factor enrolment): the gate and the challenge, no permission.
     def require_staff!
       unless current_user_data&.dig(:is_agent) || current_user_data&.dig(:is_admin)
+        ensure_staff_contract!
         return redirect_to main_app.root_path, alert: I18n.t('escalated.middleware.not_agent')
       end
 

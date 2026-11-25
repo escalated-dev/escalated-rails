@@ -57,7 +57,9 @@ module Escalated
           sla_breach_count: stats[:sla][:total_breached] || 0,
           by_status: stats[:by_status],
           by_priority: stats[:by_priority],
-          csat: stats[:csat]
+          csat: stats[:csat],
+          # Whether the recurring jobs run (Escalated::SchedulerHealth).
+          scheduler: Escalated::SchedulerHealth.status_with_warning
         }
       end
 
@@ -74,7 +76,9 @@ module Escalated
           avg_resolution_hours: window.average_resolution_hours,
           sla_compliance: window.sla_compliance_rate,
           csat_average: window.csat_average,
-          agent_performance: window.agent_performance_rows
+          agent_performance: window.agent_performance_rows,
+          # Whether the recurring jobs run (Escalated::SchedulerHealth).
+          scheduler: Escalated::SchedulerHealth.status_with_warning
         }
       end
 

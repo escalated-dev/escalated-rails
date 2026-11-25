@@ -166,7 +166,22 @@ rails generate escalated:install
 rails db:migrate
 ```
 
-Then visit `/support`. Needs Ruby 3.1+ and Rails 7.1+. The [getting started guide](docs/getting-started.md) covers the `Ticketable` concern and access checks.
+Then visit `/support`. Needs Ruby 3.1+ and Rails 7.1+. The [getting started guide](docs/getting-started.md) covers the user model's role methods and access checks; `bin/rails escalated:doctor` checks the setup.
+
+### Required: schedule the recurring jobs
+
+SLA checks, escalation rules, automations and snooze wake-ups only run when your app schedules them (Solid Queue recurring tasks, sidekiq-cron, `whenever` or cron):
+
+| Job | Interval |
+|-----|----------|
+| `Escalated::CheckSlaJob` | every minute |
+| `Escalated::EvaluateEscalationsJob` | every 5 minutes |
+| `Escalated::RunAutomationsJob` | every 5 minutes |
+| `Escalated::WakeSnoozedTicketsJob` | every minute |
+| `Escalated::CloseResolvedJob` | daily |
+| `Escalated::PurgeActivitiesJob` | weekly |
+
+The admin Settings page warns when they are not running. Recipes are in [docs/operations.md](docs/operations.md#required-schedule-the-recurring-jobs).
 
 ## Learn more
 

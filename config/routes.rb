@@ -23,7 +23,11 @@ Escalated::Engine.routes.draw do
 
     # Signed ticket webhooks from cloud.escalated.dev (Synced mode). Verified by
     # X-Escalated-Signature, not by a session, so no host auth filters apply.
-    post 'cloud/webhook', to: 'cloud_webhook#receive', as: :cloud_webhook
+    # Drawn only once hosted_signing_secret is set: without it there is
+    # nothing to verify a request against.
+    if Escalated.configuration.cloud_webhook_enabled?
+      post 'cloud/webhook', to: 'cloud_webhook#receive', as: :cloud_webhook
+    end
 
     # Attachment downloads: a signed, expiring link plus a ticket-access check
     # (Escalated::AttachmentAccess). Core, so API-only hosts can download too.
@@ -407,48 +411,58 @@ Escalated::Engine.routes.draw do
   end
 
   standalone.call do
+    # Every widget route is public, so none is drawn while the widget is off
+    # (config.widget_enabled / ESCALATED_WIDGET_ENABLED).
+    widget = Escalated.configuration.widget_enabled?
+
     # The standalone widget bundle, loaded with a <script> tag on any site.
-    if Escalated.configuration.widget_serve_script
+    if widget && Escalated.configuration.widget_serve_script
       get 'widget/embed.js', to: 'widget_script#show', format: false, as: :widget_script
     end
 
-    # CORS preflights for every widget route, answered by Escalated::WidgetCors.
-    match 'widget/*path', to: 'widget#preflight', via: :options, format: false, as: :widget_preflight
+    if widget
+      # CORS preflights for every widget route, answered by Escalated::WidgetCors.
+      match 'widget/*path', to: 'widget#preflight', via: :options, format: false, as: :widget_preflight
 
-    # Widget routes (public, no authentication required)
-    scope 'widget', controller: :widget do
-      get :config, action: :widget_config, as: :widget_config
-      get :articles, as: :widget_articles
-      get 'articles/:slug', action: :article, as: :widget_article
-      post :tickets, action: :create_ticket, as: :widget_create_ticket
-      # A reference with the grant as a bearer token, or a legacy guest_token.
-      get 'tickets/:token', action: :lookup_ticket, as: :widget_lookup_ticket
-      post :verification, action: :request_verification, as: :widget_verification
-      post :lookup, action: :lookup, as: :widget_lookup
+      # Widget routes (public, no authentication required)
+      scope 'widget', controller: :widget do
+        get :config, action: :widget_config, as: :widget_config
+        get :articles, as: :widget_articles
+        get 'articles/:slug', action: :article, as: :widget_article
+        post :tickets, action: :create_ticket, as: :widget_create_ticket
+        # A reference with the grant as a bearer token, or a legacy guest_token.
+        get 'tickets/:token', action: :lookup_ticket, as: :widget_lookup_ticket
+        post :verification, action: :request_verification, as: :widget_verification
+        post :lookup, action: :lookup, as: :widget_lookup
+      end
+
+      # Widget chat routes (public, rate limited)
+      scope 'widget/chat', controller: :widget_chat do
+        get :availability, as: :widget_chat_availability
+        post :start, as: :widget_chat_start
+        post ':session_id/message', action: :message, as: :widget_chat_message
+        # The shared widget's paths: list and send on `messages`.
+        get ':session_id/messages', action: :messages, as: :widget_chat_messages
+        post ':session_id/messages', action: :message
+        post ':session_id/typing', action: :typing, as: :widget_chat_typing
+        post ':session_id/end', action: :end_chat, as: :widget_chat_end
+        post ':session_id/rate', action: :rate, as: :widget_chat_rate
+      end
     end
 
-    # Widget chat routes (public, rate limited)
-    scope 'widget/chat', controller: :widget_chat do
-      get :availability, as: :widget_chat_availability
-      post :start, as: :widget_chat_start
-      post ':session_id/message', action: :message, as: :widget_chat_message
-      # The shared widget's paths: list and send on `messages`.
-      get ':session_id/messages', action: :messages, as: :widget_chat_messages
-      post ':session_id/messages', action: :message
-      post ':session_id/typing', action: :typing, as: :widget_chat_typing
-      post ':session_id/end', action: :end_chat, as: :widget_chat_end
-      post ':session_id/rate', action: :rate, as: :widget_chat_rate
-    end
-
-    # Guest routes (no authentication required)
-    namespace :guest do
-      post 'verification', to: 'verifications#request_verification', as: :verification
-      post 'lookup', to: 'verifications#lookup', as: :lookup
-      get 'create', to: 'tickets#create'
-      post '/', to: 'tickets#store', as: :tickets
-      get ':token', to: 'tickets#show', as: :ticket
-      post ':token/reply', to: 'tickets#reply', as: :ticket_reply
-      post ':token/rate', to: 'tickets#rate', as: :ticket_rate
+    if Escalated.configuration.guest_routes_enabled?
+      # Guest routes (no authentication required). Not drawn at all while
+      # config.guest_routes_enabled (ESCALATED_GUEST_ROUTES) is off; while it is
+      # on, the guest_tickets_enabled admin setting still turns them off at runtime.
+      namespace :guest do
+        post 'verification', to: 'verifications#request_verification', as: :verification
+        post 'lookup', to: 'verifications#lookup', as: :lookup
+        get 'create', to: 'tickets#create'
+        post '/', to: 'tickets#store', as: :tickets
+        get ':token', to: 'tickets#show', as: :ticket
+        post ':token/reply', to: 'tickets#reply', as: :ticket_reply
+        post ':token/rate', to: 'tickets#rate', as: :ticket_rate
+      end
     end
 
     # The two-factor challenge after the host's login (ADR 2026-10-29); 404

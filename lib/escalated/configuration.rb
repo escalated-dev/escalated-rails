@@ -11,6 +11,8 @@ module Escalated
       cache_store: nil
     }.freeze
 
+    FALSE_VALUES = %w[0 false no off].freeze
+
     attr_accessor :mode,
                   # Seconds the agent panel's inbox counts are cached per agent (0 = off)
                   :agent_inbox_cache_seconds,
@@ -33,6 +35,11 @@ module Escalated
                   :route_overrides,
                   :middleware,
                   :admin_middleware,
+                  # Extra guards on the customer portal and customer knowledge
+                  # base, run after `middleware`: before_action method names or
+                  # callables taking the controller (default []). Set e.g.
+                  # [:require_staff!] to make the portal staff-only.
+                  :customer_middleware,
                   :hosted_api_url,
                   :hosted_api_key,
                   :hosted_signing_secret,
@@ -101,6 +108,13 @@ module Escalated
                   :widget_allowed_origins,
                   :widget_preflight_max_age,
                   :widget_serve_script,
+                  # Register the widget routes at all (ESCALATED_WIDGET_ENABLED,
+                  # default true). Off: no {route_prefix}/widget route exists.
+                  :widget_enabled,
+                  # Register the guest portal routes at all (ESCALATED_GUEST_ROUTES,
+                  # default true). The guest_tickets_enabled admin setting still
+                  # switches the portal off at runtime while this is on.
+                  :guest_routes_enabled,
                   :api_token_expiry_days,
                   :api_prefix,
                   # Branding (used by newsletters + emails)
@@ -165,6 +179,7 @@ module Escalated
       @route_overrides = {}
       @middleware = [:authenticate_user!]
       @admin_middleware = nil
+      @customer_middleware = []
       @hosted_api_url = nil
       @hosted_api_key = nil
       @hosted_signing_secret = nil
@@ -259,6 +274,8 @@ module Escalated
       @widget_preflight_max_age = 600
       # Mount {route_prefix}/widget/embed.js, the standalone widget bundle.
       @widget_serve_script = true
+      @widget_enabled = env_flag('ESCALATED_WIDGET_ENABLED', default: true)
+      @guest_routes_enabled = env_flag('ESCALATED_GUEST_ROUTES', default: true)
 
       # Branding defaults
       @app_name = 'Support'
@@ -336,6 +353,20 @@ module Escalated
       ui_enabled == true
     end
 
+    def widget_enabled?
+      widget_enabled != false
+    end
+
+    def guest_routes_enabled?
+      guest_routes_enabled != false
+    end
+
+    # The cloud -> site webhook is only drawn once its signing secret is set:
+    # without one there is nothing to verify a request against.
+    def cloud_webhook_enabled?
+      hosted_signing_secret.to_s.strip != ''
+    end
+
     # Embed Escalated's admin in the host's own admin panel instead of the
     # standalone admin at /{route_prefix}/admin (optional; ADR
     # 2026-11-05-embeddable-admin). Call it in config/initializers/escalated.rb,
@@ -374,6 +405,15 @@ module Escalated
 
     def user_model
       user_class.constantize
+    end
+
+    private
+
+    def env_flag(name, default:)
+      value = ENV.fetch(name, '').strip.downcase
+      return default if value.empty?
+
+      FALSE_VALUES.exclude?(value)
     end
   end
 end

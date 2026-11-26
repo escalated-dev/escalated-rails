@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+## [0.7.14] - 2026-11-25
+
 ### Upgrading
 - **`POST /support/cloud/webhook` is drawn only while `config.hosted_signing_secret` is set.** Without a secret it could only answer 503; Synced installs that set the secret see no change.
 - **Staff screens raise `Escalated::UserModelNotConfigured` when the signed-in user's model defines neither `escalated_agent?` nor `escalated_admin?`.** Such an install could not have any staff (every staff request was redirected with "not an agent"); the error names the missing methods.

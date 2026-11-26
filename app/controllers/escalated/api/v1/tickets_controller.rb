@@ -205,7 +205,7 @@ module Escalated
           render json: { message: 'Tags updated.' }
         end
 
-        # DELETE /api/v1/tickets/:reference
+        # DELETE /api/v1/tickets/:reference (admin token owned by an admin)
         def destroy
           @ticket.destroy!
 
@@ -213,6 +213,12 @@ module Escalated
         end
 
         private
+
+        # Deleting a ticket is an admin action (escalated-laravel's staff API
+        # puts DELETE /tickets/{ref} behind the admin ability).
+        def required_api_ability
+          action_name == 'destroy' ? 'admin' : 'agent'
+        end
 
         def set_ticket
           @ticket = Escalated::Ticket.find_by!(reference: params[:reference])

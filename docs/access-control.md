@@ -44,7 +44,10 @@ itself. Give users who should have everything the `admin` role.
 - Applying a macro needs `macro.view` and `ticket.edit`; an internal API reply
   needs `reply.create_internal`.
 - API tokens act as their owner, so the staff API checks the owner's
-  permissions as well as the token's abilities.
+  permissions as well as the token's abilities. Abilities are `agent`, `admin`
+  and `*`, and are not hierarchical. Staff endpoints need `agent` or `*` and an
+  owner who is still an agent or admin; deleting a ticket needs `admin` or `*`
+  and an owner who is still an admin.
 - The newsletter screens check `newsletters.manage` and `newsletters.send`, and
   plugin menu items, widgets and slots check their `permission`, only while the
   switch is on.

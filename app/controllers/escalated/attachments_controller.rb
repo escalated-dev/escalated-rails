@@ -35,6 +35,12 @@ module Escalated
       current_api_user
     end
 
+    # Access is decided per attachment by AttachmentAccess, so any valid
+    # token's owner may try; customers download their own tickets' files.
+    def required_api_ability
+      nil
+    end
+
     def send_attachment(attachment)
       response.headers['Cache-Control'] = 'private, no-store, max-age=0'
       response.headers['X-Content-Type-Options'] = 'nosniff'

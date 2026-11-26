@@ -12,6 +12,8 @@ module Escalated
       #
       # login/register/refresh/logout carry no token yet, so they skip token
       # authentication; validate/me/profile use the authenticated user.
+      # validate belongs to the staff API and needs an agent token; me and
+      # profile only touch the caller's own account, so any valid token works.
       class AuthController < BaseController
         skip_before_action :authenticate_api_token!, only: %i[login register refresh logout]
         skip_before_action :enforce_rate_limit!, only: %i[login register refresh logout]
@@ -73,6 +75,10 @@ module Escalated
         end
 
         private
+
+        def required_api_ability
+          action_name == 'validate' ? 'agent' : nil
+        end
 
         def delegate(callback, arg)
           return render_not_configured unless callback.respond_to?(:call)

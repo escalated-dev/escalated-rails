@@ -6,6 +6,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Security
+- **The staff API now checks each token's abilities and its owner.** Before, any valid token could call every staff endpoint, including deleting tickets, whatever abilities it was given and whoever owned it. Now, as in escalated-laravel, abilities are `agent`, `admin` and `*` and are not hierarchical: staff endpoints need an `agent` or `*` token whose owner is still an agent or admin, and `DELETE /tickets/:reference` needs an `admin` or `*` token whose owner is still an admin. Refusals answer 403 with `Insufficient permissions.` or `User no longer has agent access.`. `GET /auth/me`, `PATCH /auth/profile` and attachment downloads still accept any valid token, since they only reach the caller's own account or files.
+
+### Upgrading
+- **Check the abilities on existing API tokens.** A token whose owner is not staff, or that has neither `agent` nor `*`, is now refused on the staff API; a token used to delete tickets needs `admin` or `*` and an admin owner.
+
 ## [0.7.14] - 2026-11-25
 
 ### Upgrading

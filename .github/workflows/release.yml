@@ -74,7 +74,7 @@ jobs:
 
       - name: Configure trusted publishing
         if: vars.RUBYGEMS_TRUSTED_PUBLISHING == 'true'
-        uses: rubygems/configure-rubygems-credentials@v1.0.0
+        uses: rubygems/configure-rubygems-credentials@v2.2.0
 
       - name: Publish
         env:

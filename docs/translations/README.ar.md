@@ -166,7 +166,7 @@ rails generate escalated:install
 rails db:migrate
 ```
 
-بعد ذلك افتح `/support`. يتطلب Ruby 3.1+ وRails 7.1+. يشرح [دليل البدء](../getting-started.md) الـ concern المسمى `Ticketable` وفحوصات الوصول.
+بعد ذلك افتح `/support`. يتطلب Ruby 3.2+ وRails 8.0+. يشرح [دليل البدء](../getting-started.md) الـ concern المسمى `Ticketable` وفحوصات الوصول.
 
 ## اعرف المزيد
 

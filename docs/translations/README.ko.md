@@ -166,7 +166,7 @@ rails generate escalated:install
 rails db:migrate
 ```
 
-그런 다음 `/support`에 접속하세요. Ruby 3.1 이상과 Rails 7.1 이상이 필요합니다. [시작 가이드](../getting-started.md)에서 `Ticketable` concern과 접근 검사를 설명합니다.
+그런 다음 `/support`에 접속하세요. Ruby 3.2 이상과 Rails 8.0 이상이 필요합니다. [시작 가이드](../getting-started.md)에서 `Ticketable` concern과 접근 검사를 설명합니다.
 
 ## 더 알아보기
 

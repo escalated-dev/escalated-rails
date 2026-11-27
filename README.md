@@ -166,7 +166,7 @@ rails generate escalated:install
 rails db:migrate
 ```
 
-Then visit `/support`. Needs Ruby 3.1+ and Rails 7.1+. The [getting started guide](docs/getting-started.md) covers the user model's role methods and access checks; `bin/rails escalated:doctor` checks the setup.
+Then visit `/support`. Needs Ruby 3.2+ and Rails 8.0+. The [getting started guide](docs/getting-started.md) covers the user model's role methods and access checks; `bin/rails escalated:doctor` checks the setup.
 
 ### Required: schedule the recurring jobs
 

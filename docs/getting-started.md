@@ -2,8 +2,8 @@
 
 ## Requirements
 
-- Ruby 3.1+
-- Rails 7.1+
+- Ruby 3.2+
+- Rails 8.0+
 - Node.js 18+ (for frontend assets)
 
 ## Quick Start

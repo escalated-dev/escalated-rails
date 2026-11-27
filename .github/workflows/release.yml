@@ -1,0 +1,92 @@
+name: Publish to RubyGems
+
+# Publishes the escalated gem when a GitHub release is published.
+# Re-run for an existing tag with "Run workflow" (workflow_dispatch) and the tag name.
+# Authenticates with the RUBYGEMS_API_KEY secret, or with RubyGems trusted
+# publishing when the RUBYGEMS_TRUSTED_PUBLISHING variable is "true". With
+# neither, the publish step is skipped with a warning.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Release tag to publish (e.g. v0.7.15)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: rubygems-${{ github.event.release.tag_name || inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: refs/tags/${{ env.TAG }}
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+
+      - name: Verify the gemspec version matches the tag
+        run: |
+          gem_version="$(ruby -e 'puts Gem::Specification.load("escalated.gemspec").version')"
+          if [ "$gem_version" != "${TAG#v}" ]; then
+            echo "::error::escalated.gemspec version ($gem_version) does not match tag $TAG"
+            exit 1
+          fi
+          echo "GEM_VERSION=$gem_version" >> "$GITHUB_ENV"
+
+      # A gem whose runtime dependencies are not on RubyGems installs for nobody.
+      - name: Check runtime dependencies are on RubyGems
+        run: |
+          missing=""
+          for name in $(ruby -e 'puts Gem::Specification.load("escalated.gemspec").runtime_dependencies.map(&:name)'); do
+            gem list --remote --exact "$name" | grep -q "^$name (" || missing="$missing $name"
+          done
+          if [ -n "$missing" ]; then
+            echo "::error::Not on RubyGems yet:$missing. Publish those first."
+            exit 1
+          fi
+
+      - name: Build the gem
+        run: gem build escalated.gemspec
+
+      - name: Check the gem contents
+        run: |
+          gem spec "escalated-${GEM_VERSION}.gem" files --yaml > "$RUNNER_TEMP/files.yml"
+          if grep -E -- '- (spec|test|\.github)/' "$RUNNER_TEMP/files.yml"; then
+            echo "::error::The gem includes test or CI files"
+            exit 1
+          fi
+          echo "$(grep -c -- '- ' "$RUNNER_TEMP/files.yml") files in escalated-${GEM_VERSION}.gem"
+
+      - name: Configure trusted publishing
+        if: vars.RUBYGEMS_TRUSTED_PUBLISHING == 'true'
+        uses: rubygems/configure-rubygems-credentials@v1.0.0
+
+      - name: Publish
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY || env.GEM_HOST_API_KEY }}
+          TRUSTED_PUBLISHING: ${{ vars.RUBYGEMS_TRUSTED_PUBLISHING }}
+        run: |
+          if [ -z "$GEM_HOST_API_KEY" ] && [ "$TRUSTED_PUBLISHING" != "true" ]; then
+            echo "::warning title=RubyGems publish skipped::RUBYGEMS_API_KEY is not configured and RUBYGEMS_TRUSTED_PUBLISHING is not 'true', so nothing was published."
+            exit 0
+          fi
+          if gem list --remote --exact --all escalated | grep -q "[(, ]${GEM_VERSION}[,)]"; then
+            echo "::notice title=RubyGems publish skipped::escalated ${GEM_VERSION} is already on RubyGems."
+            exit 0
+          fi
+          gem push "escalated-${GEM_VERSION}.gem"

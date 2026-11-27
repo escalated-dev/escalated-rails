@@ -166,7 +166,7 @@ rails generate escalated:install
 rails db:migrate
 ```
 
-Rufe danach `/support` auf. Voraussetzungen: Ruby 3.1+ und Rails 7.1+. Die [Einstiegsanleitung](../getting-started.md) erklärt das `Ticketable`-Concern und die Zugriffsprüfungen.
+Rufe danach `/support` auf. Voraussetzungen: Ruby 3.2+ und Rails 8.0+. Die [Einstiegsanleitung](../getting-started.md) erklärt das `Ticketable`-Concern und die Zugriffsprüfungen.
 
 ## Mehr erfahren
 

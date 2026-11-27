@@ -166,7 +166,7 @@ rails generate escalated:install
 rails db:migrate
 ```
 
-然后访问 `/support`。需要 Ruby 3.1+ 和 Rails 7.1+。[入门指南](../getting-started.md)介绍了 `Ticketable` concern 和访问检查。
+然后访问 `/support`。需要 Ruby 3.2+ 和 Rails 8.0+。[入门指南](../getting-started.md)介绍了 `Ticketable` concern 和访问检查。
 
 ## 了解更多
 

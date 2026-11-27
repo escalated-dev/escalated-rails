@@ -166,7 +166,7 @@ rails generate escalated:install
 rails db:migrate
 ```
 
-Ardından `/support` adresini aç. Ruby 3.1+ ve Rails 7.1+ gerekir. [Başlangıç kılavuzu](../getting-started.md) `Ticketable` concern'ünü ve erişim kontrollerini anlatır.
+Ardından `/support` adresini aç. Ruby 3.2+ ve Rails 8.0+ gerekir. [Başlangıç kılavuzu](../getting-started.md) `Ticketable` concern'ünü ve erişim kontrollerini anlatır.
 
 ## Daha fazla bilgi
 

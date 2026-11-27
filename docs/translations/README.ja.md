@@ -166,7 +166,7 @@ rails generate escalated:install
 rails db:migrate
 ```
 
-その後 `/support` を開いてください。Ruby 3.1 以上と Rails 7.1 以上が必要です。`Ticketable` concern とアクセスチェックについては[スタートガイド](../getting-started.md)で説明しています。
+その後 `/support` を開いてください。Ruby 3.2 以上と Rails 8.0 以上が必要です。`Ticketable` concern とアクセスチェックについては[スタートガイド](../getting-started.md)で説明しています。
 
 ## さらに詳しく
 
